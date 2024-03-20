@@ -5,9 +5,9 @@ import numpy
 class Player(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.speed = 5
-        self.camdistance = 200
-        self.focus = Entity(model="cube", scale=0.1, position=self.position + Vec3(0, 0.8 * self.scale_y, 0))
+        self.speed = 50
+        self.camdistance = 20
+        self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.8 * self.scale_y, 0))
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
@@ -19,9 +19,9 @@ class Player(Entity):
 
     def input(self, key):
         if key == "scroll down":
-            self.camdistance = min(self.camdistance + 10, 1000)
+            self.camdistance = min(self.camdistance + 1, 100)
         if key == "scroll up":
-            self.camdistance = max(self.camdistance - 10, 0)
+            self.camdistance = max(self.camdistance - 1, 0)
         if key == "right mouse down":
             mouse.visible = False
             self.mouselock = mouse.position
