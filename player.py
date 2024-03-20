@@ -14,12 +14,19 @@ class Player(Entity):
     def update(self):
         self.move()
         self.rotate_camera()
+        # Uncomment this to see what a key is called in Ursina
+        # print(held_keys)
 
     def input(self, key):
-        if key == "scroll up":
-            self.camdistance = min(self.camdistance + 10, 1000)
         if key == "scroll down":
+            self.camdistance = min(self.camdistance + 10, 1000)
+        if key == "scroll up":
             self.camdistance = max(self.camdistance - 10, 0)
+        if key == "right mouse down":
+            mouse.visible = False
+            self.mouselock = mouse.position
+        if key == "right mouse up":
+            mouse.visible = True
 
     def move(self):
         movement_inputs = Vec3(held_keys['e'] - held_keys['q'], 0, held_keys['w'] - held_keys['s']).normalized()
@@ -32,11 +39,22 @@ class Player(Entity):
         self.focus.position += movement_delta
 
     def rotate_camera(self):
+        # Keyboard Rotation:
         updown_rotation = held_keys["up arrow"] - held_keys["down arrow"]
         leftright_rotation = held_keys['d'] - held_keys['a']
         self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x)), 0))
         if abs(self.focus.rotation_x + updown_rotation) < 89:
             self.focus.rotate((updown_rotation, 0, 0))
+
+        # Mouse rotation:
+        if held_keys["right mouse"]:
+            # vel = Vec3(-1 * mouse.velocity[1], mouse.velocity[0], 0)
+            diff = mouse.position - self.mouselock
+            vel = Vec3(-1 * diff[1], diff[0], 0)
+            self.focus.rotate(vel * 100)
+            mouse.position = self.mouselock
+
+        # Adjust everything
         self.focus.rotation_z = 0
         self.rotation_y = self.focus.rotation_y
         camera.position = (0, 0, -1 * self.camdistance)
