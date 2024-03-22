@@ -13,26 +13,31 @@ class Player(Entity):
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
-        self.max_jump_height = 3
-        self.cur_jump_height = 0
-        self.time_of_jump = 0.3
+        self.max_jump_height = self.height * 1.5
+        self.rem_jump_height = self.max_jump_height
+        self.max_jump_time = 0.3
+        self.rem_jump_time = self.max_jump_time
         self.jumping = False
         self.grounded_direction = Vec3(0, 0, 0)
         self.jumping_direction = Vec3(0, 0, 0)
 
         self.grounded = True
-        self.grav = -5 * time.dt
+        self.grav = 0
 
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
 
     def update(self):
-        self.move_keyboard()
+        # Put all inputs together into one velocity vector
+        move = self.move_keyboard()
+        grav = self.gravity()
+        jump = self.jump()
+        velocity = move + grav + jump
+        self.move(velocity * time.dt)
+
         self.rotate_camera()
-        self.jump()
         self.grounded_check()
-        self.gravity()
 
         camera.position = (0, 0, -1 * self.camdistance)
         # Uncomment this to see what a key is called in Ursina
@@ -50,28 +55,28 @@ class Player(Entity):
             mouse.visible = True
         if key == "space":
             self.start_jump()
-        # if key == "space up" and self.cur_jump_height: # track cur jump time for this, after may not be used correctly
-        #     after(self.time_of_jump / 2 - self.cur_jump_time, self.cancel_jump())
 
     def grounded_check(self):
         self.grounded = self.intersects()
 
     def gravity(self):
         if not self.grounded and not self.jumping:
-            self.move((0, self.grav, 0))
-            self.grav -= 0.2 * time.dt
+            self.grav -= 1
         elif self.grounded:
-            self.grav = -5 * time.dt
+            self.grav = 0
+        return Vec3(0, self.grav, 0)
 
     def jump(self):
         if self.jumping:
-            dist = time.dt * self.max_jump_height / self.time_of_jump
-            if self.cur_jump_height + dist >= self.max_jump_height:
-                dist = self.max_jump_height - self.cur_jump_height
-            self.move((0, dist, 0))
-            self.cur_jump_height += dist
-            if self.cur_jump_height >= self.max_jump_height:
+            speed = self.max_jump_height / self.max_jump_time
+            if self.rem_jump_height - speed * time.dt <= 0:
+                speed = self.rem_jump_height / self.max_jump_time
                 self.cancel_jump()
+                return Vec3(0, speed, 0)
+            else:
+                self.rem_jump_height -= speed * time.dt
+                return Vec3(0, speed, 0)
+        return Vec3(0, 0, 0)
 
     def start_jump(self):
         if self.grounded:
@@ -79,7 +84,7 @@ class Player(Entity):
 
     def cancel_jump(self):
         self.jumping = False
-        self.cur_jump_height = 0
+        self.rem_jump_height = self.max_jump_height
 
     def move_keyboard(self):
         """Handle keyboard inputs for movement"""
@@ -88,17 +93,11 @@ class Player(Entity):
         rotation_matrix = numpy.array([[numpy.cos(theta), -1 * numpy.sin(theta)], [numpy.sin(theta), numpy.cos(theta)]])
         move_direction = rotation_matrix @ numpy.array([movement_inputs[0], movement_inputs[2]])
         move_direction = Vec3(move_direction[0], 0, move_direction[1])
-        if self.grounded or self.jumping:
+        if self.grounded:
             self.grounded_direction = move_direction
-        # elif self.jumping:
-        #     move_direction = 0.8 * self.grounded_direction + 0.2 * move_direction
-        #     self.jumping_direction = move_direction
-        # else:
-        #     move_direction = self.jumping_direction
         else:
             move_direction = 0.8 * self.grounded_direction + 0.2 * move_direction
-        delta = move_direction * time.dt * self.speed
-        self.move(delta)
+        return move_direction * self.speed
 
     def rotate_camera(self):
         """Handle keyboard/mouse inputs for camera"""
