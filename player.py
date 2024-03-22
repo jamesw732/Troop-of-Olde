@@ -5,24 +5,27 @@ import numpy
 class Player(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.speed = 50
+        self.speed = 30
         self.camdistance = 20
         self.height = self.scale_y
 
-        self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.8 * self.height, 0))
+        self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.8 * self.height, 0), rotation=(1, 0, 0))
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
         self.max_jump_height = 3
         self.cur_jump_height = 0
-        self.time_of_jump = 0.2
+        self.time_of_jump = 0.3
         self.jumping = False
+        self.grounded_direction = Vec3(0, 0, 0)
+        self.jumping_direction = Vec3(0, 0, 0)
 
         self.grounded = True
-        # self.ground_detection = boxcast()
+        self.grav = -5 * time.dt
 
         self.traverse_target = scene
-        self.ignore_list = [self]
+        self.ignore_traverse = [self]
+
 
     def update(self):
         self.move_keyboard()
@@ -31,12 +34,13 @@ class Player(Entity):
         self.grounded_check()
         self.gravity()
 
+        camera.position = (0, 0, -1 * self.camdistance)
         # Uncomment this to see what a key is called in Ursina
         # print(held_keys)
 
     def input(self, key):
         if key == "scroll down":
-            self.camdistance = min(self.camdistance + 1, 100)
+            self.camdistance = min(self.camdistance + 1, 150)
         if key == "scroll up":
             self.camdistance = max(self.camdistance - 1, 0)
         if key == "right mouse down":
@@ -54,8 +58,10 @@ class Player(Entity):
 
     def gravity(self):
         if not self.grounded and not self.jumping:
-            grav = -10 * time.dt
-            self.move((0, grav, 0))
+            self.move((0, self.grav, 0))
+            self.grav -= 0.2 * time.dt
+        elif self.grounded:
+            self.grav = -5 * time.dt
 
     def jump(self):
         if self.jumping:
@@ -81,9 +87,18 @@ class Player(Entity):
         theta = numpy.radians(-1 * self.rotation_y)
         rotation_matrix = numpy.array([[numpy.cos(theta), -1 * numpy.sin(theta)], [numpy.sin(theta), numpy.cos(theta)]])
         move_direction = rotation_matrix @ numpy.array([movement_inputs[0], movement_inputs[2]])
-        movement_delta = Vec3(move_direction[0], 0, move_direction[1]) * time.dt * self.speed
-
-        self.move(movement_delta)
+        move_direction = Vec3(move_direction[0], 0, move_direction[1])
+        if self.grounded or self.jumping:
+            self.grounded_direction = move_direction
+        # elif self.jumping:
+        #     move_direction = 0.8 * self.grounded_direction + 0.2 * move_direction
+        #     self.jumping_direction = move_direction
+        # else:
+        #     move_direction = self.jumping_direction
+        else:
+            move_direction = 0.8 * self.grounded_direction + 0.2 * move_direction
+        delta = move_direction * time.dt * self.speed
+        self.move(delta)
 
     def rotate_camera(self):
         """Handle keyboard/mouse inputs for camera"""
@@ -114,3 +129,7 @@ class Player(Entity):
         """Move both player and focus"""
         self.position += delta
         self.focus.position = self.position
+
+    def move_to(self, loc):
+        self.position = loc
+        self.focus.position = loc
