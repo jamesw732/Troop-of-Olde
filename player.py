@@ -3,10 +3,10 @@ import numpy
 
 
 class Player(Entity):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, speed=30, camdistance=20, **kwargs):
         super().__init__(*args, **kwargs)
-        self.speed = 30
-        self.camdistance = 20
+        self.speed = speed
+        self.camdistance = camdistance
         self.height = self.scale_y
 
         self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.8 * self.height, 0), rotation=(1, 0, 0))
@@ -21,7 +21,7 @@ class Player(Entity):
         self.grounded_direction = Vec3(0, 0, 0)
         self.jumping_direction = Vec3(0, 0, 0)
 
-        self.grounded = True
+        self.grounded = False
         self.grav = 0
 
         self.traverse_target = scene
@@ -34,10 +34,11 @@ class Player(Entity):
         grav = self.gravity()
         jump = self.jump()
         velocity = move + grav + jump
+        velocity = self.handle_downward_collision(velocity)
         self.move(velocity * time.dt)
 
         self.rotate_camera()
-        self.grounded_check()
+        self.
 
         camera.position = (0, 0, -1 * self.camdistance)
         # Uncomment this to see what a key is called in Ursina
@@ -55,9 +56,18 @@ class Player(Entity):
             mouse.visible = True
         if key == "space":
             self.start_jump()
+    
+    def handle_downward_collision(self, vel):
+        if self.jumping:
+            return vel
+        downwards = boxcast(self.position, direction=(0, -1, 0), distance = abs(vel[1] * time.dt), traverse_target=self.traverse_target, ignore=self.ignore_traverse)
+        if downwards.hit:
+            vel[1] = (downwards.world_point[1] - self.y) / time.dt
+            self.grounded = True
+        else:
+            self.grounded = False
 
-    def grounded_check(self):
-        self.grounded = self.intersects()
+        return vel
 
     def gravity(self):
         if not self.grounded and not self.jumping:
