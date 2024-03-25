@@ -4,12 +4,13 @@ import numpy
 
 class Player(Entity):
     def __init__(self, *args, speed=30, camdistance=20, **kwargs):
+        """Initialize entity, instantiate some instance variables."""
         super().__init__(*args, **kwargs)
         self.speed = speed
         self.camdistance = camdistance
         self.height = self.scale_y
 
-        self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.8 * self.height, 0), rotation=(1, 0, 0))
+        self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.5 * self.height, 0), rotation=(1, 0, 0))
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
@@ -27,8 +28,8 @@ class Player(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
-
     def update(self):
+        """Handle things that happen every frame"""
         # Put all inputs together into one velocity vector
         move = self.move_keyboard()
         grav = self.gravity()
@@ -38,13 +39,14 @@ class Player(Entity):
         self.move(velocity * time.dt)
 
         self.rotate_camera()
-        self.
+        self.adjust_camera_zoom()
 
-        camera.position = (0, 0, -1 * self.camdistance)
+        self.move_focus()
         # Uncomment this to see what a key is called in Ursina
         # print(held_keys)
 
     def input(self, key):
+        """Handle things that happen once upon an input"""
         if key == "scroll down":
             self.camdistance = min(self.camdistance + 1, 150)
         if key == "scroll up":
@@ -56,20 +58,23 @@ class Player(Entity):
             mouse.visible = True
         if key == "space":
             self.start_jump()
-    
+
     def handle_downward_collision(self, vel):
+        """Send ray from position downwards by roughly the expected amount of downward movement.
+        If jumping, return original velocity.
+        If there's a hit, move downwards and ground self. If no hit, unground self."""
         if self.jumping:
             return vel
-        downwards = boxcast(self.position, direction=(0, -1, 0), distance = abs(vel[1] * time.dt), traverse_target=self.traverse_target, ignore=self.ignore_traverse)
+        downwards = boxcast(self.position, direction=(0, -1, 0), distance = abs(vel[1] * time.dt) * 1.05, ignore=self.ignore_traverse)
         if downwards.hit:
             vel[1] = (downwards.world_point[1] - self.y) / time.dt
             self.grounded = True
         else:
             self.grounded = False
-
         return vel
 
     def gravity(self):
+        """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
         if not self.grounded and not self.jumping:
             self.grav -= 1
         elif self.grounded:
@@ -77,6 +82,7 @@ class Player(Entity):
         return Vec3(0, self.grav, 0)
 
     def jump(self):
+        """If jumping, add some y to velocity vector"""
         if self.jumping:
             speed = self.max_jump_height / self.max_jump_time
             if self.rem_jump_height - speed * time.dt <= 0:
@@ -89,10 +95,12 @@ class Player(Entity):
         return Vec3(0, 0, 0)
 
     def start_jump(self):
+        """Set self.jumping"""
         if self.grounded:
             self.jumping = True
 
     def cancel_jump(self):
+        """Reset self.jumping, remaining jump height"""
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
 
@@ -114,6 +122,7 @@ class Player(Entity):
         # Keyboard Rotation:
         updown_rotation = held_keys["up arrow"] - held_keys["down arrow"]
         leftright_rotation = held_keys['d'] - held_keys['a']
+        # Slow down left/right rotation by multiplying by cos(x rotation)
         self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x)), 0))
         self.focus.rotate((updown_rotation, 0, 0))
 
@@ -134,11 +143,27 @@ class Player(Entity):
         if self.focus.rotation < -max_vert_rotation:
             self.focus.rotation_x = -max_vert_rotation
 
+    def adjust_camera_zoom(self):
+        """Set camera zoom. Handles camera collision with entities"""
+        theta = numpy.radians(90 - self.focus.rotation_x)
+        phi = numpy.radians(-self.focus.rotation_y)
+        direction = Vec3(numpy.sin(theta) * numpy.sin(phi), numpy.cos(theta), -1 * numpy.sin(theta) * numpy.cos(phi))
+        ray = raycast(self.focus.position, direction=direction, distance=self.camdistance, ignore=self.ignore_traverse, debug=True)
+        if ray.hit:
+            print(ray.entities)
+            dist = math.dist(ray.world_point, self.focus.position)
+            camera.z = -1 * min(self.camdistance, dist)
+        else:
+            camera.z = -1 * self.camdistance
+
     def move(self, delta):
-        """Move both player and focus"""
+        """Vector addition on player's position"""
         self.position += delta
-        self.focus.position = self.position
 
     def move_to(self, loc):
+        """Set player's position"""
         self.position = loc
-        self.focus.position = loc
+
+    def move_focus(self):
+        """Called every frame, put focus on self"""
+        self.focus.position = self.position + Vec3(0, 0.5 * self.height, 0)
