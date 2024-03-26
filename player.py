@@ -34,9 +34,12 @@ class Player(Entity):
         move = self.move_keyboard()
         grav = self.gravity()
         jump = self.jump()
-        velocity = move + grav + jump
-        velocity = self.handle_downward_collision(velocity)
-        self.move(velocity * time.dt)
+        self.velocity = move + grav + jump
+        self.handle_collision()
+        # velocity = self.handle_downward_collision(velocity)
+        # velocity = self.handle_sideways_collision(velocity)
+        # self.handle_collision
+        self.move()
 
         self.rotate_camera()
         self.adjust_camera_zoom()
@@ -59,19 +62,18 @@ class Player(Entity):
         if key == "space":
             self.start_jump()
 
-    def handle_downward_collision(self, vel):
-        """Send ray from position downwards by roughly the expected amount of downward movement.
-        If jumping, return original velocity.
-        If there's a hit, move downwards and ground self. If no hit, unground self."""
-        if self.jumping:
-            return vel
-        downwards = boxcast(self.position, direction=(0, -1, 0), distance = abs(vel[1] * time.dt) * 1.05, ignore=self.ignore_traverse)
-        if downwards.hit:
-            vel[1] = (downwards.world_point[1] - self.y) / time.dt
-            self.grounded = True
-        else:
-            self.grounded = False
-        return vel
+    def handle_collision(self):
+        norm = distance((0, 0, 0), self.velocity) * time.dt
+        collision_check = raycast(self.position + Vec3(0, 0.1, 0), direction=self.velocity, distance=norm, ignore=self.ignore_traverse)
+        if collision_check.hit:
+            print(collision_check.entities)
+            normal = collision_check.normal
+            self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
+            if self.velocity[1] == 0:
+                self.grounded = True
+            else:
+                self.grounded = False
+            print(self.velocity)
 
     def gravity(self):
         """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
@@ -98,6 +100,7 @@ class Player(Entity):
         """Set self.jumping"""
         if self.grounded:
             self.jumping = True
+            self.grounded = False
 
     def cancel_jump(self):
         """Reset self.jumping, remaining jump height"""
@@ -113,8 +116,10 @@ class Player(Entity):
         move_direction = Vec3(move_direction[0], 0, move_direction[1])
         if self.grounded:
             self.grounded_direction = move_direction
+        # elif self.jumping:
+        #     self.grounded_direction = self.move_direction = (0.5 * self.grounded_direction + 0.5 * move_direction).normalized()
         else:
-            move_direction = 0.8 * self.grounded_direction + 0.2 * move_direction
+            move_direction = (0.8 * self.grounded_direction + 0.2 * move_direction).normalized()
         return move_direction * self.speed
 
     def rotate_camera(self):
@@ -148,17 +153,16 @@ class Player(Entity):
         theta = numpy.radians(90 - self.focus.rotation_x)
         phi = numpy.radians(-self.focus.rotation_y)
         direction = Vec3(numpy.sin(theta) * numpy.sin(phi), numpy.cos(theta), -1 * numpy.sin(theta) * numpy.cos(phi))
-        ray = raycast(self.focus.position, direction=direction, distance=self.camdistance, ignore=self.ignore_traverse, debug=True)
+        ray = raycast(self.focus.position, direction=direction, distance=self.camdistance, ignore=self.ignore_traverse)
         if ray.hit:
-            print(ray.entities)
             dist = math.dist(ray.world_point, self.focus.position)
             camera.z = -1 * min(self.camdistance, dist)
         else:
             camera.z = -1 * self.camdistance
 
-    def move(self, delta):
-        """Vector addition on player's position"""
-        self.position += delta
+    def move(self):
+        """Adjust self's position by velocity * time since last frame"""
+        self.position += self.velocity * time.dt
 
     def move_to(self, loc):
         """Set player's position"""
