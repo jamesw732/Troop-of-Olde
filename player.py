@@ -35,10 +35,8 @@ class Player(Entity):
         grav = self.gravity()
         jump = self.jump()
         self.velocity = move + grav + jump
+        self.handle_grounding()
         self.handle_collision()
-        # velocity = self.handle_downward_collision(velocity)
-        # velocity = self.handle_sideways_collision(velocity)
-        # self.handle_collision
         self.move()
 
         self.rotate_camera()
@@ -62,18 +60,31 @@ class Player(Entity):
         if key == "space":
             self.start_jump()
 
-    def handle_collision(self):
-        norm = distance((0, 0, 0), self.velocity) * time.dt
-        collision_check = raycast(self.position + Vec3(0, 0.1, 0), direction=self.velocity, distance=norm, ignore=self.ignore_traverse)
-        if collision_check.hit:
-            print(collision_check.entities)
-            normal = collision_check.normal
-            self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
-            if self.velocity[1] == 0:
+    def handle_grounding(self):
+        if self.velocity[1] > 0:
+            self.grounded = False
+            return
+        if self.velocity[1] == 0:
+            ground = raycast(self.position, direction=(0, -1, 0), distance=0.1, ignore=self.ignore_traverse)
+            self.grounded = ground.hit
+        else:
+            ground = raycast(self.position, direction=(0, -1, 0), distance=abs(self.velocity[1] * time.dt), ignore=self.ignore_traverse)
+            if ground.hit:
+                self.velocity[1] = 0
                 self.grounded = True
-            else:
-                self.grounded = False
-            print(self.velocity)
+                print(ground.world_point)
+                self.move_to(ground.world_point)
+
+    def handle_collision(self):
+        """If running into entity and close to it, project velocity onto plane defined by entity."""
+        norm = distance((0, 0, 0), self.velocity) * time.dt
+        pos = self.position
+        dir = Vec3(self.velocity[0], 0, self.velocity[2])
+        collision_check = raycast(pos, direction=dir, distance=norm, ignore=self.ignore_traverse)
+        if collision_check.hit:
+            normal = collision_check.normal
+            if numpy.dot(normal, self.velocity) < 0:
+                self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
 
     def gravity(self):
         """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
@@ -100,7 +111,6 @@ class Player(Entity):
         """Set self.jumping"""
         if self.grounded:
             self.jumping = True
-            self.grounded = False
 
     def cancel_jump(self):
         """Reset self.jumping, remaining jump height"""
