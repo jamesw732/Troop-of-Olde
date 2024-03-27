@@ -98,7 +98,6 @@ class Player(Entity):
         ceiling = raycast(pos, direction=(0, 1, 0), distance=self.velocity[1] * time.dt, ignore=self.ignore_traverse)
         if ceiling.hit:
             self.velocity[1] = 0
-            self.move_to(ceiling.world_point - Vec3(0, self.height, 0))
 
     def gravity(self):
         """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
