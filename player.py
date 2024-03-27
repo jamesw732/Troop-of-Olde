@@ -39,7 +39,6 @@ class Player(Entity):
         self.handle_collision()
         self.handle_upward_collision()
         self.move()
-        self.fix_collision_errors()
 
         self.rotate_camera()
         self.adjust_camera_zoom()
@@ -63,30 +62,36 @@ class Player(Entity):
             self.start_jump()
 
     def handle_grounding(self):
+        """Handles logic for whether the character is grounded or not.
+        Doesn't move the player at all, just handles logic for whether or not the player is grounded"""
         if self.velocity[1] > 0:
             self.grounded = False
-            return
-        if self.velocity[1] == 0:
+        elif self.velocity[1] == 0:
             ground = raycast(self.position, direction=(0, -1, 0), distance=0.1, ignore=self.ignore_traverse)
             self.grounded = ground.hit
         else:
             ground = raycast(self.position, direction=(0, -1, 0), distance=abs(self.velocity[1] * time.dt), ignore=self.ignore_traverse)
             if ground.hit:
-                self.velocity[1] = 0
                 self.grounded = True
-                self.move_to(ground.world_point)
 
     def handle_collision(self):
-        """If running into entity and close to it, project velocity onto plane defined by entity."""
+        """Handles most of the collision logic."""
         norm = distance((0, 0, 0), self.velocity) * time.dt
         pos = self.position
+        # Sometimes misses entity. Could be due to player clipping through beforehand, could be due to a raycast bug. Likely the former.
         collision_check = raycast(pos, direction=self.velocity, distance=norm, ignore=self.ignore_traverse)
         if collision_check.hit:
             normal = collision_check.world_normal
             if numpy.dot(normal, self.velocity) < 0:
                 self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
+                # Check if new velocity passes through any entities, ie concave case
+                norm2 = distance((0, 0, 0), self.velocity) * time.dt
+                ray = raycast(pos, direction=self.velocity, distance=norm2, ignore=self.ignore_traverse)
+                if ray.hit:
+                    self.velocity = Vec3(0, 0, 0)
 
     def handle_upward_collision(self):
+        """Blocks upward movement when jumping into a ceiling"""
         if self.velocity[1] < 0:
             return
         pos = self.position + Vec3(0, self.height, 0)
@@ -94,14 +99,6 @@ class Player(Entity):
         if ceiling.hit:
             self.velocity[1] = 0
             self.move_to(ceiling.world_point - Vec3(0, self.height, 0))
-
-    def fix_collision_errors(self):
-        """Bandaid fix for some seemingly unavoidable collision errors. Would seriously prefer to not have this code."""
-        if self.velocity[1] > 0:
-            return
-        ground = raycast(self.position, direction=(0, 1, 0), distance=self.height / 2, ignore=self.ignore_traverse)
-        if ground.hit:
-            self.move_to(ground.world_point)
 
     def gravity(self):
         """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
