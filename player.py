@@ -38,6 +38,7 @@ class Player(Entity):
         self.handle_grounding()
         self.handle_collision()
         self.move()
+        self.fix_collision_errors()
 
         self.rotate_camera()
         self.adjust_camera_zoom()
@@ -72,7 +73,6 @@ class Player(Entity):
             if ground.hit:
                 self.velocity[1] = 0
                 self.grounded = True
-                print(ground.world_point)
                 self.move_to(ground.world_point)
 
     def handle_collision(self):
@@ -82,9 +82,15 @@ class Player(Entity):
         dir = Vec3(self.velocity[0], 0, self.velocity[2])
         collision_check = raycast(pos, direction=dir, distance=norm, ignore=self.ignore_traverse)
         if collision_check.hit:
-            normal = collision_check.normal
+            normal = collision_check.world_normal
             if numpy.dot(normal, self.velocity) < 0:
                 self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
+
+    def fix_collision_errors(self):
+        """Bandaid fix for some seemingly unavoidable collision errors."""
+        ground = raycast(self.position, direction=(0, 1, 0), distance=0.5 * self.height, ignore=self.ignore_traverse)
+        if ground.hit:
+            self.position = ground.world_point
 
     def gravity(self):
         """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
