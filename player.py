@@ -37,6 +37,7 @@ class Player(Entity):
         self.velocity = move + grav + jump
         self.handle_grounding()
         self.handle_collision()
+        self.handle_upward_collision()
         self.move()
         self.fix_collision_errors()
 
@@ -79,18 +80,28 @@ class Player(Entity):
         """If running into entity and close to it, project velocity onto plane defined by entity."""
         norm = distance((0, 0, 0), self.velocity) * time.dt
         pos = self.position
-        dir = Vec3(self.velocity[0], 0, self.velocity[2])
-        collision_check = raycast(pos, direction=dir, distance=norm, ignore=self.ignore_traverse)
+        collision_check = raycast(pos, direction=self.velocity, distance=norm, ignore=self.ignore_traverse)
         if collision_check.hit:
             normal = collision_check.world_normal
             if numpy.dot(normal, self.velocity) < 0:
                 self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
 
+    def handle_upward_collision(self):
+        if self.velocity[1] < 0:
+            return
+        pos = self.position + Vec3(0, self.height, 0)
+        ceiling = raycast(pos, direction=(0, 1, 0), distance=self.velocity[1] * time.dt, ignore=self.ignore_traverse)
+        if ceiling.hit:
+            self.velocity[1] = 0
+            self.move_to(ceiling.world_point - Vec3(0, self.height, 0))
+
     def fix_collision_errors(self):
-        """Bandaid fix for some seemingly unavoidable collision errors."""
-        ground = raycast(self.position, direction=(0, 1, 0), distance=0.5 * self.height, ignore=self.ignore_traverse)
+        """Bandaid fix for some seemingly unavoidable collision errors. Would seriously prefer to not have this code."""
+        if self.velocity[1] > 0:
+            return
+        ground = raycast(self.position, direction=(0, 1, 0), distance=self.height / 2, ignore=self.ignore_traverse)
         if ground.hit:
-            self.position = ground.world_point
+            self.move_to(ground.world_point)
 
     def gravity(self):
         """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
