@@ -67,7 +67,7 @@ class Player(Entity):
         if self.velocity[1] > 0:
             self.grounded = False
         elif self.velocity[1] == 0:
-            ground = raycast(self.position, direction=(0, -1, 0), distance=0.1, ignore=self.ignore_traverse)
+            ground = raycast(self.position, direction=(0, -1, 0), distance=0.01, ignore=self.ignore_traverse)
             self.grounded = ground.hit
         else:
             ground = raycast(self.position, direction=(0, -1, 0), distance=abs(self.velocity[1] * time.dt), ignore=self.ignore_traverse)
