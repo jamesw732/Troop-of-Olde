@@ -37,6 +37,7 @@
     "basement": {
         "model": "plane",
         "texture": "brick",
+        "texture_scale": "100, 100",
         "scale_x": 200,
         "scale_z": 200,
         "collider": "box",
