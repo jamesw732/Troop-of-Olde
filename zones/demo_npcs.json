@@ -1,0 +1,10 @@
+{
+    "NPC": {
+        "model": "cube",
+        "color": "red",
+        "collider": "box",
+        "scale_y": 2,
+        "origin": "0, -0.5, 0",
+        "position": "10, 0, 10"
+    }
+}
