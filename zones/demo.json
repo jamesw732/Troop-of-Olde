@@ -1,0 +1,45 @@
+{
+    "Sky": {
+        "texture": "sky_sunset.jpg"
+    },
+    "ground": {
+        "model": "plane",
+        "texture": "grass",
+        "scale": 50,
+        "collider": "box"
+    },
+    "roof": {
+        "model": "cube",
+        "color": "green",
+        "collider": "box",
+        "origin": "0, 0, 0",
+        "position": "-10, 4, -10",
+        "scale_x": 5,
+        "scale_z": 5
+    },
+    "ramp": {
+        "model": "plane",
+        "color": "black",
+        "scale": 15,
+        "collider": "box",
+        "position": "10, 3.24, -10",
+        "rotation": "80, 0, 0"
+    },
+    "lopsided": {
+        "model": "cube",
+        "color": "blue",
+        "collider": "box",
+        "scale": 5,
+        "origin": "0, 0, 0",
+        "position": "-10, 0, 10",
+        "rotation": "45, 0, 0"
+    },
+    "basement": {
+        "model": "plane",
+        "texture": "brick",
+        "scale_x": 200,
+        "scale_z": 200,
+        "collider": "box",
+        "position": "0, -100, 0"
+    }
+}
