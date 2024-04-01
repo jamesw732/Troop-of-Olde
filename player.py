@@ -1,16 +1,26 @@
+"""Controls all the player movement and collision"""
+
 from ursina import *
 import numpy
+from mob import Mob
+from npc import NPC
 
 
 class Player(Entity):
-    def __init__(self, *args, speed=30, camdistance=20, **kwargs):
-        """Initialize entity, instantiate some instance variables."""
+    def __init__(self, name, *args, mob=None, camdistance=20, **kwargs):
+        """Initialize entity, instantiate some instance variables.
+        """
         super().__init__(*args, **kwargs)
-        self.speed = speed
+        if mob:
+            self.mob = mob
+        else:
+            self.mob = Mob(self)
+        self.name = name
+
         self.camdistance = camdistance
         self.height = self.scale_y
 
-        self.focus = Entity(model="cube", visible=False, position=self.position + Vec3(0, 0.5 * self.height, 0), rotation=(1, 0, 0))
+        self.focus = Entity(model="cube", visible_self=False, position=self.position + Vec3(0, 0.5 * self.height, 0), rotation=(1, 0, 0))
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
@@ -27,6 +37,8 @@ class Player(Entity):
 
         self.traverse_target = scene
         self.ignore_traverse = [self]
+
+        self.make_name_text()
 
     def update(self):
         """Handle things that happen every frame"""
@@ -60,6 +72,18 @@ class Player(Entity):
             mouse.visible = True
         if key == "space":
             self.start_jump()
+        if key == "left mouse down":
+            tgt = mouse.hovered_entity
+            if type(tgt) is NPC or type(tgt) is Player:
+                print(f"Now targeting: {tgt.name}")
+                self.mob.target = tgt.mob
+            else:
+                self.mob.target = None
+        if key == "1":
+            print("Now entering combat" if not self.mob.combat else "Now leaving combat")
+            self.mob.combat = not self.mob.combat
+            if not self.mob.combat:
+                self.mob.combat_timer = 0
 
     def handle_grounding(self):
         """Handles logic for whether the character is grounded or not.
@@ -143,7 +167,7 @@ class Player(Entity):
         #     self.grounded_direction = self.move_direction = (0.5 * self.grounded_direction + 0.5 * move_direction).normalized()
         else:
             move_direction = (0.8 * self.grounded_direction + 0.2 * move_direction).normalized()
-        return move_direction * self.speed
+        return move_direction * self.mob.speed
 
     def rotate_camera(self):
         """Handle keyboard/mouse inputs for camera"""
@@ -194,3 +218,7 @@ class Player(Entity):
     def move_focus(self):
         """Called every frame, put focus on self"""
         self.focus.position = self.position + Vec3(0, 0.5 * self.height, 0)
+    
+    def make_name_text(self):
+        Text(self.name, scale=15, parent=self.focus, origin=Vec3(0, 0, 0), position=Vec3(0, self.height, 0))
+        # Text(self.name, scale=2, origin=Vec3(0, 0, 0), position=Vec3(0, 0.2, 0))
