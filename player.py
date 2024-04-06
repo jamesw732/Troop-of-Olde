@@ -220,5 +220,5 @@ class Player(Entity):
         self.focus.position = self.position + Vec3(0, 0.5 * self.height, 0)
     
     def make_name_text(self):
-        Text(self.name, scale=15, parent=self.focus, origin=Vec3(0, 0, 0), position=Vec3(0, self.height, 0))
+        Text(self.name, scale=12, parent=self.focus, origin=Vec3(0, 0, 0), position=Vec3(0, self.height, 0))
         # Text(self.name, scale=2, origin=Vec3(0, 0, 0), position=Vec3(0, 0.2, 0))

@@ -15,10 +15,8 @@ class NPC(Entity):
         self.namelabel = self.make_name_text()
     
     def make_name_text(self):
-        return Text(self.name, parent=scene, scale=10, origin=(0, 0, 0), position=self.position + Vec3(0, self.height + 1, 0))
+        return Text(self.name, parent=scene, scale=12, origin=(0, 0, 0), position=self.position + Vec3(0, self.height + 1, 0))
 
-    def rotate_namelabel(self, pos):
-        self.namelabel.look_at(pos)
-        self.namelabel.rotation_x *= -1
-        self.namelabel.rotation_y += 180
+    def rotate_namelabel(self, dir):
+        self.namelabel.look_at(dir + self.namelabel.world_position)
         self.namelabel.rotation_z = 0
