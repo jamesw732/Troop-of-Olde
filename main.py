@@ -17,6 +17,7 @@ cb = Combat(moblist)
 def update():
     cb.main_combat_loop()
     for npc in npcs:
-        npc.rotate_namelabel(player.world_position - camera.world_position)
+        if npc.namelabel:
+            npc.rotate_namelabel(player.world_position - camera.world_position)
 
 app.run()

@@ -18,5 +18,7 @@ class NPC(Entity):
         return Text(self.name, parent=scene, scale=12, origin=(0, 0, 0), position=self.position + Vec3(0, self.height + 1, 0))
 
     def rotate_namelabel(self, dir):
+        """Point namelabel in the same direction as camera
+        dir: player position - camera position"""
         self.namelabel.look_at(dir + self.namelabel.world_position)
         self.namelabel.rotation_z = 0

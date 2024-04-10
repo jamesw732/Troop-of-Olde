@@ -1,4 +1,4 @@
-"""Stores all internal mob data, such as stats and ratings"""
+"""Stores all internal data for characters, such as stats and ratings"""
 
 from ursina import *
 
@@ -17,6 +17,8 @@ class Mob:
     def die(self):
         """Actions taken when a mob dies. Update this later."""
         print(f"{self.character.name} perishes.")
+        self.character.namelabel.disable()
+        self.character.namelabel = None
         self.character.disable()
         del self.character
         del self
