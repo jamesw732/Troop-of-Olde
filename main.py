@@ -17,5 +17,11 @@ npcs = world.create_npcs("zones/demo_npcs.json")
 npc_controllers = [NPC_Controller(npc) for npc in npcs]
 moblist = [player.mob] + [npc.mob for npc in npcs]
 
+def update():
+    # Continuous processes local to client
+    for npc in npc_controllers:
+        if npc.namelabel:
+            npc.rotate_namelabel(player.world_position - camera.world_position)
+
 
 app.run()
