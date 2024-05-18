@@ -1,22 +1,21 @@
 from ursina import *
-from player import *
-from npc import *
-from combat import *
 from world_gen import *
+from character import *
+from player_controller import *
+from npc_controller import *
 
-app = Ursina(borderless=False)
+
+app = Ursina()
 world = GenerateWorld("zones/demo.json")
 
 
-player = Player("Player", model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+player = Character("Player", model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+pc = PlayerController(player)
+
 
 npcs = world.create_npcs("zones/demo_npcs.json")
+npc_controllers = [NPC_Controller(npc) for npc in npcs]
 moblist = [player.mob] + [npc.mob for npc in npcs]
-cb = Combat(moblist)
 
-def update():
-    cb.main_combat_loop()
-    for npc in npcs:
-        npc.rotate_namelabel(camera.world_position)
 
 app.run()

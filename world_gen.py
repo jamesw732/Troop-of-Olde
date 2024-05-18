@@ -1,6 +1,6 @@
 # Handles all world generation.
 from ursina import *
-from npc import *
+from character import *
 import json
 
 tuple_vars = ["origin", "position", "world_position", "rotation", "world_rotation", "texture_scale"]
@@ -22,7 +22,7 @@ class GenerateWorld:
     def create_npcs(self, file):
         with open(file) as f:
             npc_data = json.load(f)
-        return [NPC(npc, **self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
+        return [Character(npc, **self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
 
     def parse_colors_tuples(self, data):
         if "color" in data:
