@@ -29,6 +29,8 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
+        self.namelabel = None
+
     def update(self):
         self.handle_movement()
 

@@ -21,7 +21,7 @@ class PlayerController(Entity):
         self.grounded_direction = Vec3(0, 0, 0)
         self.jumping_direction = Vec3(0, 0, 0)
 
-        self.make_name_text()
+        self.character.namelabel = self.make_name_text()
 
     def update(self):
         self.character.velocity_components["keyboard"] = self.keyboard_vel()
