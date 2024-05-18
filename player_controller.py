@@ -1,4 +1,4 @@
-"""Defines all 'physical' player behavior"""
+"""Feeds player input into a character and its mob."""
 
 from ursina import *
 import numpy
@@ -50,10 +50,8 @@ class PlayerController(Entity):
             else:
                 self.character.mob.target = None
         if key == "1":
-            print("Now entering combat" if not self.character.mob.combat else "Now leaving combat")
-            self.character.mob.combat = not self.character.mob.combat
-            if not self.character.mob.combat:
-                self.character.mob.combat_timer = 0
+            print("Now entering combat" if not self.character.mob.in_combat else "Now leaving combat")
+            self.character.mob.in_combat = not self.character.mob.in_combat
 
     def keyboard_vel(self):
         """Handle keyboard inputs for movement"""

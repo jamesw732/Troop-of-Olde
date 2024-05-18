@@ -34,6 +34,14 @@ class Character(Entity):
     def update(self):
         self.handle_movement()
 
+        if self.mob.target and self.mob.target.alive and self.mob.in_combat:
+            self.mob.progress_combat_timer()
+        else:
+            self.mob.combat_timer = 0
+
+        if self.mob and self.mob.health <= 0:
+            self.die()
+
     def handle_movement(self):
         """Combines all movement inputs into one velocity vector, then handles collision and grounding and moves in just one call."""
         # Get the character-only velocity items
@@ -121,3 +129,27 @@ class Character(Entity):
         """Reset self.jumping, remaining jump height"""
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
+
+    def get_tgt_hittable(self, target):
+        dist = distance(self, target)
+        if dist < self.mob.attackrange:
+            src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
+            tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
+            dir = tgt_pos - src_pos
+            line_of_sight = raycast(src_pos, direction=dir, distance=dist,
+                                    ignore=[entity for entity in scene.entities if type(entity) is Character])
+            if len(line_of_sight.entities) == 0:
+                return True
+            else:
+                print(f"{target.name} is out of sight.")
+        else:
+            print(f"{target.name} is too far away.")
+        return False
+
+    def die(self):
+        """Actions taken when a mob dies. Will involve removing persistent effects,
+        then deleting everything about the character and mob."""
+        print(f"{self.name} perishes.")
+        self.mob.alive = False
+        destroy(self.namelabel)
+        destroy(self)
