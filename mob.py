@@ -1,4 +1,4 @@
-"""Stores all internal data for characters, such as stats and ratings"""
+"""Represents the non-physical data and functionality of a character"""
 
 from ursina import *
 
