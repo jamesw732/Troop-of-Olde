@@ -1,0 +1,12 @@
+{
+    "w": "move_forward",
+    "a": "rotate_left",
+    "s": "move_backward",
+    "d": "rotate_right",
+    "q": "strafe_left",
+    "e": "strafe_right",
+    "up arrow": "rotate_up",
+    "down arrow": "rotate_down",
+    "space": "jump",
+    "1": "toggle_combat"
+}
