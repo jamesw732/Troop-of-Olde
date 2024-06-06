@@ -6,7 +6,7 @@ import json
 
 
 class PlayerController(Entity):
-    """Responds to processed player input."""
+    """Client-side player input handler."""
     def __init__(self, character, camdistance=20):
         """Initialize player controller."""
         super().__init__()
@@ -64,7 +64,7 @@ class PlayerController(Entity):
             rotation_matrix = numpy.array([[numpy.cos(theta), -1 * numpy.sin(theta)], [numpy.sin(theta), numpy.cos(theta)]])
             move_direction = rotation_matrix @ numpy.array([movement_inputs[0], movement_inputs[2]])
             move_direction = Vec3(move_direction[0], 0, move_direction[1])
-            self.character.velocity_components["keyboard"] = move_direction * self.character.mob.speed
+            self.character.velocity_components["keyboard"] = move_direction * self.character.speed
 
     def keyboard_rot(self, updown_rotation, leftright_rotation):
         # Keyboard Rotation
@@ -126,6 +126,9 @@ class PlayerInput(Entity):
 
     def update(self):
         """Take continuous inputs"""
+        # Probably don't need to do this whole dict nonsense for the continuous inputs.
+        # We won't be sending these inputs across the server, will just send a state update
+        # every .1 seconds or so.
         self.input_state["move"] = held_keys['move_forward'] - held_keys['move_backward']
         self.input_state["strafe"] = held_keys['strafe_right'] - held_keys['strafe_left']
         self.input_state["rotate_ud"] = held_keys['rotate_up'] - held_keys['rotate_down']

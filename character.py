@@ -4,16 +4,17 @@ from ursina import *
 import numpy
 
 class Character(Entity):
-    def __init__(self, name, *args, mob=None, **kwargs):
+    def __init__(self, name, *args, speed=10, mob=None, **kwargs):
         super().__init__(*args, **kwargs)
         if mob:
             self.mob = mob
         else:
-            self.mob = Mob(self, speed=20)
+            self.mob = Mob(self)
         self.name = name
 
         self.height = self.scale_y
 
+        self.speed = speed
         self.velocity = Vec3(0, 0, 0)
         self.velocity_components = {}
 
@@ -96,17 +97,21 @@ class Character(Entity):
 
     def handle_collision(self):
         """Handles most of the collision logic."""
-        norm = distance((0, 0, 0), self.velocity) * time.dt
-        pos = self.position
-        collision_check = raycast(pos, direction=self.velocity, distance=norm, ignore=self.ignore_traverse)
+        dist = distance((0, 0, 0), self.velocity) * time.dt
+        collision_check = raycast(self.position, direction=self.velocity, distance=dist, ignore=self.ignore_traverse)
         if collision_check.hit:
             normal = collision_check.world_normal
             if numpy.dot(normal, self.velocity) < 0:
+                # Note this is different from character speed if multiple velocity components
+                speed = distance(Vec3.zero, self.velocity)
                 # Project velocity onto normal of colliding entity
                 self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
-                # Check if new velocity passes through any entities, ie concave case
-                norm2 = distance((0, 0, 0), self.velocity) * time.dt
-                ray = raycast(pos, direction=self.velocity, distance=norm2, ignore=self.ignore_traverse)
+                # Match old speed
+                self.velocity = self.velocity.normalized() * speed
+                # Make sure new velocity doesn't pass through any entities, ie concave case.
+                # For now, we just don't move at all, but eventually can improve this.
+                dist2 = distance((0, 0, 0), self.velocity) * time.dt
+                ray = raycast(self.position, direction=self.velocity, distance=dist2, ignore=self.ignore_traverse)
                 if ray.hit:
                     self.velocity = Vec3(0, 0, 0)
 

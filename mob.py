@@ -4,11 +4,10 @@ import numpy
 from ursina import *
 
 class Mob:
-    def __init__(self, character, speed=10):
+    def __init__(self, character):
         self.character = character
         self.maxhealth = 100
         self.health = self.maxhealth
-        self.speed = speed
         self.in_combat = False
         self.target = None
         self.max_combat_timer = 0.1
