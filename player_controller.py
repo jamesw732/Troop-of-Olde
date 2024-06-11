@@ -61,7 +61,7 @@ class PlayerController(Entity):
         if key == "left mouse down":
             tgt = mouse.hovered_entity
             if type(tgt) is Character:
-                self.input_state["target"] = tgt
+                self.set_target(tgt)
         if key == "toggle_combat":
             print("Now entering combat" if not self.character.mob.in_combat else "Now leaving combat")
             self.character.mob.in_combat = not self.character.mob.in_combat
