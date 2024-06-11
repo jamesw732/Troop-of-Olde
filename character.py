@@ -105,6 +105,7 @@ class Character(Entity):
                 # Note this is different from character speed if multiple velocity components
                 speed = distance(Vec3.zero, self.velocity)
                 # Project velocity onto normal of colliding entity
+                # This is not correct.
                 self.velocity = self.velocity - (numpy.dot(normal, self.velocity)) * normal
                 # Match old speed
                 self.velocity = self.velocity.normalized() * speed

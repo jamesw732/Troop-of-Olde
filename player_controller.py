@@ -24,56 +24,70 @@ class PlayerController(Entity):
 
         self.mouselock_position = mouse.position
 
+        self.bind_keys()
+
     def update(self):
-        # Keep strictly client-only things that are updated frame by frame in here.
+        """Continuous client updates"""
+        # Frame by frame adjustments
         self.adjust_camera_zoom()
-        self.move_focus()
+        self.adjust_focus()
+        # Handle continuous inputs
+        # Keyboard movement
+        fwdback = held_keys['move_forward'] - held_keys['move_backward']
+        strafe = held_keys['strafe_right'] - held_keys['strafe_left']
+        movement_inputs = Vec3(strafe, 0, fwdback)
+        self.handle_keyboard_movement(movement_inputs)
+        # Keyboard rotation
+        rotate_ud = held_keys['rotate_up'] - held_keys['rotate_down']
+        rotate_lr = held_keys['rotate_right'] - held_keys['rotate_left']
+        self.handle_keyboard_rotation(rotate_ud, rotate_lr)
+        # Mouse rotation
+        if held_keys['right mouse']:
+            self.handle_mouse_rotation()
 
-    def handle_player_inputs(self, input_state):
-        """Respond to PlayerInput.input_state dict"""
-        movement_inputs = Vec3(input_state.get("strafe", 0), 0, input_state.get("move", 0)).normalized()
-        self.keyboard_vel(movement_inputs)
-        rotation_inputs = (input_state.get("rotate_ud", 0), input_state.get("rotate_lr", 0))
-        self.keyboard_rot(*rotation_inputs)
-
-        if input_state.get("jump"):
+    def input(self, key):
+        """Singular client updates"""
+        if key == "jump":
             self.character.start_jump()
-        if input_state.get("zoom_in"):
+        if key == "scroll up":
             self.camdistance = max(self.camdistance - 1, 0)
-        if input_state.get("zoom_out"):
+        if key == "zoom_out":
             self.camdistance = min(self.camdistance + 1, 75)
-        if input_state.get("start_drag_rotate"):
+        if key == "right mouse down":
             mouse.visible = False
             self.mouselock_position = mouse.position
-        if input_state.get("end_drag_rotate"):
+        if key == "right mouse up":
             mouse.visible = True
-        if input_state.get("drag_rotating"):
-            self.drag_rot()
-        if input_state.get("target"):
-            self.set_target(input_state.get("target"))
-        if input_state.get("toggle_combat"):
+        if key == "left mouse down":
+            tgt = mouse.hovered_entity
+            if type(tgt) is Character:
+                self.input_state["target"] = tgt
+        if key == "toggle_combat":
             print("Now entering combat" if not self.character.mob.in_combat else "Now leaving combat")
             self.character.mob.in_combat = not self.character.mob.in_combat
 
-    def keyboard_vel(self, movement_inputs):
-        """Handle keyboard inputs for movement"""
+    def handle_keyboard_movement(self, movement_inputs):
+        """Sets keyboard component of character velocity.
+        See Character.velocity_components.
+
+        movement_inputs: Vec3"""
         if movement_inputs == Vec3(0, 0, 0):
             self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
         else:
             theta = numpy.radians(-1 * self.character.rotation_y)
             rotation_matrix = numpy.array([[numpy.cos(theta), -1 * numpy.sin(theta)], [numpy.sin(theta), numpy.cos(theta)]])
             move_direction = rotation_matrix @ numpy.array([movement_inputs[0], movement_inputs[2]])
-            move_direction = Vec3(move_direction[0], 0, move_direction[1])
+            move_direction = Vec3(move_direction[0], 0, move_direction[1]).normalized()
             self.character.velocity_components["keyboard"] = move_direction * self.character.speed
 
-    def keyboard_rot(self, updown_rotation, leftright_rotation):
+    def handle_keyboard_rotation(self, updown_rotation, leftright_rotation):
         # Keyboard Rotation
         # Slow down left/right rotation by multiplying by cos(x rotation)
         self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x)), 0))
         self.focus.rotate((updown_rotation, 0, 0))
         self.fix_camera_rotation()
 
-    def drag_rot(self):
+    def handle_mouse_rotation(self):
         # Mouse rotation:
         diff = mouse.position - self.mouselock_position
         vel = Vec3(-1 * diff[1], diff[0] * numpy.cos(numpy.radians(self.focus.rotation_x)), 0)
@@ -103,7 +117,7 @@ class PlayerController(Entity):
         else:
             camera.z = -1 * self.camdistance
 
-    def move_focus(self):
+    def adjust_focus(self):
         """Called every frame, adjust player's focus to character's position"""
         self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
 
@@ -114,60 +128,9 @@ class PlayerController(Entity):
         self.character.mob.target = target.mob
         print(f"Now targeting: {target.name}")
 
-
-class PlayerInput(Entity):
-    """Parse player inputs, send to player_controller.
-    If online, reroute to host, then to player controller. Host computes new state diff, sends to all clients."""
-    def __init__(self, player_controller):
-        super().__init__()
-        self.player_controller = player_controller
-        self.input_state = {}
-        self.bind_keys()
-
-    def update(self):
-        """Take continuous inputs"""
-        # Probably don't need to do this whole dict nonsense for the continuous inputs.
-        # We won't be sending these inputs across the server, will just send a state update
-        # every .1 seconds or so.
-        self.input_state["move"] = held_keys['move_forward'] - held_keys['move_backward']
-        self.input_state["strafe"] = held_keys['strafe_right'] - held_keys['strafe_left']
-        self.input_state["rotate_ud"] = held_keys['rotate_up'] - held_keys['rotate_down']
-        self.input_state["rotate_lr"] = held_keys['rotate_right'] - held_keys['rotate_left']
-        self.input_state["drag_rotating"] = held_keys['right mouse']
-        # No need to send false-y inputs, if coded properly these should always do nothing
-        self.filter_input_state()
-        # Eventually, serialize input state and send to host. Currently, just pass into player controller
-        self.player_controller.handle_player_inputs(self.input_state)
-        # Clear input state for next frame
-        self.input_state.clear()
-
-    def input(self, key):
-        # This should be the only input function in the entire repo, hopefully
-        if key == "jump":
-            self.input_state["jump"] = 1
-        # These checks will grow in sophistication as the client becomes more complicated
-        # I.E. Scrolling up might mean zooming in, but it might also mean scrolling up in the chat window
-        if key == "scroll up":
-            self.input_state["zoom_in"] = 1
-        if key == "scroll down":
-            self.input_state["zoom_out"] = 1
-        if key == "right mouse down":
-            self.input_state["start_drag_rotate"] = 1
-        if key == "right mouse up":
-            self.input_state["end_drag_rotate"] = 1
-        if key == "left mouse down":
-            tgt = mouse.hovered_entity
-            if type(tgt) is Character:
-                self.input_state["target"] = tgt
-        if key == "toggle_combat":
-            self.input_state["toggle_combat"] = 1
-
     def bind_keys(self):
-        # Read json
+        # Bind keys based on key_mappings.json
         with open("data/key_mappings.json") as keymap:
             keymap_json = json.load(keymap)
             for k, v in keymap_json.items():
                 input_handler.bind(k, v)
-
-    def filter_input_state(self):
-        self.input_state = {k: v for k, v in self.input_state.items() if v}
