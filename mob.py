@@ -20,11 +20,11 @@ class Mob(Entity):
 
     def update(self):
         if self.target and self.target.alive and self.in_combat:
-            self.mob.progress_combat_timer()
+            self.progress_combat_timer()
         else:
-            self.mob.combat_timer = 0
+            self.combat_timer = 0
 
-        if self.mob and self.mob.health <= 0:
+        if self.health <= 0:
             self.die()
 
     def melee_hit(self, damage):
@@ -71,3 +71,4 @@ class Mob(Entity):
         self.alive = False
         destroy(self.character.namelabel)
         destroy(self.character)
+        destroy(self)
