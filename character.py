@@ -1,4 +1,5 @@
-"""Represents the physical player/npc entities in game"""
+"""Represents the physical player/npc entities in game. Engine-relevant character
+logic."""
 from mob import *
 from ursina import *
 import numpy
@@ -6,11 +7,11 @@ import numpy
 class Character(Entity):
     def __init__(self, name, *args, speed=10, mob=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.name = name
         if mob:
             self.mob = mob
         else:
             self.mob = Mob(self)
-        self.name = name
 
         self.height = self.scale_y
 
@@ -34,14 +35,6 @@ class Character(Entity):
 
     def update(self):
         self.handle_movement()
-
-        if self.mob.target and self.mob.target.alive and self.mob.in_combat:
-            self.mob.progress_combat_timer()
-        else:
-            self.mob.combat_timer = 0
-
-        if self.mob and self.mob.health <= 0:
-            self.die()
 
     def handle_movement(self):
         """Combines all movement inputs into one velocity vector, then handles collision and grounding and moves in just one call."""
@@ -136,26 +129,12 @@ class Character(Entity):
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
 
-    def get_tgt_hittable(self, target):
+    def get_tgt_los(self, target):
+        """Returns whether the target is in line of sight"""
         dist = distance(self, target)
-        if dist < self.mob.attackrange:
-            src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
-            tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
-            dir = tgt_pos - src_pos
-            line_of_sight = raycast(src_pos, direction=dir, distance=dist,
-                                    ignore=[entity for entity in scene.entities if type(entity) is Character])
-            if len(line_of_sight.entities) == 0:
-                return True
-            else:
-                print(f"{target.name} is out of sight.")
-        else:
-            print(f"{target.name} is too far away.")
-        return False
-
-    def die(self):
-        """Actions taken when a mob dies. Will involve removing persistent effects,
-        then deleting everything about the character and mob."""
-        print(f"{self.name} perishes.")
-        self.mob.alive = False
-        destroy(self.namelabel)
-        destroy(self)
+        src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
+        tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
+        dir = tgt_pos - src_pos
+        line_of_sight = raycast(src_pos, direction=dir, distance=dist,
+                                ignore=[entity for entity in scene.entities if type(entity) is Character])
+        return len(line_of_sight.entities) == 0
