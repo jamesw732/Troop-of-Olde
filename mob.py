@@ -4,10 +4,11 @@ import numpy
 from ursina import *
 
 class Mob(Entity):
-    def __init__(self, character, *args, **kwargs):
+    def __init__(self, *args, character=None, **kwargs):
         super().__init__(*args, *kwargs)
         self.character = character
-        self.name = self.character.name
+        if self.character:
+            self.name = self.character.name
         self.maxhealth = 100
         self.health = self.maxhealth
         self.in_combat = False
@@ -61,14 +62,54 @@ class Mob(Entity):
                 self.attempt_melee_hit()
 
     def get_target_hittable(self):
+        if not self.character:
+            return
         in_range = distance(self.character, self.target.character) < self.attackrange
         return in_range and self.character.get_tgt_los(self.target.character)
+
+    def bind_to_character(self, character):
+        self.character = character
+        self.name = self.character.name
 
     def die(self):
         """Actions taken when a mob dies. Will involve removing persistent effects,
         then deleting everything about the character and mob."""
         print(f"{self.name} perishes.")
         self.alive = False
-        destroy(self.character.namelabel)
-        destroy(self.character)
+        if self.character:
+            destroy(self.character.namelabel)
+            destroy(self.character)
         destroy(self)
+
+
+class MobState:
+    def __init__(self, uuid, maxhealth, health, in_combat, target, mob=None):
+        if mob:
+            self.uuid = mob.uuid
+            self.maxhealth = mob.maxhealth
+            self.health = mob.health
+            self.in_combat = mob.in_combat
+            self.target = mob.target
+        else:
+            self.uuid = uuid
+            self.maxhealth = maxhealth
+            self.health = health
+            self.in_combat = in_combat
+            self.target = target
+
+
+def serialize_mob_state(writer, state):
+    writer.write(state.uuid)
+    writer.write(state.maxhealth)
+    writer.write(state.health)
+    writer.write(state.in_combat)
+    writer.write(state.target) # a UUID
+
+
+def deserialize_mob_state(reader):
+    state = MobState()
+    state.uuid = reader.read(int)
+    state.maxhealth = reader.read(int)
+    state.health = reader.read(int)
+    state.in_combat = reader.read(bool)
+    state.target = reader.read(int) # a UUID

@@ -11,7 +11,7 @@ class Character(Entity):
         if mob:
             self.mob = mob
         else:
-            self.mob = Mob(self)
+            self.mob = Mob(character=self)
 
         self.height = self.scale_y
 
@@ -138,3 +138,40 @@ class Character(Entity):
         line_of_sight = raycast(src_pos, direction=dir, distance=dist,
                                 ignore=[entity for entity in scene.entities if type(entity) is Character])
         return len(line_of_sight.entities) == 0
+
+
+class CharacterState:
+    def __init__(self, uuid, name, position, rotation, scale, speed, char=None):
+        if char:
+            self.uuid = char.uuid
+            self.name = char.name
+            self.position = char.position
+            self.rotation = char.rotation
+            self.scale = char.scale
+            self.speed = char.speed
+        else:
+            self.uuid = uuid
+            self.name = name
+            self.position = position
+            self.rotation = rotation
+            self.scale = scale
+            self.speed = speed
+
+
+def serialize_character_state(writer, state):
+    writer.write(state.uuid)
+    writer.write(state.name)
+    writer.write(state.position)
+    writer.write(state.rotation)
+    writer.write(state.scale)
+    writer.write(state.speed)
+
+
+def deserialize_character_state(reader):
+    state = CharacterState
+    state.uuid = reader.read(int)
+    state.name = reader.read(str)
+    state.position = reader.read(Vec3)
+    state.rotation = reader.read(Vec3)
+    state.scale = reader.read(Vec3)
+    state.speed = reader.read(float)
