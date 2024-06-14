@@ -6,7 +6,7 @@ import numpy
 from .mob import *
 
 class Character(Entity):
-    def __init__(self, name, *args, speed=10, mob=None, **kwargs):
+    def __init__(self, name, *args, uuid=0, speed=10, mob=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = name
         if mob:
