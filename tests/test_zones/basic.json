@@ -1,0 +1,8 @@
+{
+"ground": {
+        "model": "plane",
+        "texture": "grass",
+        "scale": 50,
+        "collider": "box"
+    }
+}
