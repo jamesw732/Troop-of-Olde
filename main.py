@@ -11,13 +11,6 @@ player = Character("Player", speed=20, model='cube', color=color.orange, scale_y
 player_controller = PlayerController(player)
 
 npcs = world.create_npcs("data/zones/demo_npcs.json")
-npc_controllers = [NPC_Controller(npc) for npc in npcs]
-
-def update():
-    # Continuous processes local to client
-    for npc in npc_controllers:
-        if npc.character.namelabel:
-            npc.rotate_namelabel(player.world_position - camera.world_position)
-
+npc_controllers = [NPC_Controller(npc, player) for npc in npcs]
 
 app.run()

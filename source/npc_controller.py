@@ -4,10 +4,14 @@ from ursina import *
 from .mob import Mob
 
 class NPC_Controller(Entity):
-    def __init__(self, character):
+    def __init__(self, character, player):
         super().__init__()
         self.character = character
         self.character.namelabel = self.make_name_text()
+        self.player = player
+
+    def update(self):
+        self.rotate_namelabel(self.player.world_position - camera.world_position)
 
     def make_name_text(self):
         return Text(self.character.name, parent=scene, scale=10, origin=(0, 0, 0), position=self.character.position + Vec3(0, self.character.height + 1, 0))
