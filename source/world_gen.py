@@ -1,7 +1,8 @@
 # Handles all world generation.
 from ursina import *
-from character import *
 import json
+
+from .character import *
 
 tuple_vars = ["origin", "position", "world_position", "rotation", "world_rotation", "texture_scale"]
 

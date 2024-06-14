@@ -1,8 +1,9 @@
 """Represents the physical player/npc entities in game. Engine-relevant character
 logic."""
-from mob import *
 from ursina import *
 import numpy
+
+from .mob import *
 
 class Character(Entity):
     def __init__(self, name, *args, speed=10, mob=None, **kwargs):
@@ -138,6 +139,17 @@ class Character(Entity):
         line_of_sight = raycast(src_pos, direction=dir, distance=dist,
                                 ignore=[entity for entity in scene.entities if type(entity) is Character])
         return len(line_of_sight.entities) == 0
+    
+    def get_state(self):
+        return CharacterState(self)
+    
+    def apply_state(self, state):
+        self.uuid = state.uuid
+        self.name = state.name
+        self.position = state.position
+        self.rotation = state.rotation
+        self.scale = state.scale
+        self.speed = state.speed
 
 
 class CharacterState:

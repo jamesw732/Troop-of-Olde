@@ -1,8 +1,8 @@
 from ursina import *
-from world_gen import *
-from character import *
-from player_controller import *
-from npc_controller import *
+from source.world_gen import *
+from source.character import *
+from source.player_controller import *
+from source.npc_controller import *
 
 app = Ursina()
 world = GenerateWorld("data/zones/demo.json")

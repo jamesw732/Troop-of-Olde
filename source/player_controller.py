@@ -1,8 +1,9 @@
 from ursina import *
 import numpy
-from mob import Mob
-from character import Character
 import json
+
+from .mob import Mob
+from .character import Character
 
 
 class PlayerController(Entity):
