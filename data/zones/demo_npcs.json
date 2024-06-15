@@ -1,5 +1,6 @@
 {
     "NPC": {
+        "name": "NPC",
         "model": "cube",
         "color": "red",
         "collider": "box",

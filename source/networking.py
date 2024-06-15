@@ -13,6 +13,7 @@ connection_to_char = dict()
 
 chars = []
 
+# uuid is more like a unique character id, npc's get them too
 uuid_counter = 0
 my_uuid = None
 
@@ -35,12 +36,17 @@ npc_controllers = []
 def update():
     peer.update()
 
+    for char in chars:
+        if my_uuid is not None:
+            char.rotate_namelabel(uuid_to_char[my_uuid].position
+                - camera.world_position)
+
 
 # Login handling
 def input(key):
     if not peer.is_running():
         if key == "h":
-            global pc, world, npcs, npc_controllers, uuid_counter
+            global pc, world, chars, npcs, npc_controllers, uuid_counter, my_uuid
             char = Character("Player", speed=20.0, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
             my_uuid = uuid_counter
             uuid_counter += 1
@@ -51,8 +57,13 @@ def input(key):
 
             world = GenerateWorld("data/zones/demo.json")
             npcs = world.create_npcs("data/zones/demo_npcs.json")
+            chars += npcs
             for npc in npcs:
                 npc.controller = NPC_Controller(npc, char)
+                npc.uuid = uuid_counter
+                uuid_to_char[npc.uuid] = npc
+                uuid_counter += 1
+            print(chars)
 
             peer.start("localhost", 8080, is_host=True)
         elif key == "c":

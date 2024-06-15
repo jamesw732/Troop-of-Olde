@@ -23,7 +23,7 @@ class GenerateWorld:
     def create_npcs(self, file):
         with open(file) as f:
             npc_data = json.load(f)
-        return [Character(npc, **self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
+        return [Character(**self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
 
     def parse_colors_tuples(self, data):
         if "color" in data:

@@ -21,7 +21,7 @@ char_state_attrs = {
 }
 
 # kwargs that aren't necessary to specify at all, can exist as Nones
-optional_char_kwargs = ["uuid", "controller", "type", "namelabel"]
+optional_char_kwargs = ["uuid", "controller", "type"]
 
 class Character(Entity):
     def __init__(self, *args, name="Player", speed=10.0, mob=None, state=None, **kwargs):
@@ -37,6 +37,7 @@ class Character(Entity):
             self.mob = Mob(character=self)
 
         self.height = self.scale_y
+        self.namelabel = self.make_namelabel()
 
         self.velocity = Vec3(0, 0, 0)
         self.velocity_components = {}
@@ -61,6 +62,7 @@ class Character(Entity):
 
     def update(self):
         self.handle_movement()
+        self.adjust_namelabel()
 
     def handle_movement(self):
         """Combines all movement inputs into one velocity vector, then handles collision and grounding and moves in just one call."""
@@ -164,6 +166,17 @@ class Character(Entity):
         line_of_sight = raycast(src_pos, direction=dir, distance=dist,
                                 ignore=[entity for entity in scene.entities if type(entity) is Character])
         return len(line_of_sight.entities) == 0
+
+    def make_namelabel(self):
+        return Text(self.name, parent=scene, scale=10, origin=(0, 0, 0),
+                    position=self.position + Vec3(0, self.height + 1, 0))
+
+    def rotate_namelabel(self, direction):
+        self.namelabel.look_at(direction + self.namelabel.world_position)
+        self.namelabel.rotation_z = 0
+
+    def adjust_namelabel(self):
+        self.namelabel.position = self.position + Vec3(0, self.height + 1, 0)
     
     def get_state(self):
         return CharacterState(char=self)

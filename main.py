@@ -14,4 +14,11 @@ npcs = world.create_npcs("data/zones/demo_npcs.json")
 for npc in npcs:
     npc.controller = NPC_Controller(npc, player)
 
+chars = npcs + [player]
+
+def update():
+    for char in chars:
+        if char.namelabel:
+            char.rotate_namelabel(player.position - camera.world_position)
+
 app.run()

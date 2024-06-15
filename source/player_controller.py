@@ -25,7 +25,7 @@ class PlayerController(Entity):
         self.grounded_direction = Vec3(0, 0, 0)
         self.jumping_direction = Vec3(0, 0, 0)
 
-        self.character.namelabel = self.make_name_text()
+        self.fix_namelabel()
 
         self.mouselock_position = mouse.position
 
@@ -126,8 +126,12 @@ class PlayerController(Entity):
         """Called every frame, adjust player's focus to character's position"""
         self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
 
-    def make_name_text(self):
-        Text(self.character.name, scale=15, parent=self.focus, origin=Vec3(0, 0, 0), position=Vec3(0, self.character.height, 0))
+    def fix_namelabel(self):
+        """Hacky fix to player's namelabel being slow"""
+        self.character.namelabel.parent = self.focus
+        self.character.namelabel.position = Vec3(0, self.character.height, 0)
+        self.character.rotate_namelabel = lambda _: None
+        self.character.adjust_namelabel = lambda: None
 
     def set_target(self, target):
         self.character.mob.target = target.mob
