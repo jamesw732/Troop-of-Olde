@@ -7,6 +7,7 @@ class NPC_Controller(Entity):
     def __init__(self, character, player):
         super().__init__()
         self.character = character
+        self.character.type = "npc"
         self.character.namelabel = self.make_name_text()
         self.player = player
 

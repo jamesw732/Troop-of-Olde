@@ -5,8 +5,22 @@ import numpy
 
 from .mob import *
 
+# Update this to expand CharacterState
+char_state_attrs = {
+    "uuid": int,
+    "name": str,
+    "position": Vec3,
+    "rotation": Vec3,
+    "scale": Vec3,
+    "speed": float,
+    "type": str
+}
+
+# kwargs that aren't necessary to specify at all, can exist as Nones
+optional_char_kwargs = ["uuid", "controller", "type", "namelabel"]
+
 class Character(Entity):
-    def __init__(self, name, *args, uuid=0, speed=10, mob=None, **kwargs):
+    def __init__(self, *args, name="Player", speed=10, mob=None, state=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = name
         if mob:
@@ -32,9 +46,13 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
-        self.namelabel = None
-
-        self.controller = None
+        for kwarg in optional_char_kwargs:
+            if kwarg in kwargs:
+                setattr(self, kwarg, kwargs[kwarg])
+            else:
+                setattr(self, kwarg, None)
+        if state:
+            self.apply_state(state)
 
     def update(self):
         self.handle_movement()
@@ -143,7 +161,7 @@ class Character(Entity):
         return len(line_of_sight.entities) == 0
     
     def get_state(self):
-        return CharacterState(self)
+        return CharacterState(char=self)
     
     def apply_state(self, state):
         self.uuid = state.uuid
@@ -155,37 +173,28 @@ class Character(Entity):
 
 
 class CharacterState:
-    def __init__(self, uuid, name, position, rotation, scale, speed, char=None):
-        if char:
-            self.uuid = char.uuid
-            self.name = char.name
-            self.position = char.position
-            self.rotation = char.rotation
-            self.scale = char.scale
-            self.speed = char.speed
+    def __init__(self, **kwargs):
+        if "char" in kwargs:
+            char = kwargs["char"]
+            for attr in char_state_attrs:
+                if hasattr(char, attr):
+                    val = getattr(char, attr)
+                    setattr(self, attr, val)
         else:
-            self.uuid = uuid
-            self.name = name
-            self.position = position
-            self.rotation = rotation
-            self.scale = scale
-            self.speed = speed
+            for attr in char_state_attrs:
+                if attr in kwargs:
+                    setattr(self, attr, kwargs[attr])
 
 
-def serialize_character_state(writer, state):
-    writer.write(state.uuid)
-    writer.write(state.name)
-    writer.write(state.position)
-    writer.write(state.rotation)
-    writer.write(state.scale)
-    writer.write(state.speed)
+def serialize(writer, state):
+    for attr in char_state_attrs:
+        writer.write(attr)
+        writer.write(getattr(state, attr))
 
-
-def deserialize_character_state(reader):
-    state = CharacterState
-    state.uuid = reader.read(int)
-    state.name = reader.read(str)
-    state.position = reader.read(Vec3)
-    state.rotation = reader.read(Vec3)
-    state.scale = reader.read(Vec3)
-    state.speed = reader.read(float)
+def deserialize(reader):
+    state = CharacterState()
+    while reader.iter.getRemainingSize() > 0:
+        attr = reader.read(str)
+        val = reader.read(char_state_attrs[attr])
+        setattr(state, attr, val)
+    return state

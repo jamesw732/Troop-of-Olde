@@ -12,6 +12,7 @@ class PlayerController(Entity):
         """Initialize player controller."""
         super().__init__()
         self.character = character
+        self.character.type = "player"
         self.camdistance = camdistance
 
         self.focus = Entity(model="cube", visible_self=False, position=self.character.position + Vec3(0, 0.5 * self.character.height, 0), rotation=(1, 0, 0))
