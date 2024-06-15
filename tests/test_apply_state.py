@@ -31,6 +31,9 @@ def update():
     position2 = (np.sin(rads), 0.1, np.cos(rads))
     state2 = CharacterState(uuid=0, name="Player", position=position2, rotation=box2.rotation, scale=box2.scale, speed=box2.speed)
     box2.apply_state(state2)
+    if i % 100 == 0:
+        print(box1.get_state())
+        print(box2.get_state())
     i += 1
     if i > 500:
         print("Passed")
