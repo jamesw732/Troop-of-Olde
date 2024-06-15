@@ -9,20 +9,28 @@ from .mob import *
 char_state_attrs = {
     "uuid": int,
     "name": str,
+    "type": str,
+    "speed": float,
+    "model": str,
+    "collider": str,
+    "color": str,
+    "origin": Vec3,
     "position": Vec3,
     "rotation": Vec3,
     "scale": Vec3,
-    "speed": float,
-    "type": str
 }
 
 # kwargs that aren't necessary to specify at all, can exist as Nones
 optional_char_kwargs = ["uuid", "controller", "type", "namelabel"]
 
 class Character(Entity):
-    def __init__(self, *args, name="Player", speed=10, mob=None, state=None, **kwargs):
+    def __init__(self, *args, name="Player", speed=10.0, mob=None, state=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = name
+        if state:
+            self.apply_state(state)
+        else:
+            self.name = name
+            self.speed = speed
         if mob:
             self.mob = mob
         else:
@@ -30,7 +38,6 @@ class Character(Entity):
 
         self.height = self.scale_y
 
-        self.speed = speed
         self.velocity = Vec3(0, 0, 0)
         self.velocity_components = {}
 
@@ -51,8 +58,6 @@ class Character(Entity):
                 setattr(self, kwarg, kwargs[kwarg])
             else:
                 setattr(self, kwarg, None)
-        if state:
-            self.apply_state(state)
 
     def update(self):
         self.handle_movement()
@@ -167,6 +172,9 @@ class Character(Entity):
         for attr in char_state_attrs:
             if hasattr(state, attr):
                 val = getattr(state, attr)
+                # Ursina is smart about assigning model/collider, but not color
+                if attr == "color":
+                    val = color.colors[val]
                 setattr(self, attr, val)
 
 
@@ -182,19 +190,30 @@ class CharacterState:
             for attr in char_state_attrs:
                 if hasattr(char, attr):
                     val = getattr(char, attr)
-                    setattr(self, attr, val)
+                    if val is not None:
+                        if attr in ["collider", "color", "model"]:
+                            # Ursina objects exist in CharacterState as string names
+                            val = val.name
+                        setattr(self, attr, val)
         else:
             for attr in char_state_attrs:
                 if attr in kwargs:
                     setattr(self, attr, kwargs[attr])
 
+    def __str__(self):
+        return str({attr: getattr(self, attr)
+                for attr in char_state_attrs if hasattr(self, attr)})
 
-def serialize(writer, state):
+
+def serialize_character_state(writer, state):
     for attr in char_state_attrs:
-        writer.write(attr)
-        writer.write(getattr(state, attr))
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            if val is not None:
+                writer.write(attr)
+                writer.write(val)
 
-def deserialize(reader):
+def deserialize_character_state(reader):
     state = CharacterState()
     while reader.iter.getRemainingSize() > 0:
         attr = reader.read(str)

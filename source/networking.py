@@ -1,8 +1,12 @@
+from ursina import *
 from ursina.networking import *
-from player_controller import PlayerController
+import os
 
 from .character import Character, CharacterState
 from .mob import Mob, MobState
+from .npc_controller import *
+from .player_controller import PlayerController
+from .world_gen import *
 
 uuid_to_char = dict()
 connection_to_char = dict()
@@ -17,7 +21,43 @@ update_timer = 0.0
 
 
 peer = RPCPeer()
-pc = PlayerController(peer)
+
+peer.register_type(CharacterState, serialize_character_state,
+                   deserialize_character_state)
+peer.register_type(MobState, serialize_mob_state, deserialize_mob_state)
+
+pc = None
+world = None
+npcs = []
+npc_controllers = []
+
+
+def update():
+    peer.update()
+
+
+# Login handling
+def input(key):
+    if not peer.is_running():
+        if key == "h":
+            global pc, world, npcs, npc_controllers, uuid_counter
+            char = Character("Player", speed=20.0, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+            my_uuid = uuid_counter
+            uuid_counter += 1
+            char.uuid = my_uuid
+            uuid_to_char[my_uuid] = char
+            chars.append(char)
+            pc = PlayerController(char, peer=peer)
+
+            world = GenerateWorld("data/zones/demo.json")
+            npcs = world.create_npcs("data/zones/demo_npcs.json")
+            for npc in npcs:
+                npc.controller = NPC_Controller(npc, char)
+
+            peer.start("localhost", 8080, is_host=True)
+        elif key == "c":
+            print("Attempting to connect")
+            peer.start("localhost", 8080, is_host=False)
 
 # CONNECTION FUNCTIONS
 @rpc(peer)
@@ -28,19 +68,52 @@ def on_connect(connection, time_connected):
     Will need to generate world on peer, spawn all characters including
     peer's + make mob/bind to character, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
-    pass
+    global uuid_counter
+    if peer.is_hosting():
+        char = Character(name="Player", speed=20.0, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+        char.uuid = uuid_counter
+        uuid_to_char[char.uuid] = char
+        uuid_counter += 1
+        chars.append(char)
+        connection_to_char[connection] = char
+        new_state = char.get_state()
+        peer.generate_world(connection, "data/zones/demo.json")
+        states = [c.get_state() for c in chars]
+        for conn in peer.get_connections():
+            if conn == connection:
+                for state in states:
+                    print(f"Sending state: {state}")
+                    peer.spawn_character(conn, state)
+            else:
+                peer.spawn_character(conn, new_state)
+        peer.bind_uuid_to_char(connection, char.uuid)
 
 @rpc(peer)
 def generate_world(connection, time_received, zone:str):
-    pass
+    source = os.path.abspath(os.path.dirname(__file__))
+    zonepath = os.path.join(source, "..", zone)
+    GenerateWorld(zonepath)
 
 @rpc(peer)
-def spawn_character(connection, time_received, char:CharacterState, mob: MobState):
-    pass
+def spawn_character(connection, time_received, char_state:CharacterState):
+    # add mob_state parameter to this soon
+    print(f"Received state: {char_state}")
+    if peer.is_hosting():
+        return
+    if char_state.uuid not in uuid_to_char:
+        char = Character(state=char_state)
+        chars.append(char)
+        uuid_to_char[char_state.uuid] = char
 
 @rpc(peer)
-def bind_uuid_to_char(connection, time_received, uuid):
-    pass
+def bind_uuid_to_char(connection, time_received, uuid:int):
+    if peer.is_hosting():
+        return
+    global my_uuid, pc
+    my_uuid = uuid
+    print(uuid_to_char[my_uuid].get_state())
+    pc = PlayerController(uuid_to_char[uuid], peer)
+    pc.character = uuid_to_char[uuid]
 
 # DISCONNECTION FUNCTIONS
 @rpc(peer)
@@ -64,7 +137,7 @@ def remove_char(uuid:int):
 
 # CONTINUOUS UPDATE FUNCTIONS
 @rpc(peer)
-def update_char_state(connection, time_received, charstate: CharacterState):
+def update_char_state(connection, time_received, char_state: CharacterState):
     """Mostly the RPC wrapper for Character.apply_state, eventually
     Character.update_lerp_state.
     Character state is client-authoritative, so when host receives this, it
@@ -73,7 +146,7 @@ def update_char_state(connection, time_received, charstate: CharacterState):
     pass
 
 @rpc(peer)
-def update_mob_state(connection, time_received, mobstate: MobState):
+def update_mob_state(connection, time_received, mob_state: MobState):
     """Mostly the RPC wrapper for Mob.apply_state.
     Mob state is server-authoritative, so host will be the only peer to ever call this."""
     pass
