@@ -11,6 +11,7 @@ player = Character("Player", speed=20, model='cube', color=color.orange, scale_y
 player_controller = PlayerController(player)
 
 npcs = world.create_npcs("data/zones/demo_npcs.json")
-npc_controllers = [NPC_Controller(npc, player) for npc in npcs]
+for npc in npcs:
+    npc.controller = NPC_Controller(npc, player)
 
 app.run()

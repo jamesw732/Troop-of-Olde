@@ -77,6 +77,7 @@ class Mob(Entity):
         print(f"{self.name} perishes.")
         self.alive = False
         if self.character:
+            destroy(self.character.controller)
             destroy(self.character.namelabel)
             destroy(self.character)
         destroy(self)

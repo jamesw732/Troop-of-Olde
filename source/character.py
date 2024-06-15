@@ -34,6 +34,8 @@ class Character(Entity):
 
         self.namelabel = None
 
+        self.controller = None
+
     def update(self):
         self.handle_movement()
 
