@@ -164,15 +164,18 @@ class Character(Entity):
         return CharacterState(char=self)
     
     def apply_state(self, state):
-        self.uuid = state.uuid
-        self.name = state.name
-        self.position = state.position
-        self.rotation = state.rotation
-        self.scale = state.scale
-        self.speed = state.speed
+        for attr in char_state_attrs:
+            if hasattr(state, attr):
+                val = getattr(state, attr)
+                setattr(self, attr, val)
 
 
 class CharacterState:
+    """This class is intentionally opaque to save from writing the same code
+    in multiple places and needing to update several functions every time I want
+    to expand this class. The entire purpose of this class is to abbreviate Characters,
+    and make them sendable over the network. To see exactly how Characters are
+    abbreviated, look at char_state_attrs at the top of this file."""
     def __init__(self, **kwargs):
         if "char" in kwargs:
             char = kwargs["char"]
