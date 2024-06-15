@@ -8,11 +8,14 @@ from .character import Character
 
 class PlayerController(Entity):
     """Client-side player input handler."""
-    def __init__(self, character, camdistance=20):
+    def __init__(self, character, peer=None, camdistance=20):
         """Initialize player controller."""
         super().__init__()
         self.character = character
         self.character.type = "player"
+
+        self.peer = peer
+
         self.camdistance = camdistance
 
         self.focus = Entity(model="cube", visible_self=False, position=self.character.position + Vec3(0, 0.5 * self.character.height, 0), rotation=(1, 0, 0))
@@ -53,7 +56,7 @@ class PlayerController(Entity):
             self.character.start_jump()
         if key == "scroll up":
             self.camdistance = max(self.camdistance - 1, 0)
-        if key == "zoom_out":
+        if key == "scroll down":
             self.camdistance = min(self.camdistance + 1, 75)
         if key == "right mouse down":
             mouse.visible = False
