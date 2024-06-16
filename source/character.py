@@ -12,12 +12,12 @@ char_state_attrs = {
     "type": str,
     "speed": float,
     "model": str,
-    "collider": str,
-    "color": str,
+    "scale": Vec3,
     "origin": Vec3,
+    "collider": str,
     "position": Vec3,
     "rotation": Vec3,
-    "scale": Vec3,
+    "color": str,
 }
 
 # kwargs that aren't necessary to specify at all, can exist as Nones
