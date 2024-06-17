@@ -3,6 +3,16 @@
 import numpy
 from ursina import *
 
+
+mob_state_attrs = {
+    "uuid": int,
+    "maxhealth": int,
+    "health": int,
+    "in_combat": bool,
+    "target": int          # A uuid
+}
+
+
 class Mob(Entity):
     def __init__(self, *args, character=None, **kwargs):
         super().__init__(*args, *kwargs)
@@ -84,33 +94,73 @@ class Mob(Entity):
 
 
 class MobState:
-    def __init__(self, uuid, maxhealth, health, in_combat, target, mob=None):
-        if mob:
-            self.uuid = mob.uuid
-            self.maxhealth = mob.maxhealth
-            self.health = mob.health
-            self.in_combat = mob.in_combat
-            self.target = mob.target
+    def __init__(self, mob=None, **kwargs):
+        if mob is not None:
+            for attr in mob_state_attrs:
+                if hasattr(mob, attr):
+                    val = getattr(mob, attr)
+                    # Only include attrs intentionally set
+                    if val is not None:
+                        if attr == "target":
+                            val = val.uuid
+                        setattr(self, attr, val)
         else:
-            self.uuid = uuid
-            self.maxhealth = maxhealth
-            self.health = health
-            self.in_combat = in_combat
-            self.target = target
+            for attr in mob_state_attrs:
+                if attr in kwargs:
+                    setattr(self, attr, kwargs[attr])
+
+    def __str__(self):
+        return str({attr: getattr(self, attr)
+                for attr in mob_state_attrs if hasattr(self, attr)})
 
 
 def serialize_mob_state(writer, state):
-    writer.write(state.uuid)
-    writer.write(state.maxhealth)
-    writer.write(state.health)
-    writer.write(state.in_combat)
-    writer.write(state.target) # a UUID
-
+    for attr in mob_state_attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            if val is not None:
+                writer.write(attr)
+                writer.write(val)
 
 def deserialize_mob_state(reader):
     state = MobState()
-    state.uuid = reader.read(int)
-    state.maxhealth = reader.read(int)
-    state.health = reader.read(int)
-    state.in_combat = reader.read(bool)
-    state.target = reader.read(int) # a UUID
+    while reader.iter.getRemainingSize() > 0:
+        attr = reader.read(str)
+        val = reader.read(mob_state_attrs[attr])
+        setattr(state, attr, val)
+    return state
+
+
+
+
+# class MobState:
+#     def __init__(self, uuid, maxhealth, health, in_combat, target, mob=None):
+#         if mob:
+#             self.uuid = mob.uuid
+#             self.maxhealth = mob.maxhealth
+#             self.health = mob.health
+#             self.in_combat = mob.in_combat
+#             self.target = mob.target
+#         else:
+#             self.uuid = uuid
+#             self.maxhealth = maxhealth
+#             self.health = health
+#             self.in_combat = in_combat
+#             self.target = target
+
+
+# def serialize_mob_state(writer, state):
+#     writer.write(state.uuid)
+#     writer.write(state.maxhealth)
+#     writer.write(state.health)
+#     writer.write(state.in_combat)
+#     writer.write(state.target) # a UUID
+
+
+# def deserialize_mob_state(reader):
+#     state = MobState()
+#     state.uuid = reader.read(int)
+#     state.maxhealth = reader.read(int)
+#     state.health = reader.read(int)
+#     state.in_combat = reader.read(bool)
+#     state.target = reader.read(int) # a UUID

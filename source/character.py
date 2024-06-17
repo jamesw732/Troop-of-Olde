@@ -198,6 +198,7 @@ class CharacterState:
             for attr in char_state_attrs:
                 if hasattr(char, attr):
                     val = getattr(char, attr)
+                    # Only include attrs intentionally set
                     if val is not None:
                         if attr in ["collider", "color", "model"]:
                             # Ursina objects exist in CharacterState as string names
