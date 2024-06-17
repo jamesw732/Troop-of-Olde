@@ -20,17 +20,18 @@ char_state_attrs = {
     "color": str,
 }
 
-# kwargs that aren't necessary to specify at all, can exist as Nones
-optional_char_kwargs = ["uuid", "controller", "type"]
-
 class Character(Entity):
-    def __init__(self, *args, name="Player", speed=10.0, mob=None, state=None, **kwargs):
+    def __init__(self, *args, name="Player", speed=10.0,  uuid=None, type="player",
+                 mob=None, state=None, **kwargs):
         super().__init__(*args, **kwargs)
         if state:
             self.apply_state(state)
         else:
+            self.uuid = uuid
+            self.type = type
             self.name = name
             self.speed = speed
+
         if mob:
             self.mob = mob
         else:
@@ -53,12 +54,6 @@ class Character(Entity):
 
         self.traverse_target = scene
         self.ignore_traverse = [self]
-
-        for kwarg in optional_char_kwargs:
-            if kwarg in kwargs:
-                setattr(self, kwarg, kwargs[kwarg])
-            else:
-                setattr(self, kwarg, None)
 
     def update(self):
         self.handle_movement()
@@ -198,6 +193,7 @@ class CharacterState:
     and make them sendable over the network. To see exactly how Characters are
     abbreviated, look at char_state_attrs at the top of this file."""
     def __init__(self, **kwargs):
+        # If a character was passed, take its attributes
         if "char" in kwargs:
             char = kwargs["char"]
             for attr in char_state_attrs:
@@ -208,6 +204,7 @@ class CharacterState:
                             # Ursina objects exist in CharacterState as string names
                             val = val.name
                         setattr(self, attr, val)
+        # Otherwise, read the attributes straight off
         else:
             for attr in char_state_attrs:
                 if attr in kwargs:

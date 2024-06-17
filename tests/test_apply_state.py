@@ -13,6 +13,7 @@ zone = os.path.join(testzone_dir, "basic.json")
 world = GenerateWorld(zone)
 
 box1 = Character("Player1", speed=20, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+box1.uuid = 1
 box2 = Character("Player2", speed=20, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
 # player_controller = PlayerController(player)
 

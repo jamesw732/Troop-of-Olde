@@ -41,6 +41,15 @@ def update():
             char.rotate_namelabel(uuid_to_char[my_uuid].position
                 - camera.world_position)
 
+    global update_timer
+    update_timer += time.dt
+    if update_timer >= update_rate:
+        update_timer -= update_rate
+        if peer.is_running() and peer.connection_count() > 0:
+            new_state = uuid_to_char[my_uuid].get_state()
+            for connection in peer.get_connections():
+                peer.update_char_state(connection, new_state)
+
 
 # Login handling
 def input(key):
@@ -63,7 +72,6 @@ def input(key):
                 npc.uuid = uuid_counter
                 uuid_to_char[npc.uuid] = npc
                 uuid_counter += 1
-            print(chars)
 
             peer.start("localhost", 8080, is_host=True)
         elif key == "c":
@@ -93,7 +101,6 @@ def on_connect(connection, time_connected):
         for conn in peer.get_connections():
             if conn == connection:
                 for state in states:
-                    print(f"Sending state: {state}")
                     peer.spawn_character(conn, state)
             else:
                 peer.spawn_character(conn, new_state)
@@ -108,7 +115,6 @@ def generate_world(connection, time_received, zone:str):
 @rpc(peer)
 def spawn_character(connection, time_received, char_state:CharacterState):
     # add mob_state parameter to this soon
-    print(f"Received state: {char_state}")
     if peer.is_hosting():
         return
     if char_state.uuid not in uuid_to_char:
@@ -122,7 +128,6 @@ def bind_uuid_to_char(connection, time_received, uuid:int):
         return
     global my_uuid, pc
     my_uuid = uuid
-    print(uuid_to_char[my_uuid].get_state())
     pc = PlayerController(uuid_to_char[uuid], peer)
     pc.character = uuid_to_char[uuid]
 
@@ -154,7 +159,14 @@ def update_char_state(connection, time_received, char_state: CharacterState):
     Character state is client-authoritative, so when host receives this, it
     recursively calls it again for each other connection.
     """
-    pass
+    char = uuid_to_char.get(char_state.uuid)
+    if char is not None:
+        char.apply_state(char_state)
+    if peer.is_hosting():
+        state = char.get_state()
+        for conn in peer.get_connections():
+            if conn is not connection:
+                peer.update_char_state(conn, state)
 
 @rpc(peer)
 def update_mob_state(connection, time_received, mob_state: MobState):
