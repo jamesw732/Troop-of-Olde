@@ -62,6 +62,7 @@ def input(key):
             char.uuid = my_uuid
             uuid_to_char[my_uuid] = char
             chars.append(char)
+            char.ignore_traverse = chars
             pc = PlayerController(char, peer=peer)
 
             world = GenerateWorld("data/zones/demo.json")
@@ -128,6 +129,7 @@ def bind_uuid_to_char(connection, time_received, uuid:int):
         return
     global my_uuid, pc
     my_uuid = uuid
+    chars[my_uuid].ignore_traverse = chars
     pc = PlayerController(uuid_to_char[uuid], peer)
     pc.character = uuid_to_char[uuid]
 
