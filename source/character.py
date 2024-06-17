@@ -192,10 +192,9 @@ class CharacterState:
     to expand this class. The entire purpose of this class is to abbreviate Characters,
     and make them sendable over the network. To see exactly how Characters are
     abbreviated, look at char_state_attrs at the top of this file."""
-    def __init__(self, **kwargs):
+    def __init__(self, char=None, **kwargs):
         # If a character was passed, take its attributes
-        if "char" in kwargs:
-            char = kwargs["char"]
+        if char is not None:
             for attr in char_state_attrs:
                 if hasattr(char, attr):
                     val = getattr(char, attr)
