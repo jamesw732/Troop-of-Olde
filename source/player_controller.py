@@ -2,7 +2,6 @@ from ursina import *
 import numpy
 import json
 
-from .mob import Mob
 from .character import Character
 
 
@@ -68,8 +67,8 @@ class PlayerController(Entity):
             if type(tgt) is Character:
                 self.set_target(tgt)
         if key == "toggle_combat":
-            print("Now entering combat" if not self.character.mob.in_combat else "Now leaving combat")
-            self.character.mob.in_combat = not self.character.mob.in_combat
+            print("Now entering combat" if not self.character.in_combat else "Now leaving combat")
+            self.character.in_combat = not self.character.in_combat
 
     def handle_keyboard_movement(self, movement_inputs):
         """Sets keyboard component of character velocity.
@@ -134,7 +133,7 @@ class PlayerController(Entity):
         self.character.adjust_namelabel = lambda: None
 
     def set_target(self, target):
-        self.character.mob.target = target.mob
+        self.character.target = target
         print(f"Now targeting: {target.name}")
 
     def bind_keys(self):

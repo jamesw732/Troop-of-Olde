@@ -3,7 +3,6 @@ from ursina.networking import *
 import os
 
 from .character import Character, CharacterState
-from .mob import Mob, MobState
 from .npc_controller import *
 from .player_controller import PlayerController
 from .world_gen import *
@@ -25,7 +24,6 @@ peer = RPCPeer()
 
 peer.register_type(CharacterState, serialize_character_state,
                    deserialize_character_state)
-peer.register_type(MobState, serialize_mob_state, deserialize_mob_state)
 
 pc = None
 world = None
@@ -86,7 +84,7 @@ def on_connect(connection, time_connected):
     Host just needs to make a new character, map connection/uuid to it, increment uuid,
     and send the new character to peers.
     Will need to generate world on peer, spawn all characters including
-    peer's + make mob/bind to character, and bind peer's character to my_uuid.
+    peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     global uuid_counter
     if peer.is_hosting():
@@ -115,7 +113,6 @@ def generate_world(connection, time_received, zone:str):
 
 @rpc(peer)
 def spawn_character(connection, time_received, char_state:CharacterState):
-    # add mob_state parameter to this soon
     if peer.is_hosting():
         return
     if char_state.uuid not in uuid_to_char:
@@ -170,16 +167,10 @@ def update_char_state(connection, time_received, char_state: CharacterState):
             if conn is not connection:
                 peer.update_char_state(conn, state)
 
-@rpc(peer)
-def update_mob_state(connection, time_received, mob_state: MobState):
-    """Mostly the RPC wrapper for Mob.apply_state.
-    Mob state is server-authoritative, so host will be the only peer to ever call this."""
-    pass
-
 # SINGULAR UPDATE FUNCTIONS
 
 @rpc(peer)
 def attempt_attack_remote(connection, time_received, srcuuid: int, tgtuuid: int):
-    """Called by non-hosts, wrapper for Mob.attempt_attack which guarantees combat is
-    synchronized."""
+    """Called by non-hosts, wrapper for attempt_attack which
+    guarantees combat is synchronized."""
     pass

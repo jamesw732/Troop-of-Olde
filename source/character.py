@@ -3,7 +3,6 @@ logic."""
 from ursina import *
 import numpy
 
-from .mob import *
 
 # Update this to expand CharacterState
 char_state_attrs = {
@@ -20,9 +19,11 @@ char_state_attrs = {
     "color": str,
 }
 
+
 class Character(Entity):
     def __init__(self, *args, name="Player", speed=10.0,  uuid=None, type="player",
-                 mob=None, state=None, **kwargs):
+                state=None, **kwargs):
+        # Engine-relevant vars
         super().__init__(*args, **kwargs)
         if state:
             self.apply_state(state)
@@ -31,11 +32,6 @@ class Character(Entity):
             self.type = type
             self.name = name
             self.speed = speed
-
-        if mob:
-            self.mob = mob
-        else:
-            self.mob = Mob(character=self)
 
         self.height = self.scale_y
         self.namelabel = self.make_namelabel()
@@ -55,9 +51,28 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
+        # Non-engine-relevant vars
+        self.maxhealth = 100
+        self.health = self.maxhealth
+        self.in_combat = False
+        self.target = None
+        self.max_combat_timer = 0.1
+        self.combat_timer = 0
+        self.attackrange = 10
+
+        self.alive = True
+
     def update(self):
         self.handle_movement()
         self.adjust_namelabel()
+
+        if self.target and self.target.alive and self.in_combat:
+            self.progress_combat_timer()
+        else:
+            self.combat_timer = 0
+
+        if self.health <= 0:
+            self.die()
 
     def handle_movement(self):
         """Combines all movement inputs into one velocity vector, then handles collision and grounding and moves in just one call."""
@@ -172,6 +187,53 @@ class Character(Entity):
 
     def adjust_namelabel(self):
         self.namelabel.position = self.position + Vec3(0, self.height + 1, 0)
+
+    def melee_hit(self, damage):
+        """Apply damage, print hit info, send to host/clients"""
+        print(f"{self.name} pummels {self.target.name} for {damage} damage!")
+        self.target.health -= damage
+        # Send hit to host/clients
+
+    def miss_melee_hit(self):
+        """Print miss info, send to host/clients"""
+        print(f"You attempted to pummel {self.target.name}, but missed!")
+
+    def attempt_melee_hit(self):
+        # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
+        if numpy.random.random() < 0.2:
+            # It's a miss
+            self.miss_melee_hit()
+        else:
+            # If hit goes through, do some more fancy calculations to generate a min and max hit
+            # Damage is uniform from min to max
+            min_hit = 5
+            max_hit = 15
+            damage = numpy.random.random_integers(min_hit, max_hit)
+            # Compute modifiers for an updated damage
+            # Then actually perform the hit
+            self.melee_hit(damage)
+
+    def progress_combat_timer(self):
+        # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
+        self.combat_timer += time.dt
+        if self.combat_timer > self.max_combat_timer:
+            self.combat_timer -= self.max_combat_timer
+            if self.get_target_hittable():
+                self.attempt_melee_hit()
+
+    def get_target_hittable(self):
+        in_range = distance(self, self.target) < self.attackrange
+        return in_range and self.get_tgt_los(self.target)
+
+    def die(self):
+        """Actions taken when a mob dies. Will involve removing persistent effects,
+        then deleting everything about the character and mob."""
+        print(f"{self.name} perishes.")
+        self.alive = False
+        if self.controller:
+            destroy(self.controller)
+        destroy(self.namelabel)
+        destroy(self)
     
     def get_state(self):
         return CharacterState(char=self)
