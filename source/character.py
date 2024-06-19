@@ -3,6 +3,7 @@ logic."""
 from ursina import *
 import numpy
 
+from .combat import *
 
 # Update this to expand CharacterState
 char_state_attrs = {
@@ -188,38 +189,13 @@ class Character(Entity):
     def adjust_namelabel(self):
         self.namelabel.position = self.position + Vec3(0, self.height + 1, 0)
 
-    def melee_hit(self, damage):
-        """Apply damage, print hit info, send to host/clients"""
-        print(f"{self.name} pummels {self.target.name} for {damage} damage!")
-        self.target.health -= damage
-        # Send hit to host/clients
-
-    def miss_melee_hit(self):
-        """Print miss info, send to host/clients"""
-        print(f"You attempted to pummel {self.target.name}, but missed!")
-
-    def attempt_melee_hit(self):
-        # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
-        if numpy.random.random() < 0.2:
-            # It's a miss
-            self.miss_melee_hit()
-        else:
-            # If hit goes through, do some more fancy calculations to generate a min and max hit
-            # Damage is uniform from min to max
-            min_hit = 5
-            max_hit = 15
-            damage = numpy.random.random_integers(min_hit, max_hit)
-            # Compute modifiers for an updated damage
-            # Then actually perform the hit
-            self.melee_hit(damage)
-
     def progress_combat_timer(self):
         # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
         self.combat_timer += time.dt
         if self.combat_timer > self.max_combat_timer:
             self.combat_timer -= self.max_combat_timer
             if self.get_target_hittable():
-                self.attempt_melee_hit()
+                attempt_melee_hit(self, self.target)
 
     def get_target_hittable(self):
         in_range = distance(self, self.target) < self.attackrange

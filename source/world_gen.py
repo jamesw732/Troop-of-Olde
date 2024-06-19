@@ -2,7 +2,7 @@
 from ursina import *
 import json
 
-from .character import *
+from .character import Character
 
 tuple_vars = ["origin", "position", "world_position", "rotation", "world_rotation", "texture_scale"]
 

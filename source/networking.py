@@ -2,10 +2,11 @@ from ursina import *
 from ursina.networking import *
 import os
 
-from .character import Character, CharacterState
-from .npc_controller import *
+from .character import Character, CharacterState, \
+    serialize_character_state, deserialize_character_state
+from .npc_controller import NPC_Controller
 from .player_controller import PlayerController
-from .world_gen import *
+from .world_gen import GenerateWorld
 
 uuid_to_char = dict()
 connection_to_char = dict()
