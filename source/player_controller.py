@@ -27,7 +27,7 @@ class PlayerController(Entity):
 
         self.fix_namelabel()
 
-        self.mouselock_position = mouse.position
+        self.prev_mouse_position = mouse.position
 
         self.bind_keys()
 
@@ -59,10 +59,10 @@ class PlayerController(Entity):
         if key == "scroll down":
             self.camdistance = min(self.camdistance + 1, 75)
         if key == "right mouse down":
-            mouse.visible = False
-            self.mouselock_position = mouse.position
-        if key == "right mouse up":
-            mouse.visible = True
+            # mouse.visible = False
+            self.prev_mouse_position = mouse.position
+        # if key == "right mouse up":
+            # mouse.visible = True
         if key == "left mouse down":
             tgt = mouse.hovered_entity
             if type(tgt) is Character:
@@ -94,10 +94,10 @@ class PlayerController(Entity):
 
     def handle_mouse_rotation(self):
         # Mouse rotation:
-        diff = mouse.position - self.mouselock_position
+        diff = mouse.position - self.prev_mouse_position
         vel = Vec3(-1 * diff[1], diff[0] * numpy.cos(numpy.radians(self.focus.rotation_x)), 0)
-        self.focus.rotate(vel * 100)
-        mouse.position = self.mouselock_position
+        self.focus.rotate(vel * 200)
+        self.prev_mouse_position = mouse.position
         self.fix_camera_rotation()
 
     def fix_camera_rotation(self):
