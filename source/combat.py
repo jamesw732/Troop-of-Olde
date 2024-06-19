@@ -22,9 +22,17 @@ def melee_hit(src, tgt, dmg):
     src: Character
     tgt: Character
     dmg: int"""
-    print(f"{src.name} pummels {tgt.name} for {dmg} damage!")
+    hitstring = get_melee_hit_string(src, tgt, dmg=dmg)
+    print(hitstring)
     tgt.health -= dmg
 
 def miss_melee_hit(src, tgt):
     """Handle a missed melee hit"""
-    print(f"You attempted to pummel {tgt.name}, but missed!")
+    hitstring = get_melee_hit_string(src, tgt, miss=True)
+    print(hitstring)
+
+def get_melee_hit_string(src, tgt, dmg=0, miss=False):
+    style = "pummel"
+    if miss:
+        return f"{src.name} attempted to {style} {tgt.name}, but missed!"
+    return f"{src.name} {style}s {tgt.name} for {dmg} damage!"
