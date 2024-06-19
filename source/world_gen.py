@@ -1,6 +1,7 @@
 # Handles all world generation.
 from ursina import *
 import json
+import os
 
 from .character import Character
 
@@ -8,8 +9,14 @@ tuple_vars = ["origin", "position", "world_position", "rotation", "world_rotatio
 
 class GenerateWorld:
     def __init__(self, file):
-        if "json" in file:
-            self.parse_json(file)
+        """Create world.
+
+        file: str, name of file to load in data/zones. Not full path."""
+        path = os.path.abspath(os.path.dirname(__file__))
+        self.zones_path = os.path.join(path, "..", "data", "zones")
+        zonepath = os.path.join(self.zones_path, file)
+        if "json" in zonepath:
+            self.parse_json(zonepath)
 
     def parse_json(self, file):
         with open(file) as f:
@@ -19,9 +26,13 @@ class GenerateWorld:
                 Sky(**data)
             else:
                 Entity(**self.parse_colors_tuples(data))
-    
+
     def create_npcs(self, file):
-        with open(file) as f:
+        """Spawn npcs.
+
+        file: str, name of file to load in data/zones. Not full path"""
+        path = os.path.join(self.zones_path, file)
+        with open(path) as f:
             npc_data = json.load(f)
         return [Character(**self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
 

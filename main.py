@@ -5,12 +5,12 @@ from source.player_controller import *
 from source.npc_controller import *
 
 app = Ursina(borderless=False)
-world = GenerateWorld("data/zones/demo.json")
+world = GenerateWorld("demo.json")
 
 player = Character("Player", speed=20, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
 player_controller = PlayerController(player)
 
-npcs = world.create_npcs("data/zones/demo_npcs.json")
+npcs = world.create_npcs("demo_npcs.json")
 for npc in npcs:
     npc.controller = NPC_Controller(npc, player)
 

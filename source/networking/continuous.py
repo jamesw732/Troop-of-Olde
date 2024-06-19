@@ -1,0 +1,36 @@
+from .base import *
+from ..character import CharacterState
+
+
+# CODE FOR CONTINUOUS UPDATES
+def update():
+    network.peer.update()
+
+    for char in network.chars:
+        if network.my_uuid is not None:
+            char.rotate_namelabel(network.uuid_to_char[network.my_uuid].position
+                - camera.world_position)
+
+    network.update_timer += time.dt
+    if network.update_timer >= network.update_rate:
+        network.update_timer -= network.update_rate
+        if network.peer.is_running() and network.peer.connection_count() > 0:
+            new_state = network.uuid_to_char[network.my_uuid].get_state()
+            for connection in network.peer.get_connections():
+                network.peer.update_char_state(connection, new_state)
+
+@rpc(network.peer)
+def update_char_state(connection, time_received, char_state: CharacterState):
+    """Mostly the RPC wrapper for Character.apply_state, eventually
+    Character.update_lerp_state.
+    Character state is client-authoritative, so when host receives this, it
+    recursively calls it again for each other connection.
+    """
+    char = network.uuid_to_char.get(char_state.uuid)
+    if char is not None:
+        char.apply_state(char_state)
+    if network.peer.is_hosting():
+        state = char.get_state()
+        for conn in network.peer.get_connections():
+            if conn is not connection:
+                network.peer.update_char_state(conn, state)
