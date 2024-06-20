@@ -10,15 +10,9 @@ class Network:
         self.uuid_to_char = dict()
         self.connection_to_char = dict()
 
-
         # uuid is more like a unique character id, npc's get them too
         self.uuid_counter = 0
         self.my_uuid = None
-
-        self.pc = None
-        self.world = None
-        self.chars = []
-        self.npcs = []
 
         self.update_rate = 0.2
         self.update_timer = 0.0

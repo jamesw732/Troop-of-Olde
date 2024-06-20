@@ -1,6 +1,8 @@
 from .base import *
 from ..character import CharacterState
 
+from ..world_defns import *
+
 
 # CODE FOR CONTINUOUS UPDATES
 def update():
@@ -8,7 +10,7 @@ def update():
     my_char = network.uuid_to_char.get(network.my_uuid)
     if not my_char:
         return
-    for char in network.chars:
+    for char in chars:
         if network.my_uuid is not None:
             char.rotate_namelabel(my_char.position - camera.world_position)
 

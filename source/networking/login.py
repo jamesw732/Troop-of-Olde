@@ -5,6 +5,7 @@ from ..character import Character, CharacterState, \
     serialize_character_state, deserialize_character_state
 from ..npc_controller import NPC_Controller
 from ..player_controller import PlayerController
+from ..world_defns import *
 from ..world_gen import GenerateWorld
 
 
@@ -20,14 +21,15 @@ def input(key):
             network.uuid_counter += 1
             char.uuid = network.my_uuid
             network.uuid_to_char[network.my_uuid] = char
-            network.chars.append(char)
-            char.ignore_traverse = network.chars
+            global chars
+            chars.append(char)
+            char.ignore_traverse = chars
             network.pc = PlayerController(char, peer=network.peer)
 
             world = GenerateWorld("demo.json")
-            network.npcs = world.create_npcs("demo_npcs.json")
-            network.chars += network.npcs
-            for npc in network.npcs:
+            npcs = world.create_npcs("demo_npcs.json")
+            chars += npcs
+            for npc in npcs:
                 npc.controller = NPC_Controller(npc, char)
                 npc.uuid = network.uuid_counter
                 network.uuid_to_char[npc.uuid] = npc
@@ -51,11 +53,11 @@ def on_connect(connection, time_connected):
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
-        network.chars.append(char)
+        chars.append(char)
         network.connection_to_char[connection] = char
         new_state = char.get_state()
         network.peer.generate_world(connection, "demo.json")
-        states = [c.get_state() for c in network.chars]
+        states = [c.get_state() for c in chars]
         for conn in network.peer.get_connections():
             if conn == connection:
                 for state in states:
@@ -66,7 +68,8 @@ def on_connect(connection, time_connected):
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
-    GenerateWorld(zone)
+    global world
+    world = GenerateWorld(zone)
 
 @rpc(network.peer)
 def spawn_character(connection, time_received, char_state:CharacterState):
@@ -74,7 +77,7 @@ def spawn_character(connection, time_received, char_state:CharacterState):
         return
     if char_state.uuid not in network.uuid_to_char:
         char = Character(state=char_state)
-        network.chars.append(char)
+        chars.append(char)
         network.uuid_to_char[char_state.uuid] = char
 
 @rpc(network.peer)
@@ -84,7 +87,7 @@ def bind_uuid_to_char(connection, time_received, uuid:int):
     network.my_uuid = uuid
     char = network.uuid_to_char.get(uuid)
     if char:
-        char.ignore_traverse = network.chars
+        char.ignore_traverse = chars
         pc = PlayerController(char, network.peer)
         pc.character = char
         char.controller = pc

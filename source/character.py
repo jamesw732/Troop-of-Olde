@@ -5,6 +5,7 @@ import numpy
 
 from .combat import *
 from .networking.base import *
+from .world_defns import *
 
 # Update this to expand CharacterState
 char_state_attrs = {
@@ -221,12 +222,9 @@ class Character(Entity):
 
     def on_destroy(self):
         """Remove all references to objects attached to this character"""
-        if is_main_client():
-            if self.type == "npc":
-                network.npcs.remove(self)
         if network.peer.is_running():
             network.uuid_to_char.pop(self.uuid)
-        network.chars.remove(self)
+        chars.remove(self)
         if self.controller:
             destroy(self.controller)
             del self.controller.character
