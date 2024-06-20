@@ -31,7 +31,7 @@ def update_char_state(connection, time_received, char_state: CharacterState):
     """
     char = network.uuid_to_char.get(char_state.uuid)
     if char:
-        char.apply_state(char_state)
+        char.update_lerp_state(char_state, time_received)
     if network.peer.is_hosting():
         state = char.get_state()
         for conn in network.peer.get_connections():

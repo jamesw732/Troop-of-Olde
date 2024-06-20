@@ -66,12 +66,36 @@ class Character(Entity):
         self.attackrange = 10
         self.alive = True
 
+        # LERP vars
+        self.prev_state = None
+        self.new_state = self.get_state()
+        self.prev_lerp_recv = 0
+        self.lerping = False
+        self.lerp_rate = 0
+        self.lerp_timer = 0.2
+
     def update(self):
-        self.handle_movement()
+        if not self.lerping:
+            self.handle_movement()
+
+        elif self.lerping and self.prev_state:
+            self.lerp_timer += time.dt
+            # If timer finished, just apply the new state
+            if self.lerp_timer >= self.lerp_rate:
+                self.lerping = False
+                self.apply_state(self.new_state)
+            # Otherwise, LERP normally
+            else:
+                self.position = lerp(self.prev_state.position,
+                                     self.new_state.position,
+                                     self.lerp_timer / self.lerp_rate)
+                self.rotation = lerp(self.prev_state.rotation,
+                                     self.new_state.rotation,
+                                     self.lerp_timer / self.lerp_rate)
         self.adjust_namelabel()
 
         if self.target and self.target.alive and self.in_combat:
-            self.progress_combat_timer()
+                self.progress_combat_timer()
         else:
             self.combat_timer = 0
             if self.target and not self.target.alive:
@@ -251,6 +275,17 @@ class Character(Entity):
                 if attr == "color":
                     val = color.colors[val]
                 setattr(self, attr, val)
+
+    def update_lerp_state(self, state, time):
+        self.prev_state = self.new_state
+        self.new_state = state
+        if self.prev_state:
+            self.lerping = True
+            self.lerp_rate = time - self.prev_lerp_recv
+            self.prev_lerp_recv = time
+            self.lerp_timer = 0
+            # Apply old state to ensure synchronization and update non-lerp attrs
+            self.apply_state(self.prev_state)
 
 
 class CharacterState:
