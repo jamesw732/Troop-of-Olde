@@ -25,9 +25,9 @@ def input(key):
             network.pc = PlayerController(char, peer=network.peer)
 
             world = GenerateWorld("demo.json")
-            npcs = world.create_npcs("demo_npcs.json")
-            network.chars += npcs
-            for npc in npcs:
+            network.npcs = world.create_npcs("demo_npcs.json")
+            network.chars += network.npcs
+            for npc in network.npcs:
                 npc.controller = NPC_Controller(npc, char)
                 npc.uuid = network.uuid_counter
                 network.uuid_to_char[npc.uuid] = npc

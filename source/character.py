@@ -4,6 +4,7 @@ from ursina import *
 import numpy
 
 from .combat import *
+from .networking.base import *
 
 # Update this to expand CharacterState
 char_state_attrs = {
@@ -52,6 +53,8 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
+        self.controller = None
+
         # Non-engine-relevant vars
         self.maxhealth = 100
         self.health = self.maxhealth
@@ -60,7 +63,6 @@ class Character(Entity):
         self.max_combat_timer = 0.1
         self.combat_timer = 0
         self.attackrange = 10
-
         self.alive = True
 
     def update(self):
@@ -195,21 +197,47 @@ class Character(Entity):
         if self.combat_timer > self.max_combat_timer:
             self.combat_timer -= self.max_combat_timer
             if self.get_target_hittable():
-                attempt_melee_hit(self, self.target)
+                if network.peer.is_running() and not network.peer.is_hosting():
+                    network.peer.remote_attempt_melee_hit(
+                        network.peer.get_connections()[0],
+                        self.uuid, self.target.uuid)
+                else:
+                    attempt_melee_hit(self, self.target)
 
     def get_target_hittable(self):
         in_range = distance(self, self.target) < self.attackrange
         return in_range and self.get_tgt_los(self.target)
 
-    def die(self):
-        """Actions taken when a mob dies. Will involve removing persistent effects,
-        then deleting everything about the character and mob."""
-        print(f"{self.name} perishes.")
+    def increase_health(self, amt):
+        self.health += amt
+
+    def reduce_health(self, amt):
+        self.health -= amt
+
+    def complete_destroy(self):
+        """Remove all references to objects attached to this character"""
         self.alive = False
+        if network.peer.is_hosting():
+            if self.type == "npc":
+                network.npcs.remove(self)
+                network.chars.remove(self)
+                network.uuid_to_char.pop(self.uuid)
         if self.controller:
             destroy(self.controller)
         destroy(self.namelabel)
         destroy(self)
+        del self.controller
+        del self.namelabel
+        del self
+    
+    def die(self):
+        if network.peer.is_hosting():
+            print(f"{self.name} perishes.")
+            self.complete_destroy()
+            broadcast(network.peer.remote_death, self.uuid)
+        elif not network.peer.is_running():
+            print(f"{self.name} perishes.")
+            self.complete_destroy()
     
     def get_state(self):
         return CharacterState(char=self)

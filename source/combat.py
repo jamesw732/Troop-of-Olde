@@ -1,38 +1,42 @@
 from ursina import *
 import numpy
 
+from .networking.base import *
 
 def attempt_melee_hit(src, tgt):
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if numpy.random.random() < 0.2:
         # It's a miss
-        miss_melee_hit(src, tgt)
+        hitstring = get_melee_hit_string(src, tgt, miss=True)
     else:
-        # If hit goes through, do some more fancy calculations to generate a min and max hit
-        # Damage is uniform from min to max
-        min_hit = 5
-        max_hit = 15
-        dmg = numpy.random.random_integers(min_hit, max_hit)
-        # Compute modifiers for an updated damage
-        # Then actually perform the hit
-        melee_hit(src, tgt, dmg)
-
-def melee_hit(src, tgt, dmg):
-    """Apply a successful melee hit
-    src: Character
-    tgt: Character
-    dmg: int"""
-    hitstring = get_melee_hit_string(src, tgt, dmg=dmg)
+        # If hit goes through, do some more fancy calculations to get damage
+        dmg = get_dmg(src, tgt)
+        hitstring = get_melee_hit_string(src, tgt, dmg=dmg)
+        tgt.reduce_health(dmg)
     print(hitstring)
-    tgt.health -= dmg
+    # Broadcast the hit info to all peers, if host
+    broadcast(network.peer.remote_print, hitstring)
 
-def miss_melee_hit(src, tgt):
-    """Handle a missed melee hit"""
-    hitstring = get_melee_hit_string(src, tgt, miss=True)
-    print(hitstring)
+def get_dmg(src, tgt):
+    """Get damage from reading source and target's stats"""
+    # Damage is uniform from min to max
+    min_hit = 5
+    max_hit = 15
+    dmg = numpy.random.random_integers(min_hit, max_hit)
+    return dmg
 
 def get_melee_hit_string(src, tgt, dmg=0, miss=False):
     style = "pummel"
     if miss:
         return f"{src.name} attempted to {style} {tgt.name}, but missed!"
     return f"{src.name} {style}s {tgt.name} for {dmg} damage!"
+
+@rpc(network.peer)
+def remote_death(connection, time_received, char_uuid: int):
+    network.chars[char_uuid].die()
+
+@rpc(network.peer)
+def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int):
+    src = network.uuid_to_char[src_uuid]
+    tgt = network.uuid_to_char[tgt_uuid]
+    attempt_melee_hit(src, tgt)

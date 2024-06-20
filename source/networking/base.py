@@ -19,7 +19,6 @@ class Network:
         self.world = None
         self.chars = []
         self.npcs = []
-        self.npc_controllers = []
 
         self.update_rate = 0.2
         self.update_timer = 0.0
@@ -29,3 +28,9 @@ network = Network()
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
     print(msg)
+
+def broadcast(func, *args):
+    """Calls an RPC function for each connection to host"""
+    if network.peer.is_hosting():
+        for connection in network.peer.get_connections():
+            func(connection, *args)
