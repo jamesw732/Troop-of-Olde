@@ -1,3 +1,6 @@
+from ursina import *
+from ursina.networking import *
+
 import os
 
 from .base import *

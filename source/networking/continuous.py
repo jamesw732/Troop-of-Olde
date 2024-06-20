@@ -1,3 +1,6 @@
+from ursina import *
+from ursina.networking import *
+
 from .base import *
 from ..character import CharacterState
 
