@@ -82,6 +82,9 @@ def bind_uuid_to_char(connection, time_received, uuid:int):
     if network.peer.is_hosting():
         return
     network.my_uuid = uuid
-    network.chars[network.my_uuid].ignore_traverse = network.chars
-    pc = PlayerController(network.uuid_to_char[uuid], network.peer)
-    pc.character = network.uuid_to_char[uuid]
+    char = network.uuid_to_char.get(uuid)
+    if char:
+        char.ignore_traverse = network.chars
+        pc = PlayerController(char, network.peer)
+        pc.character = char
+        char.controller = pc

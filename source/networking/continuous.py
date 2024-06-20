@@ -5,17 +5,18 @@ from ..character import CharacterState
 # CODE FOR CONTINUOUS UPDATES
 def update():
     network.peer.update()
-
+    my_char = network.uuid_to_char.get(network.my_uuid)
+    if not my_char:
+        return
     for char in network.chars:
         if network.my_uuid is not None:
-            char.rotate_namelabel(network.uuid_to_char[network.my_uuid].position
-                - camera.world_position)
+            char.rotate_namelabel(my_char.position - camera.world_position)
 
     network.update_timer += time.dt
     if network.update_timer >= network.update_rate:
         network.update_timer -= network.update_rate
         if network.peer.is_running() and network.peer.connection_count() > 0:
-            new_state = network.uuid_to_char[network.my_uuid].get_state()
+            new_state = my_char.get_state()
             for connection in network.peer.get_connections():
                 network.peer.update_char_state(connection, new_state)
 
@@ -27,7 +28,7 @@ def update_char_state(connection, time_received, char_state: CharacterState):
     recursively calls it again for each other connection.
     """
     char = network.uuid_to_char.get(char_state.uuid)
-    if char is not None:
+    if char:
         char.apply_state(char_state)
     if network.peer.is_hosting():
         state = char.get_state()

@@ -27,6 +27,7 @@ network = Network()
 
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
+    """Remotely print a message for another player"""
     print(msg)
 
 def broadcast(func, *args):
@@ -34,3 +35,7 @@ def broadcast(func, *args):
     if network.peer.is_hosting():
         for connection in network.peer.get_connections():
             func(connection, *args)
+
+def is_main_client():
+    """Returns whether client is host, or single player"""
+    return network.peer.is_hosting() or not network.peer.is_running()

@@ -73,9 +73,12 @@ class Character(Entity):
             self.progress_combat_timer()
         else:
             self.combat_timer = 0
+            if self.target and not self.target.alive:
+                self.target = None
 
         if self.health <= 0:
-            self.die()
+            if is_main_client():
+                self.die()
 
     def handle_movement(self):
         """Combines all movement inputs into one velocity vector, then handles collision and grounding and moves in just one call."""
@@ -185,11 +188,13 @@ class Character(Entity):
                     position=self.position + Vec3(0, self.height + 1, 0))
 
     def rotate_namelabel(self, direction):
-        self.namelabel.look_at(direction + self.namelabel.world_position)
-        self.namelabel.rotation_z = 0
+        if self.namelabel:
+            self.namelabel.look_at(direction + self.namelabel.world_position)
+            self.namelabel.rotation_z = 0
 
     def adjust_namelabel(self):
-        self.namelabel.position = self.position + Vec3(0, self.height + 1, 0)
+        if self.namelabel:
+            self.namelabel.position = self.position + Vec3(0, self.height + 1, 0)
 
     def progress_combat_timer(self):
         # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
@@ -197,12 +202,12 @@ class Character(Entity):
         if self.combat_timer > self.max_combat_timer:
             self.combat_timer -= self.max_combat_timer
             if self.get_target_hittable():
-                if network.peer.is_running() and not network.peer.is_hosting():
+                if is_main_client():
+                    attempt_melee_hit(self, self.target)
+                else:
                     network.peer.remote_attempt_melee_hit(
                         network.peer.get_connections()[0],
                         self.uuid, self.target.uuid)
-                else:
-                    attempt_melee_hit(self, self.target)
 
     def get_target_hittable(self):
         in_range = distance(self, self.target) < self.attackrange
@@ -214,30 +219,28 @@ class Character(Entity):
     def reduce_health(self, amt):
         self.health -= amt
 
-    def complete_destroy(self):
+    def on_destroy(self):
         """Remove all references to objects attached to this character"""
-        self.alive = False
-        if network.peer.is_hosting():
+        if is_main_client():
             if self.type == "npc":
                 network.npcs.remove(self)
-                network.chars.remove(self)
-                network.uuid_to_char.pop(self.uuid)
+        if network.peer.is_running():
+            network.uuid_to_char.pop(self.uuid)
+        network.chars.remove(self)
         if self.controller:
             destroy(self.controller)
+            del self.controller.character
+            del self.controller
         destroy(self.namelabel)
-        destroy(self)
-        del self.controller
         del self.namelabel
-        del self
-    
+        del self.ignore_traverse
+
     def die(self):
+        print(f"{self.name} perishes.")
+        self.alive = False
         if network.peer.is_hosting():
-            print(f"{self.name} perishes.")
-            self.complete_destroy()
             broadcast(network.peer.remote_death, self.uuid)
-        elif not network.peer.is_running():
-            print(f"{self.name} perishes.")
-            self.complete_destroy()
+        destroy(self)
     
     def get_state(self):
         return CharacterState(char=self)

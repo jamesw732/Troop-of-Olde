@@ -10,14 +10,14 @@ world = GenerateWorld("demo.json")
 player = Character("Player", speed=20, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
 player_controller = PlayerController(player)
 
-npcs = world.create_npcs("demo_npcs.json")
-for npc in npcs:
+network.npcs = world.create_npcs("demo_npcs.json")
+for npc in network.npcs:
     npc.controller = NPC_Controller(npc, player)
 
-chars = npcs + [player]
+network.chars = network.npcs + [player]
 
 def update():
-    for char in chars:
+    for char in network.chars:
         if char.namelabel:
             char.rotate_namelabel(player.position - camera.world_position)
 

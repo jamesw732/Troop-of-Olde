@@ -33,10 +33,13 @@ def get_melee_hit_string(src, tgt, dmg=0, miss=False):
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
-    network.chars[char_uuid].die()
+    char = network.uuid_to_char.get(char_uuid)
+    if char:
+        char.die()
 
 @rpc(network.peer)
 def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int):
-    src = network.uuid_to_char[src_uuid]
-    tgt = network.uuid_to_char[tgt_uuid]
-    attempt_melee_hit(src, tgt)
+    src = network.uuid_to_char.get(src_uuid)
+    tgt = network.uuid_to_char.get(tgt_uuid)
+    if src and tgt:
+        attempt_melee_hit(src, tgt)
