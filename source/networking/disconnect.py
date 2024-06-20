@@ -1,4 +1,5 @@
 from .base import *
+from ..world_defns import *
 
 
 
@@ -9,14 +10,33 @@ def on_disconnect(connection, time_received):
     tell clients to delete those references as well.
     When a non-host receives this call, it means the host disconnected. In this case,
     delete all characters. Eventually, save character state too"""
-    pass
+    # Normal user disconnected
+    if network.peer.is_hosting():
+        char = network.connection_to_char.get(connection)
+        if char:
+            uuid = char.uuid
+            destroy(char)
+            # Character.on_destroy handles most of the rest
+            del network.connection_to_char[connection]
+            broadcast(network.peer.remote_remove_char, uuid)
+    # The host disconnected
+    else:
+        for char in network.chars:
+            destroy(char)
+            del network.uuid_to_char[char.uuid]
+        global pc, chars, world
+        pc = None
+        world = None
+        chars.clear()
+        network.my_uuid = None
+
+
 
 @rpc(network.peer)
 def remote_remove_char(connection, time_received, uuid: int):
     """What a non-host does to remove a character"""
-    pass
-
-def remove_char(uuid:int):
-    """Helper function for removing a box.
-    Whether to remove reference in connection_to_char depends on peer.is_hosting()"""
-    pass
+    if network.peer.is_hosting():
+        return
+    char = network.uuid_to_char.get(uuid)
+    if char:
+        destroy(char)

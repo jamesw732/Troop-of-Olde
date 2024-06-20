@@ -17,6 +17,7 @@ class Network:
         self.update_rate = 0.2
         self.update_timer = 0.0
 
+# RPC needs to know about network at compile time, so this global seems necessary
 network = Network()
 
 @rpc(network.peer)
