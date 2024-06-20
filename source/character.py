@@ -8,21 +8,6 @@ from .networking.base import *
 from .physics import handle_movement
 from .world_defns import *
 
-# Update this to expand CharacterState
-char_state_attrs = {
-    "uuid": int,
-    "name": str,
-    "type": str,
-    "speed": float,
-    "model": str,
-    "scale": Vec3,
-    "origin": Vec3,
-    "collider": str,
-    "position": Vec3,
-    "rotation": Vec3,
-    "color": str,
-}
-
 
 class Character(Entity):
     def __init__(self, *args, name="Player", speed=10.0,  uuid=None,
@@ -203,6 +188,22 @@ class Character(Entity):
             self.lerp_timer = 0
             # Apply old state to ensure synchronization and update non-lerp attrs
             self.apply_state(self.prev_state)
+
+
+# Update this to expand CharacterState
+char_state_attrs = {
+    "uuid": int,
+    "name": str,
+    "type": str,
+    "speed": float,
+    "model": str,
+    "scale": Vec3,
+    "origin": Vec3,
+    "collider": str,
+    "position": Vec3,
+    "rotation": Vec3,
+    "color": str,
+}
 
 
 class CharacterState:
