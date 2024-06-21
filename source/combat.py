@@ -35,25 +35,6 @@ class CombatState:
                 for attr in combat_state_attrs if hasattr(self, attr)})
 
 
-def serialize_combat_state(writer, state):
-    for attr in combat_state_attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            if val is not None:
-                writer.write(attr)
-                writer.write(val)
-    writer.write("end")
-
-def deserialize_combat_state(reader):
-    state = CombatState()
-    while reader.iter.getRemainingSize() > 0:
-        attr = reader.read(str)
-        if attr == "end":
-            return state
-        val = reader.read(combat_state_attrs[attr])
-        setattr(state, attr, val)
-
-
 def attempt_melee_hit(src, tgt):
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if numpy.random.random() < 0.2:

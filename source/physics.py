@@ -47,26 +47,6 @@ class PhysicalState:
         return str({attr: getattr(self, attr)
                 for attr in phys_state_attrs if hasattr(self, attr)})
 
-
-def serialize_physical_state(writer, state):
-    for attr in phys_state_attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            if val is not None:
-                writer.write(attr)
-                writer.write(val)
-    writer.write("end")
-
-def deserialize_physical_state(reader):
-    state = PhysicalState()
-    while reader.iter.getRemainingSize() > 0:
-        attr = reader.read(str)
-        if attr == "end":
-            return state
-        val = reader.read(phys_state_attrs[attr])
-        setattr(state, attr, val)
-
-
 def handle_movement(char):
     """Main physics method which combines all character velocities into one
     vector, then handles collision and grounding and updates position"""

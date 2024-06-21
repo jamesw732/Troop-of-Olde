@@ -5,12 +5,51 @@ import os
 
 from .base import *
 from ..character import Character
-from ..combat import CombatState, serialize_combat_state, deserialize_combat_state
+from ..combat import CombatState, combat_state_attrs
 from ..npc_controller import NPC_Controller
 from ..gamestate import *
-from ..physics import PhysicalState, serialize_physical_state, deserialize_physical_state
+from ..physics import PhysicalState, phys_state_attrs
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
+
+
+def serialize_combat_state(writer, state):
+    for attr in combat_state_attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            if val is not None:
+                writer.write(attr)
+                writer.write(val)
+    writer.write("end")
+
+def deserialize_combat_state(reader):
+    state = CombatState()
+    while reader.iter.getRemainingSize() > 0:
+        attr = reader.read(str)
+        if attr == "end":
+            return state
+        val = reader.read(combat_state_attrs[attr])
+        setattr(state, attr, val)
+
+
+def serialize_physical_state(writer, state):
+    for attr in phys_state_attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            if val is not None:
+                writer.write(attr)
+                writer.write(val)
+    writer.write("end")
+
+def deserialize_physical_state(reader):
+    state = PhysicalState()
+    while reader.iter.getRemainingSize() > 0:
+        attr = reader.read(str)
+        if attr == "end":
+            return state
+        val = reader.read(phys_state_attrs[attr])
+        setattr(state, attr, val)
+
 
 
 network.peer.register_type(PhysicalState, serialize_physical_state,
