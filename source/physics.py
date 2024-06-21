@@ -4,6 +4,68 @@ import numpy
 from .gamestate import *
 
 
+# PUBLIC
+# Update this to expand PhysicalState
+phys_state_attrs = {
+    "uuid": int,
+    "name": str,
+    "type": str,
+    "speed": float,
+    "model": str,
+    "scale": Vec3,
+    "origin": Vec3,
+    "collider": str,
+    "position": Vec3,
+    "rotation": Vec3,
+    "color": str,
+}
+
+class PhysicalState:
+    """This class is intentionally opaque to save from writing the same code
+    in multiple places and needing to update several functions every time I want
+    to expand this class. The entire purpose of this class is to abbreviate Characters,
+    and make them sendable over the network. To see exactly how Characters are
+    abbreviated, look at phys_state_attrs at the top of this file."""
+    def __init__(self, char=None, **kwargs):
+        # If a character was passed, take its attributes
+        if char is not None:
+            for attr in phys_state_attrs:
+                if hasattr(char, attr):
+                    val = getattr(char, attr)
+                    # Only include attrs intentionally set
+                    if val is not None:
+                        if attr in ["collider", "color", "model"]:
+                            # Ursina objects exist in PhysicalState as string names
+                            val = val.name
+                        setattr(self, attr, val)
+        # Otherwise, read the attributes straight off
+        else:
+            for attr in phys_state_attrs:
+                if attr in kwargs:
+                    setattr(self, attr, kwargs[attr])
+
+    def __str__(self):
+        return str({attr: getattr(self, attr)
+                for attr in phys_state_attrs if hasattr(self, attr)})
+
+
+def serialize_physical_state(writer, state):
+    for attr in phys_state_attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            if val is not None:
+                writer.write(attr)
+                writer.write(val)
+
+def deserialize_physical_state(reader):
+    state = PhysicalState()
+    while reader.iter.getRemainingSize() > 0:
+        attr = reader.read(str)
+        val = reader.read(phys_state_attrs[attr])
+        setattr(state, attr, val)
+    return state
+
+
 def handle_movement(char):
     """Main physics method which combines all character velocities into one
     vector, then handles collision and grounding and updates position"""
@@ -22,6 +84,7 @@ def handle_movement(char):
     char.position += velocity * time.dt
 
 
+# PRIVATE
 def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))

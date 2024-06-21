@@ -4,16 +4,16 @@ from ursina.networking import *
 import os
 
 from .base import *
-from ..character import Character, CharacterState, \
-    serialize_character_state, deserialize_character_state
+from ..character import Character
 from ..npc_controller import NPC_Controller
-from ..player_controller import PlayerController
 from ..gamestate import *
+from ..physics import PhysicalState, serialize_physical_state, deserialize_physical_state
+from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 
 
-network.peer.register_type(CharacterState, serialize_character_state,
-                   deserialize_character_state)
+network.peer.register_type(PhysicalState, serialize_physical_state,
+                           deserialize_physical_state)
 
 # This is a very primitive approach to logins. This will eventually become part of GUI code.
 def input(key):
@@ -74,7 +74,7 @@ def generate_world(connection, time_received, zone:str):
     world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_character(connection, time_received, char_state:CharacterState):
+def spawn_character(connection, time_received, char_state:PhysicalState):
     if network.peer.is_hosting():
         return
     if char_state.uuid not in network.uuid_to_char:

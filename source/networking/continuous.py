@@ -2,7 +2,7 @@ from ursina import *
 from ursina.networking import *
 
 from .base import *
-from ..character import CharacterState
+from ..physics import PhysicalState
 
 from ..gamestate import *
 
@@ -23,7 +23,7 @@ def update():
                 network.peer.update_char_state(connection, new_state)
 
 @rpc(network.peer)
-def update_char_state(connection, time_received, char_state: CharacterState):
+def update_char_state(connection, time_received, char_state: PhysicalState):
     """Mostly the RPC wrapper for Character.apply_state, eventually
     Character.update_lerp_state.
     Character state is client-authoritative, so when host receives this, it

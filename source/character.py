@@ -5,7 +5,7 @@ import numpy
 
 from .combat import *
 from .networking.base import *
-from .physics import handle_movement
+from .physics import handle_movement, PhysicalState, phys_state_attrs
 from .gamestate import *
 
 
@@ -157,10 +157,10 @@ class Character(Entity):
         destroy(self)
     
     def get_state(self):
-        return CharacterState(char=self)
+        return PhysicalState(char=self)
     
     def apply_state(self, state):
-        for attr in char_state_attrs:
+        for attr in phys_state_attrs:
             if hasattr(state, attr):
                 val = getattr(state, attr)
                 # Ursina is smart about assigning model/collider, but not color
@@ -196,63 +196,3 @@ class NameLabel(Text):
         self.position = self.char.position + Vec3(0, self.char.height + 1, 0)
 
 
-# Update this to expand CharacterState
-char_state_attrs = {
-    "uuid": int,
-    "name": str,
-    "type": str,
-    "speed": float,
-    "model": str,
-    "scale": Vec3,
-    "origin": Vec3,
-    "collider": str,
-    "position": Vec3,
-    "rotation": Vec3,
-    "color": str,
-}
-
-
-class CharacterState:
-    """This class is intentionally opaque to save from writing the same code
-    in multiple places and needing to update several functions every time I want
-    to expand this class. The entire purpose of this class is to abbreviate Characters,
-    and make them sendable over the network. To see exactly how Characters are
-    abbreviated, look at char_state_attrs at the top of this file."""
-    def __init__(self, char=None, **kwargs):
-        # If a character was passed, take its attributes
-        if char is not None:
-            for attr in char_state_attrs:
-                if hasattr(char, attr):
-                    val = getattr(char, attr)
-                    # Only include attrs intentionally set
-                    if val is not None:
-                        if attr in ["collider", "color", "model"]:
-                            # Ursina objects exist in CharacterState as string names
-                            val = val.name
-                        setattr(self, attr, val)
-        # Otherwise, read the attributes straight off
-        else:
-            for attr in char_state_attrs:
-                if attr in kwargs:
-                    setattr(self, attr, kwargs[attr])
-
-    def __str__(self):
-        return str({attr: getattr(self, attr)
-                for attr in char_state_attrs if hasattr(self, attr)})
-
-
-def serialize_character_state(writer, state):
-    for attr in char_state_attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            if val is not None:
-                writer.write(attr)
-                writer.write(val)
-
-def deserialize_character_state(reader):
-    state = CharacterState()
-    while reader.iter.getRemainingSize() > 0:
-        attr = reader.read(str)
-        val = reader.read(char_state_attrs[attr])
-        setattr(state, attr, val)
-    return state
