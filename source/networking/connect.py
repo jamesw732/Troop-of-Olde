@@ -125,7 +125,7 @@ def spawn_character(connection, time_received, uuid: int,
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        char = Character(state=phys_state)
+        char = Character(pstate=phys_state, cbstate=cb_state)
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid

@@ -25,11 +25,13 @@ def update():
         connections = network.peer.get_connections()
         for connection in connections:
             network.peer.update_char_pstate(connection, my_char.uuid, new_state)
-        # if network.peer.is_hosting():
-        #     for char in gs.chars:
-        #         cbstate = char.get_combat_state()
-        #         for connection in connections:
-        #             network.peer.update_char_cstate(connection, cbstate)
+        if network.peer.is_hosting():
+            for char in gs.chars:
+                print(char.uuid)
+                print(type(char.uuid))
+                cbstate = char.get_combat_state()
+                for connection in connections:
+                    network.peer.update_char_cstate(connection, char.uuid, cbstate)
 
 
 @rpc(network.peer)
@@ -51,4 +53,7 @@ def update_char_pstate(connection, time_received, uuid: int,
 
 @rpc(network.peer)
 def update_char_cstate(connection, time_received, uuid: int, cbstate: CombatState):
-    pass
+    char = network.uuid_to_char.get(uuid)
+    if char:
+        char.apply_combat_state(cbstate)
+    print(char.get_combat_state())

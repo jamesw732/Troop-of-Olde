@@ -1,5 +1,5 @@
 from ursina import *
-import numpy
+import random
 
 from .networking.base import *
 
@@ -37,7 +37,7 @@ class CombatState:
 
 def attempt_melee_hit(src, tgt):
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
-    if numpy.random.random() < 0.2:
+    if random.random() < 0.2:
         # It's a miss
         hitstring = get_melee_hit_string(src, tgt, miss=True)
     else:
@@ -64,7 +64,7 @@ def get_dmg(src, tgt):
     # Damage is uniform from min to max
     min_hit = 5
     max_hit = 15
-    dmg = numpy.random.random_integers(min_hit, max_hit)
+    dmg = random.randint(min_hit, max_hit)
     return dmg
 
 def get_melee_hit_string(src, tgt, dmg=0, miss=False):

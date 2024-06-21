@@ -11,16 +11,19 @@ from .gamestate import *
 
 class Character(Entity):
     def __init__(self, *args, name="Player", speed=10.0,  uuid=None,
-                 type="player", state=None, **kwargs):
+                 type="player", pstate=None, cbstate = None, **kwargs):
         # Engine-relevant vars
         super().__init__(*args, **kwargs)
-        if state:
-            self.apply_physical_state(state)
+        if pstate:
+            self.apply_physical_state(pstate)
         else:
-            self.uuid = uuid
             self.type = type
             self.name = name
             self.speed = speed
+        if cbstate:
+            self.apply_combat_state(cbstate)
+
+        self.uuid = uuid
 
         self.height = self.scale_y
         self.namelabel = NameLabel(self)
