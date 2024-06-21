@@ -18,13 +18,13 @@ def update():
     if network.update_timer >= network.update_rate:
         network.update_timer -= network.update_rate
         if network.peer.is_running() and network.peer.connection_count() > 0:
-            new_state = my_char.get_state()
+            new_state = my_char.get_physical_state()
             for connection in network.peer.get_connections():
-                network.peer.update_char_state(connection, new_state)
+                network.peer.update_char_pstate(connection, new_state)
 
 @rpc(network.peer)
-def update_char_state(connection, time_received, char_state: PhysicalState):
-    """Mostly the RPC wrapper for Character.apply_state, eventually
+def update_char_pstate(connection, time_received, char_state: PhysicalState):
+    """Mostly the RPC wrapper for Character.apply_physical_state, eventually
     Character.update_lerp_state.
     Character state is client-authoritative, so when host receives this, it
     recursively calls it again for each other connection.
@@ -33,7 +33,7 @@ def update_char_state(connection, time_received, char_state: PhysicalState):
     if char:
         char.update_lerp_state(char_state, time_received)
     if network.peer.is_hosting():
-        state = char.get_state()
+        state = char.get_physical_state()
         for conn in network.peer.get_connections():
             if conn is not connection:
-                network.peer.update_char_state(conn, state)
+                network.peer.update_char_pstate(conn, state)

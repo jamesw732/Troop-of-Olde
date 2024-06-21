@@ -57,9 +57,9 @@ def on_connect(connection, time_connected):
         network.uuid_counter += 1
         gs.chars.append(char)
         network.connection_to_char[connection] = char
-        new_state = char.get_state()
+        new_state = char.get_physical_state()
         network.peer.generate_world(connection, "demo.json")
-        states = [c.get_state() for c in gs.chars]
+        states = [c.get_physical_state() for c in gs.chars]
         for conn in network.peer.get_connections():
             if conn == connection:
                 for state in states:

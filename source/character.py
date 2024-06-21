@@ -15,7 +15,7 @@ class Character(Entity):
         # Engine-relevant vars
         super().__init__(*args, **kwargs)
         if state:
-            self.apply_state(state)
+            self.apply_physical_state(state)
         else:
             self.uuid = uuid
             self.type = type
@@ -53,7 +53,7 @@ class Character(Entity):
 
         # LERP vars
         self.prev_state = None
-        self.new_state = self.get_state()
+        self.new_state = self.get_physical_state()
         self.prev_lerp_recv = 0
         self.lerping = False
         self.lerp_rate = 0
@@ -68,7 +68,7 @@ class Character(Entity):
             # If timer finished, just apply the new state
             if self.lerp_timer >= self.lerp_rate:
                 self.lerping = False
-                self.apply_state(self.new_state)
+                self.apply_physical_state(self.new_state)
             # Otherwise, LERP normally
             else:
                 self.position = lerp(self.prev_state.position,
@@ -156,10 +156,10 @@ class Character(Entity):
             broadcast(network.peer.remote_death, self.uuid)
         destroy(self)
     
-    def get_state(self):
+    def get_physical_state(self):
         return PhysicalState(char=self)
     
-    def apply_state(self, state):
+    def apply_physical_state(self, state):
         for attr in phys_state_attrs:
             if hasattr(state, attr):
                 val = getattr(state, attr)
@@ -177,7 +177,7 @@ class Character(Entity):
             self.prev_lerp_recv = time
             self.lerp_timer = 0
             # Apply old state to ensure synchronization and update non-lerp attrs
-            self.apply_state(self.prev_state)
+            self.apply_physical_state(self.prev_state)
 
 
 class NameLabel(Text):
