@@ -3,7 +3,7 @@ logic."""
 from ursina import *
 import numpy
 
-from .combat import attempt_melee_hit
+from .combat import attempt_melee_hit, CombatState, combat_state_attrs
 from .networking.base import *
 from .physics import handle_movement, PhysicalState, phys_state_attrs
 from .gamestate import *
@@ -178,6 +178,15 @@ class Character(Entity):
             self.lerp_timer = 0
             # Apply old state to ensure synchronization and update non-lerp attrs
             self.apply_physical_state(self.prev_state)
+
+    def get_combat_state(self):
+        return CombatState(char=self)
+
+    def apply_combat_state(self, state):
+        for attr in combat_state_attrs:
+            if hasattr(state, attr):
+                val = getattr(state, attr)
+                setattr(self, attr, val)
 
 
 class NameLabel(Text):

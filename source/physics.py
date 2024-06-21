@@ -7,7 +7,6 @@ from .gamestate import *
 # PUBLIC
 # Update this to expand PhysicalState
 phys_state_attrs = {
-    "uuid": int,
     "name": str,
     "type": str,
     "speed": float,
@@ -56,14 +55,16 @@ def serialize_physical_state(writer, state):
             if val is not None:
                 writer.write(attr)
                 writer.write(val)
+    writer.write("end")
 
 def deserialize_physical_state(reader):
     state = PhysicalState()
     while reader.iter.getRemainingSize() > 0:
         attr = reader.read(str)
+        if attr == "end":
+            return state
         val = reader.read(phys_state_attrs[attr])
         setattr(state, attr, val)
-    return state
 
 
 def handle_movement(char):

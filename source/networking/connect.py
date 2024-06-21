@@ -5,6 +5,7 @@ import os
 
 from .base import *
 from ..character import Character
+from ..combat import CombatState, serialize_combat_state, deserialize_combat_state
 from ..npc_controller import NPC_Controller
 from ..gamestate import *
 from ..physics import PhysicalState, serialize_physical_state, deserialize_physical_state
@@ -14,6 +15,8 @@ from ..world_gen import GenerateWorld
 
 network.peer.register_type(PhysicalState, serialize_physical_state,
                            deserialize_physical_state)
+network.peer.register_type(CombatState, serialize_combat_state,
+                           deserialize_combat_state)
 
 # This is a very primitive approach to logins. This will eventually become part of GUI code.
 def input(key):
@@ -57,15 +60,19 @@ def on_connect(connection, time_connected):
         network.uuid_counter += 1
         gs.chars.append(char)
         network.connection_to_char[connection] = char
-        new_state = char.get_physical_state()
+        new_pstate = char.get_physical_state()
+        new_cstate = char.get_combat_state()
         network.peer.generate_world(connection, "demo.json")
-        states = [c.get_physical_state() for c in gs.chars]
         for conn in network.peer.get_connections():
+            # New user needs all characters
             if conn == connection:
-                for state in states:
-                    network.peer.spawn_character(conn, state)
+                for ch in gs.chars:
+                    pstate = ch.get_physical_state()
+                    cstate = ch.get_combat_state()
+                    network.peer.spawn_character(conn, ch.uuid, pstate, cstate)
+            # Existing users just need new character
             else:
-                network.peer.spawn_character(conn, new_state)
+                network.peer.spawn_character(conn, char.uuid, new_pstate, new_cstate)
         network.peer.bind_uuid_to_char(connection, char.uuid)
 
 @rpc(network.peer)
@@ -74,13 +81,15 @@ def generate_world(connection, time_received, zone:str):
     world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_character(connection, time_received, char_state:PhysicalState):
+def spawn_character(connection, time_received, uuid: int,
+                    phys_state: PhysicalState, cb_state: CombatState):
     if network.peer.is_hosting():
         return
-    if char_state.uuid not in network.uuid_to_char:
-        char = Character(state=char_state)
+    if uuid not in network.uuid_to_char:
+        char = Character(state=phys_state)
         gs.chars.append(char)
-        network.uuid_to_char[char_state.uuid] = char
+        network.uuid_to_char[uuid] = char
+        char.uuid = uuid
 
 @rpc(network.peer)
 def bind_uuid_to_char(connection, time_received, uuid:int):

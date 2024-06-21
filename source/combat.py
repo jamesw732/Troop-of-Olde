@@ -3,8 +3,57 @@ import numpy
 
 from .networking.base import *
 
-
 # PUBLIC
+# Update this to expand CombatState
+combat_state_attrs = {
+    "health": int,
+}
+
+class CombatState:
+    """This class is intentionally opaque to save from writing the same code
+    in multiple places and needing to update several functions every time I want
+    to expand this class. The entire purpose of this class is to abbreviate Character
+    combat data, and make them sendable over the network. See combat_state_attrs at
+    the top of this file for relevant data."""
+    def __init__(self, char=None, **kwargs):
+        # If a character was passed, take its attributes
+        if char is not None:
+            for attr in combat_state_attrs:
+                if hasattr(char, attr):
+                    val = getattr(char, attr)
+                    # Only include attrs intentionally set
+                    if val is not None:
+                        setattr(self, attr, val)
+        # Otherwise, read the attributes straight off
+        else:
+            for attr in combat_state_attrs:
+                if attr in kwargs:
+                    setattr(self, attr, kwargs[attr])
+
+    def __str__(self):
+        return str({attr: getattr(self, attr)
+                for attr in combat_state_attrs if hasattr(self, attr)})
+
+
+def serialize_combat_state(writer, state):
+    for attr in combat_state_attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            if val is not None:
+                writer.write(attr)
+                writer.write(val)
+    writer.write("end")
+
+def deserialize_combat_state(reader):
+    state = CombatState()
+    while reader.iter.getRemainingSize() > 0:
+        attr = reader.read(str)
+        if attr == "end":
+            return state
+        val = reader.read(combat_state_attrs[attr])
+        setattr(state, attr, val)
+
+
 def attempt_melee_hit(src, tgt):
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if numpy.random.random() < 0.2:
