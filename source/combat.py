@@ -3,6 +3,8 @@ import numpy
 
 from .networking.base import *
 
+
+# PUBLIC
 def attempt_melee_hit(src, tgt):
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if numpy.random.random() < 0.2:
@@ -17,6 +19,16 @@ def attempt_melee_hit(src, tgt):
     # Broadcast the hit info to all peers, if host
     broadcast(network.peer.remote_print, hitstring)
 
+
+@rpc(network.peer)
+def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int):
+    src = network.uuid_to_char.get(src_uuid)
+    tgt = network.uuid_to_char.get(tgt_uuid)
+    if src and tgt:
+        attempt_melee_hit(src, tgt)
+
+
+# PRIVATE
 def get_dmg(src, tgt):
     """Get damage from reading source and target's stats"""
     # Damage is uniform from min to max
@@ -36,10 +48,3 @@ def remote_death(connection, time_received, char_uuid: int):
     char = network.uuid_to_char.get(char_uuid)
     if char:
         char.die()
-
-@rpc(network.peer)
-def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int):
-    src = network.uuid_to_char.get(src_uuid)
-    tgt = network.uuid_to_char.get(tgt_uuid)
-    if src and tgt:
-        attempt_melee_hit(src, tgt)

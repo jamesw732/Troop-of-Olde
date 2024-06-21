@@ -3,7 +3,7 @@ logic."""
 from ursina import *
 import numpy
 
-from .combat import *
+from .combat import attempt_melee_hit
 from .networking.base import *
 from .physics import handle_movement, PhysicalState, phys_state_attrs
 from .gamestate import *
