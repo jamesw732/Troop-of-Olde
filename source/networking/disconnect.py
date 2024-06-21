@@ -2,7 +2,7 @@ from ursina import *
 from ursina.networking import *
 
 from .base import *
-from ..world_defns import *
+from ..gamestate import *
 
 
 
@@ -24,13 +24,10 @@ def on_disconnect(connection, time_received):
             broadcast(network.peer.remote_remove_char, uuid)
     # The host disconnected
     else:
-        for char in network.chars:
+        for char in gs.chars:
             destroy(char)
             del network.uuid_to_char[char.uuid]
-        global pc, chars, world
-        pc = None
-        world = None
-        chars.clear()
+        gs.clear()
         network.my_uuid = None
 
 

@@ -4,7 +4,7 @@ from ursina.networking import *
 from .base import *
 from ..character import CharacterState
 
-from ..world_defns import *
+from ..gamestate import *
 
 
 # CODE FOR CONTINUOUS UPDATES
@@ -13,9 +13,6 @@ def update():
     my_char = network.uuid_to_char.get(network.my_uuid)
     if not my_char:
         return
-    for char in chars:
-        if network.my_uuid is not None:
-            char.rotate_namelabel(my_char.position - camera.world_position)
 
     network.update_timer += time.dt
     if network.update_timer >= network.update_rate:

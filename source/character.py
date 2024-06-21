@@ -6,7 +6,7 @@ import numpy
 from .combat import *
 from .networking.base import *
 from .physics import handle_movement
-from .world_defns import *
+from .gamestate import *
 
 
 class Character(Entity):
@@ -23,7 +23,7 @@ class Character(Entity):
             self.speed = speed
 
         self.height = self.scale_y
-        self.namelabel = self.make_namelabel()
+        self.namelabel = NameLabel(self)
 
         self.velocity_components = {}
 
@@ -60,9 +60,9 @@ class Character(Entity):
         self.lerp_timer = 0.2
 
     def update(self):
+        # Movement Handling
         if not self.lerping:
             handle_movement(self)
-
         elif self.lerping and self.prev_state:
             self.lerp_timer += time.dt
             # If timer finished, just apply the new state
@@ -77,16 +77,19 @@ class Character(Entity):
                 self.rotation = lerp(self.prev_state.rotation,
                                      self.new_state.rotation,
                                      self.lerp_timer / self.lerp_rate)
-        self.adjust_namelabel()
-
+        # Namelabel Handling
+        self.namelabel.fix_position()
+        self.namelabel.fix_rotation()
+        # Combat Handling
         if self.target and self.target.alive and self.in_combat:
                 self.progress_combat_timer()
         else:
             self.combat_timer = 0
             if self.target and not self.target.alive:
                 self.target = None
-
+        # Death Handling
         if self.health <= 0:
+            # Wait for server to tell character to die
             if is_main_client():
                 self.die()
 
@@ -109,19 +112,6 @@ class Character(Entity):
         line_of_sight = raycast(src_pos, direction=dir, distance=dist,
                                 ignore=[entity for entity in scene.entities if type(entity) is Character])
         return len(line_of_sight.entities) == 0
-
-    def make_namelabel(self):
-        return Text(self.name, parent=scene, scale=10, origin=(0, 0, 0),
-                    position=self.position + Vec3(0, self.height + 1, 0))
-
-    def rotate_namelabel(self, direction):
-        if self.namelabel:
-            self.namelabel.look_at(direction + self.namelabel.world_position)
-            self.namelabel.rotation_z = 0
-
-    def adjust_namelabel(self):
-        if self.namelabel:
-            self.namelabel.position = self.position + Vec3(0, self.height + 1, 0)
 
     def progress_combat_timer(self):
         # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
@@ -150,7 +140,7 @@ class Character(Entity):
         """Remove all references to objects attached to this character"""
         if network.peer.is_running():
             network.uuid_to_char.pop(self.uuid)
-        chars.remove(self)
+        gs.chars.remove(self)
         if self.controller:
             destroy(self.controller)
             del self.controller.character
@@ -188,6 +178,22 @@ class Character(Entity):
             self.lerp_timer = 0
             # Apply old state to ensure synchronization and update non-lerp attrs
             self.apply_state(self.prev_state)
+
+
+class NameLabel(Text):
+    def __init__(self, char):
+        super().__init__(char.name, parent=scene, scale=10, origin=(0, 0, 0),
+                         position=char.position + Vec3(0, char.height + 1, 0))
+        self.char = char
+
+    def fix_rotation(self):
+        if gs.pc:
+            direction = gs.pc.character.position - camera.world_position
+            self.look_at(direction + self.world_position)
+            self.rotation_z = 0
+
+    def fix_position(self):
+        self.position = self.char.position + Vec3(0, self.char.height + 1, 0)
 
 
 # Update this to expand CharacterState

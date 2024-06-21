@@ -1,7 +1,7 @@
 from ursina import *
 import numpy
 
-from .world_defns import *
+from .gamestate import *
 
 
 def handle_movement(char):
