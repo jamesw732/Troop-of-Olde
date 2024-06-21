@@ -56,4 +56,3 @@ def update_char_cstate(connection, time_received, uuid: int, cbstate: CombatStat
     char = network.uuid_to_char.get(uuid)
     if char:
         char.apply_combat_state(cbstate)
-    print(char.get_combat_state())

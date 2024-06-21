@@ -116,8 +116,7 @@ def on_connect(connection, time_connected):
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
-    global world
-    world = GenerateWorld(zone)
+    gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
 def spawn_character(connection, time_received, uuid: int,
