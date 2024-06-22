@@ -19,11 +19,8 @@ gs = GameState()
 
 # Update this to expand PhysicalState
 phys_state_attrs = {
-    "speed": float,
     "model": str,
     "scale": Vec3,
-    "origin": Vec3,
-    "collider": str,
     "position": Vec3,
     "rotation": Vec3,
     "color": str,
@@ -69,14 +66,36 @@ class PhysicalState:
 
 # Update this to expand CombatState
 combat_state_attrs = {
-    "maxhealth": int,
     "health": int,
+    "mana": int,
+    "stamina": int,
+
+    "bdy": int,
+    "str": int,
+    "dex": int,
+    "ref": int,
+    "agi": int,
+    "int": int,
+
+    "haste": int,
+    "speed": int,
+
+    # "spellshield": int,
+    # "rmagic": int,
+    # "rphys": int,
+    # "rfire": int,
+    # "rcold": int,
+    # "relec": int,
 }
 
 class CombatState:
     """The real intention behind this class is to encompass host-authoritative
     Character attributes. Pure combat vars like health and mana belong here, things
-    like character target do not."""
+    like character target might not.
+
+    The main implication of making this host-authoritative is that everything which
+    affects combat state must be sent through the main client (host or offline client)
+    to compute a new combat state. """
     def __init__(self, char=None, **kwargs):
         """Possible kwargs given by combat_state_attrs."""
         # If a character was passed, take its attributes

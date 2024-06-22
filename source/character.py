@@ -18,24 +18,39 @@ class Character(Entity):
         type: "player" or "npc"
         pstate: PhysicalState; defines client-authoritative attrs
         cbstate: CombatState; defines host-authoritative attrs"""
-        # Engine-relevant vars
         super().__init__(*args, **kwargs)
         self.type = type
         self.name = name
+        self.uuid = uuid
+        self.controller = None
+
+        self.sec_update_rate = 1
+        self.sec_update_timer = 0
+
+        self._init_phys_attrs()
+        self._init_cb_attrs()
+
         if pstate:
             self.apply_physical_state(pstate)
+        if cbstate:
+            self.apply_combat_state(cbstate)
 
-        self.uuid = uuid
+        self._init_lerp_attrs()
 
-        self.height = self.scale_y
-        self.namelabel = NameLabel(self)
-
-        self.velocity_components = {}
+    def _init_phys_attrs(self):
+        """Initialize base physical attributes. These are likely to change."""
+        self.model = "cube"
+        self.scale = Vec3(1, 2, 1)
+        self.origin = Vec3(0, -0.5, 0)
+        self.collider="box"
+        self.color = color.orange
 
         self.jumping = False
         self.grounded = False
         self.grav = 0
+        self.velocity_components = {}
 
+        self.height = self.scale_y
         self.max_jump_height = self.height * 1.5
         self.rem_jump_height = self.max_jump_height
         self.max_jump_time = 0.3
@@ -44,27 +59,72 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
-        self.controller = None
+        self.namelabel = NameLabel(self)
 
-        # Non-engine-relevant vars
-        self.in_combat = False
-        self.target = None
+    def _init_cb_attrs(self):
+        """Initialize base combat attributes. These will definitely change."""
         self.maxhealth = 100
         self.health = self.maxhealth
-        if cbstate:
-            self.apply_combat_state(cbstate)
+        self.maxmana = 100
+        self.mana = self.maxmana
+        self.maxstamina = 100
+        self.stamina = self.maxstamina
+
+        self.bdy = 0
+        self.str = 0
+        self.dex = 0
+        self.ref = 0
+        self.agi = 0
+        self.int = 0
+
+        self.haste = 0
+        self.speed = 10
+
+        # self.maxspellshield = 0
+        # self.spellshield = self.maxspellshield
+        # self.rmagic = 0
+        # self.rphys = 0
+        # self.rfire = 0
+        # self.rcold = 0
+        # self.relec = 0
+
         self.max_combat_timer = 0.1
         self.combat_timer = 0
         self.attackrange = 10
         self.alive = True
+        self.in_combat = False
+        self.target = None
 
-        # LERP vars
+    def _init_lerp_attrs(self):
+        """Initialize lerp logic"""
         self.prev_state = None
         self.new_state = self.get_physical_state()
         self.prev_lerp_recv = 0
         self.lerping = False
         self.lerp_rate = 0
         self.lerp_timer = 0.2
+
+    def _update_sec_phys_attrs(self):
+        """Adjust secondary physical attributes to state changes"""
+        self.height = self.scale_y
+        self.max_jump_height = self.height * 1.5
+        self.rem_jump_height = self.max_jump_height
+        self.max_jump_time = 0.3
+        self.rem_jump_time = self.max_jump_time
+
+    def _update_sec_cb_attrs(self):
+        """Adjust secondary combat attributes to state changes"""
+        self.maxhealth = 100 + self.bdy * 10
+        self.maxmana = 100 + self.int * 10
+        self.maxstamina = 100 + self.bdy * 5 + self.str * 5
+
+    def _update_secondary_vals(self):
+        """Increment timer and update secondary values"""
+        self.sec_update_timer += time.dt
+        if self.sec_update_timer >= self.sec_update_rate:
+            self.sec_update_timer -= self.sec_update_rate
+            self._update_sec_phys_attrs()
+            self._update_sec_cb_attrs()
 
     def update(self):
         """Character updates which happen every frame"""
@@ -111,16 +171,6 @@ class Character(Entity):
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
 
-    def get_tgt_los(self, target):
-        """Returns whether the target is in line of sight"""
-        dist = distance(self, target)
-        src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
-        tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
-        dir = tgt_pos - src_pos
-        line_of_sight = raycast(src_pos, direction=dir, distance=dist,
-                                ignore=[entity for entity in scene.entities if type(entity) is Character])
-        return len(line_of_sight.entities) == 0
-
     def progress_combat_timer(self):
         """Increment combat timer by dt. If past max, attempt a melee hit."""
         # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
@@ -140,6 +190,16 @@ class Character(Entity):
         """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
         in_range = distance(self, self.target) < self.attackrange
         return in_range and self.get_tgt_los(self.target)
+
+    def get_tgt_los(self, target):
+        """Returns whether the target is in line of sight"""
+        dist = distance(self, target)
+        src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
+        tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
+        dir = tgt_pos - src_pos
+        line_of_sight = raycast(src_pos, direction=dir, distance=dist,
+                                ignore=[entity for entity in scene.entities if type(entity) is Character])
+        return len(line_of_sight.entities) == 0
 
     def increase_health(self, amt):
         """Function to be used whenever increasing character's health"""
@@ -190,6 +250,9 @@ class Character(Entity):
                     else:
                         continue
                 setattr(self, attr, val)
+        # Overwriting model causes origin to break, for some reason
+        if hasattr(state, "model"):
+            self.origin = Vec3(0, -0.5, 0)
 
     def update_lerp_state(self, state, time):
         """Essentially just increments the lerp setup.

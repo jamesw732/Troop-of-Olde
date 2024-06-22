@@ -66,10 +66,8 @@ def input(key):
     """
     if not network.peer.is_running():
         if key == "h":
-            pstate = PhysicalState(speed=20.0, model='cube', color="orange",
-                                   scale=(1, 2, 1), collider="box",
-                                   origin=(0, -0.5, 0), position=(0, 1, 0))
-            cbstate = CombatState(maxhealth=100, health=100)
+            pstate = PhysicalState(position=(0, 1, 0))
+            cbstate = CombatState(health=100, speed=20)
             char = Character(name="Player", pstate=pstate, cbstate=cbstate)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
@@ -102,10 +100,8 @@ def on_connect(connection, time_connected):
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if network.peer.is_hosting():
-        new_pstate = PhysicalState(speed=20.0, model='cube', color="orange",
-                               scale=(1, 2, 1), collider="box", origin=(0, -0.5, 0),
-                               position=(0, 1, 0))
-        new_cbstate = CombatState(maxhealth=100, health=100)
+        new_pstate = PhysicalState(position=(0, 1, 0))
+        new_cbstate = CombatState(health=100, speed=20)
         char = Character(name="Player", pstate=new_pstate, cbstate=new_cbstate)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
