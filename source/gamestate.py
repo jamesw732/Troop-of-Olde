@@ -52,8 +52,8 @@ class PhysicalState:
                         setattr(self, attr, val)
         # Otherwise, read the attributes straight off
         else:
-            for attr in phys_state_attrs:
-                if attr in kwargs:
+            for attr in kwargs:
+                if attr in phys_state_attrs:
                     setattr(self, attr, kwargs[attr])
 
     def __str__(self):
@@ -82,8 +82,8 @@ class CombatState:
                         setattr(self, attr, val)
         # Otherwise, read the attributes straight off
         else:
-            for attr in combat_state_attrs:
-                if attr in kwargs:
+            for attr in kwargs:
+                if attr in combat_state_attrs:
                     setattr(self, attr, kwargs[attr])
 
     def __str__(self):
