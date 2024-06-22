@@ -6,15 +6,14 @@ from .networking.base import *
 # PUBLIC
 # Update this to expand CombatState
 combat_state_attrs = {
+    "maxhealth": int,
     "health": int,
 }
 
 class CombatState:
-    """This class is intentionally opaque to save from writing the same code
-    in multiple places and needing to update several functions every time I want
-    to expand this class. The entire purpose of this class is to abbreviate Character
-    combat data, and make them sendable over the network. See combat_state_attrs at
-    the top of this file for relevant data."""
+    """The real intention behind this class is to encompass host-authoritative
+    Character attributes. Pure combat vars like health and mana belong here, things
+    like character target do not."""
     def __init__(self, char=None, **kwargs):
         # If a character was passed, take its attributes
         if char is not None:

@@ -7,8 +7,6 @@ from .gamestate import *
 # PUBLIC
 # Update this to expand PhysicalState
 phys_state_attrs = {
-    "name": str,
-    "type": str,
     "speed": float,
     "model": str,
     "scale": Vec3,
@@ -17,14 +15,18 @@ phys_state_attrs = {
     "position": Vec3,
     "rotation": Vec3,
     "color": str,
+
+    "name": str,
+    "type": str,
+    "target": int,
+    "in_combat": bool,
 }
 
 class PhysicalState:
-    """This class is intentionally opaque to save from writing the same code
-    in multiple places and needing to update several functions every time I want
-    to expand this class. The entire purpose of this class is to abbreviate Characters,
-    and make them sendable over the network. To see exactly how Characters are
-    abbreviated, look at phys_state_attrs at the top of this file."""
+    """The real intention behind this class is to encompass client-authoritative
+    Character attributes. Inclusions are pretty loose; for example in_combat seems
+    like it should belong in CombatState but it makes more sense for it to be
+    client-authoritative.."""
     def __init__(self, char=None, **kwargs):
         # If a character was passed, take its attributes
         if char is not None:

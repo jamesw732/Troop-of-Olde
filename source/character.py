@@ -1,7 +1,6 @@
 """Represents the physical player/npc entities in game. Engine-relevant character
 logic."""
 from ursina import *
-import numpy
 
 from .combat import attempt_melee_hit, CombatState, combat_state_attrs
 from .networking.base import *
@@ -10,18 +9,14 @@ from .gamestate import *
 
 
 class Character(Entity):
-    def __init__(self, *args, name="Player", speed=10.0,  uuid=None,
-                 type="player", pstate=None, cbstate = None, **kwargs):
+    def __init__(self, *args, name="Player",  uuid=None, type="player",
+                 pstate=None, cbstate = None, **kwargs):
         # Engine-relevant vars
         super().__init__(*args, **kwargs)
+        self.type = type
+        self.name = name
         if pstate:
             self.apply_physical_state(pstate)
-        else:
-            self.type = type
-            self.name = name
-            self.speed = speed
-        if cbstate:
-            self.apply_combat_state(cbstate)
 
         self.uuid = uuid
 
@@ -45,10 +40,13 @@ class Character(Entity):
         self.controller = None
 
         # Non-engine-relevant vars
-        self.maxhealth = 100
-        self.health = self.maxhealth
         self.in_combat = False
         self.target = None
+        if cbstate:
+            self.apply_combat_state(cbstate)
+        else:
+            self.maxhealth = 100
+            self.health = self.maxhealth
         self.max_combat_timer = 0.1
         self.combat_timer = 0
         self.attackrange = 10
@@ -169,6 +167,12 @@ class Character(Entity):
                 # Ursina is smart about assigning model/collider, but not color
                 if attr == "color":
                     val = color.colors[val]
+                elif attr == "target":
+                    # target is a uuid, not a char
+                    if val in network.uuid_to_char:
+                        val = network.uuid_to_char[val]
+                    else:
+                        continue
                 setattr(self, attr, val)
 
     def update_lerp_state(self, state, time):

@@ -37,6 +37,9 @@ def serialize_physical_state(writer, state):
         if hasattr(state, attr):
             val = getattr(state, attr)
             if val is not None:
+                if attr == "target":
+                    # Don't write the character, write its uuid
+                    val = val.uuid
                 writer.write(attr)
                 writer.write(val)
     writer.write("end")
@@ -51,7 +54,6 @@ def deserialize_physical_state(reader):
         setattr(state, attr, val)
 
 
-
 network.peer.register_type(PhysicalState, serialize_physical_state,
                            deserialize_physical_state)
 network.peer.register_type(CombatState, serialize_combat_state,
@@ -61,7 +63,11 @@ network.peer.register_type(CombatState, serialize_combat_state,
 def input(key):
     if not network.peer.is_running():
         if key == "h":
-            char = Character("Player", speed=20.0, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+            pstate = PhysicalState(speed=20.0, model='cube', color="orange",
+                                   scale=(1, 2, 1), collider="box",
+                                   origin=(0, -0.5, 0), position=(0, 1, 0))
+            cbstate = CombatState(maxhealth=100, health=100)
+            char = Character(name="Player", pstate=pstate, cbstate=cbstate)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
             char.uuid = network.my_uuid
@@ -93,14 +99,16 @@ def on_connect(connection, time_connected):
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if network.peer.is_hosting():
-        char = Character(name="Player", speed=20.0, model='cube', color=color.orange, scale_y=2, collider="box", origin=(0, -0.5, 0), position=(0, 1, 0))
+        new_pstate = PhysicalState(speed=20.0, model='cube', color="orange",
+                               scale=(1, 2, 1), collider="box", origin=(0, -0.5, 0),
+                               position=(0, 1, 0))
+        new_cbstate = CombatState(maxhealth=100, health=100)
+        char = Character(name="Player", pstate=new_pstate, cbstate=new_cbstate)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
         gs.chars.append(char)
         network.connection_to_char[connection] = char
-        new_pstate = char.get_physical_state()
-        new_cstate = char.get_combat_state()
         network.peer.generate_world(connection, "demo.json")
         for conn in network.peer.get_connections():
             # New user needs all characters
@@ -111,7 +119,7 @@ def on_connect(connection, time_connected):
                     network.peer.spawn_character(conn, ch.uuid, pstate, cstate)
             # Existing users just need new character
             else:
-                network.peer.spawn_character(conn, char.uuid, new_pstate, new_cstate)
+                network.peer.spawn_character(conn, char.uuid, new_pstate, new_cbstate)
         network.peer.bind_uuid_to_char(connection, char.uuid)
 
 @rpc(network.peer)
