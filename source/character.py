@@ -132,7 +132,7 @@ class Character(Entity):
         return in_range and self.get_tgt_los(self.target)
 
     def increase_health(self, amt):
-        self.health += amt
+        self.health = min(self.maxhealth, self.health + amt)
 
     def reduce_health(self, amt):
         self.health -= amt
