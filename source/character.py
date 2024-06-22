@@ -42,11 +42,10 @@ class Character(Entity):
         # Non-engine-relevant vars
         self.in_combat = False
         self.target = None
+        self.maxhealth = 100
+        self.health = self.maxhealth
         if cbstate:
             self.apply_combat_state(cbstate)
-        else:
-            self.maxhealth = 100
-            self.health = self.maxhealth
         self.max_combat_timer = 0.1
         self.combat_timer = 0
         self.attackrange = 10
