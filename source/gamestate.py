@@ -9,6 +9,7 @@ class GameState:
         self.chars = [] # Characters
 
     def clear(self):
+        """Called upon disconnect"""
         self.pc = None
         self.world = None
         self.chars.clear()
@@ -39,6 +40,11 @@ class PhysicalState:
     like it should belong in CombatState but it makes more sense for it to be
     client-authoritative.."""
     def __init__(self, char=None, **kwargs):
+        """Possible kwargs given by phys_state_attrs.
+
+        Explanations of nontrivial kwargs:
+        color: string representing the color, ie "red" or "orange". See ursina.color.colors for possible keys
+        target: uuid of character's target"""
         # If a character was passed, take its attributes
         if char is not None:
             for attr in phys_state_attrs:
@@ -72,6 +78,7 @@ class CombatState:
     Character attributes. Pure combat vars like health and mana belong here, things
     like character target do not."""
     def __init__(self, char=None, **kwargs):
+        """Possible kwargs given by combat_state_attrs."""
         # If a character was passed, take its attributes
         if char is not None:
             for attr in combat_state_attrs:

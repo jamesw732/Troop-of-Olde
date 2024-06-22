@@ -6,7 +6,6 @@ from .base import *
 from ..gamestate import *
 
 
-# CODE FOR CONTINUOUS UPDATES
 def update():
     network.peer.update()
     # No point updating if no peers
@@ -33,10 +32,9 @@ def update():
 @rpc(network.peer)
 def update_char_pstate(connection, time_received, uuid: int,
                        phys_state: PhysicalState):
-    """Mostly the RPC wrapper for Character.apply_physical_state, eventually
-    Character.update_lerp_state.
-    Character state is client-authoritative, so when host receives this, it
-    recursively calls it again for each other connection.
+    """Client-authoritatively apply physical state updates.
+    Don't apply new state directly, instead add it as the new LERP state.
+    Host will broadcast the new state to all other peers.
     """
     char = network.uuid_to_char.get(uuid)
     if char:
@@ -49,6 +47,7 @@ def update_char_pstate(connection, time_received, uuid: int,
 
 @rpc(network.peer)
 def update_char_cstate(connection, time_received, uuid: int, cbstate: CombatState):
+    """Host-authoritatively apply combat state updates."""
     char = network.uuid_to_char.get(uuid)
     if char:
         char.apply_combat_state(cbstate)

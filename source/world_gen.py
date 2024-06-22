@@ -19,6 +19,9 @@ class GenerateWorld:
             self.parse_json(zonepath)
 
     def parse_json(self, file):
+        """Load the world by parsing a json
+
+        file: str, name of file to load in data/zones. Not full path."""
         with open(file) as f:
             world_data = json.load(f)
         for (entity, data) in world_data.items():
@@ -37,6 +40,9 @@ class GenerateWorld:
         return [Character(**self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
 
     def parse_colors_tuples(self, data):
+        """Parses colors and tuples from a json, which are just formatted as strings.
+
+        data: dict, probably returned by a json.load"""
         if "color" in data:
             data["color"] = color.colors[data["color"]]
         for var in tuple_vars:

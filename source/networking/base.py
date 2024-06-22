@@ -5,6 +5,7 @@ from ursina.networking import *
 
 
 class Network:
+    """Represent's client's view of the network state"""
     def __init__(self):
         self.peer = RPCPeer()
 
@@ -27,7 +28,9 @@ def remote_print(connection, time_received, msg: str):
     print(msg)
 
 def broadcast(func, *args):
-    """Calls an RPC function for each connection to host"""
+    """Calls an RPC function for each connection to host
+    func: an RPC function
+    args: arguments to the RPC function besides connection"""
     if network.peer.is_hosting():
         for connection in network.peer.get_connections():
             func(connection, *args)

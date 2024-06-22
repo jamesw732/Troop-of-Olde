@@ -10,7 +10,7 @@ from ..gamestate import *
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 
-
+# These are all the same, define logic for serializing and deserializing states
 def serialize_combat_state(writer, state):
     for attr in combat_state_attrs:
         if hasattr(state, attr):
@@ -52,13 +52,18 @@ def deserialize_physical_state(reader):
         setattr(state, attr, val)
 
 
+# Actually register the states as types sendable over the network
 network.peer.register_type(PhysicalState, serialize_physical_state,
                            deserialize_physical_state)
 network.peer.register_type(CombatState, serialize_combat_state,
                            deserialize_combat_state)
 
-# This is a very primitive approach to logins. This will eventually become part of GUI code.
+
 def input(key):
+    """Right now, handles login inputs. Very temporary framework.
+    If hosting, do all the things needed to create the world.
+    If not hosting, just connect and let on_connect handle the rest.
+    """
     if not network.peer.is_running():
         if key == "h":
             pstate = PhysicalState(speed=20.0, model='cube', color="orange",
@@ -118,15 +123,17 @@ def on_connect(connection, time_connected):
             # Existing users just need new character
             else:
                 network.peer.spawn_character(conn, char.uuid, new_pstate, new_cbstate)
-        network.peer.bind_uuid_to_char(connection, char.uuid)
+        network.peer.bind_player(connection, char.uuid)
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
+    """Remotely generate the world"""
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
 def spawn_character(connection, time_received, uuid: int,
                     phys_state: PhysicalState, cb_state: CombatState):
+    """Remotely spawn a character and bind its uuid"""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
@@ -136,7 +143,8 @@ def spawn_character(connection, time_received, uuid: int,
         char.uuid = uuid
 
 @rpc(network.peer)
-def bind_uuid_to_char(connection, time_received, uuid:int):
+def bind_player(connection, time_received, uuid:int):
+    """Make client know this uuid is theirs"""
     if network.peer.is_hosting():
         return
     network.my_uuid = uuid

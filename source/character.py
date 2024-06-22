@@ -11,6 +11,13 @@ from .gamestate import *
 class Character(Entity):
     def __init__(self, *args, name="Player",  uuid=None, type="player",
                  pstate=None, cbstate = None, **kwargs):
+        """ *args and **kwargs are just passed directly into Entity().
+
+        name: name of character, str
+        uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
+        type: "player" or "npc"
+        pstate: PhysicalState; defines client-authoritative attrs
+        cbstate: CombatState; defines host-authoritative attrs"""
         # Engine-relevant vars
         super().__init__(*args, **kwargs)
         self.type = type
@@ -60,6 +67,7 @@ class Character(Entity):
         self.lerp_timer = 0.2
 
     def update(self):
+        """Character updates which happen every frame"""
         # Movement Handling
         if not self.lerping:
             handle_movement(self)
@@ -94,7 +102,7 @@ class Character(Entity):
                 self.die()
 
     def start_jump(self):
-        """Set self.jumping"""
+        """Set self.jumping to be true if not grounded"""
         if self.grounded:
             self.jumping = True
 
@@ -114,6 +122,7 @@ class Character(Entity):
         return len(line_of_sight.entities) == 0
 
     def progress_combat_timer(self):
+        """Increment combat timer by dt. If past max, attempt a melee hit."""
         # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
         self.combat_timer += time.dt
         if self.combat_timer > self.max_combat_timer:
@@ -122,22 +131,26 @@ class Character(Entity):
                 if is_main_client():
                     attempt_melee_hit(self, self.target)
                 else:
+                    # Host-authoritative, so we need to ask the host to compute the hit
                     network.peer.remote_attempt_melee_hit(
                         network.peer.get_connections()[0],
                         self.uuid, self.target.uuid)
 
     def get_target_hittable(self):
+        """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
         in_range = distance(self, self.target) < self.attackrange
         return in_range and self.get_tgt_los(self.target)
 
     def increase_health(self, amt):
+        """Function to be used whenever increasing character's health"""
         self.health = min(self.maxhealth, self.health + amt)
 
     def reduce_health(self, amt):
+        """Function to be used whenever decreasing character's health"""
         self.health -= amt
 
     def on_destroy(self):
-        """Remove all references to objects attached to this character"""
+        """Upon being destroyed, remove all references to objects attached to this character"""
         if network.peer.is_running():
             network.uuid_to_char.pop(self.uuid)
         gs.chars.remove(self)
@@ -150,6 +163,7 @@ class Character(Entity):
         del self.ignore_traverse
 
     def die(self):
+        """Essentially just destroy self and make sure the rest of the network knows if host."""
         print(f"{self.name} perishes.")
         self.alive = False
         if network.peer.is_hosting():
@@ -157,9 +171,12 @@ class Character(Entity):
         destroy(self)
     
     def get_physical_state(self):
+        """Computes the current state of Character's client-authoritative attributes"""
         return PhysicalState(char=self)
     
     def apply_physical_state(self, state):
+        """Applies state of client-authoritative attributes.
+        Should really only be called by update_lerp_state"""
         for attr in phys_state_attrs:
             if hasattr(state, attr):
                 val = getattr(state, attr)
@@ -175,6 +192,8 @@ class Character(Entity):
                 setattr(self, attr, val)
 
     def update_lerp_state(self, state, time):
+        """Essentially just increments the lerp setup.
+        Slide prev and new state, set self.lerping = True, and apply old state"""
         self.prev_state = self.new_state
         self.new_state = state
         if self.prev_state:
@@ -186,9 +205,11 @@ class Character(Entity):
             self.apply_physical_state(self.prev_state)
 
     def get_combat_state(self):
+        """Computes the current state of Character's host-authoritative attributes"""
         return CombatState(char=self)
 
     def apply_combat_state(self, state):
+        """Applies state of host-authoritative attributes"""
         for attr in combat_state_attrs:
             if hasattr(state, attr):
                 val = getattr(state, attr)
@@ -197,17 +218,20 @@ class Character(Entity):
 
 class NameLabel(Text):
     def __init__(self, char):
+        """Creates a namelabel above a character"""
         super().__init__(char.name, parent=scene, scale=10, origin=(0, 0, 0),
                          position=char.position + Vec3(0, char.height + 1, 0))
         self.char = char
 
     def fix_rotation(self):
+        """Aim the namelabel at the player with the right direction"""
         if gs.pc:
             direction = gs.pc.character.position - camera.world_position
             self.look_at(direction + self.world_position)
             self.rotation_z = 0
 
     def fix_position(self):
+        """Position the namelabel above the character"""
         self.position = self.char.position + Vec3(0, self.char.height + 1, 0)
 
 

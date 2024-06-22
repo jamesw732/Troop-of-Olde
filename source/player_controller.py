@@ -1,3 +1,5 @@
+"""Entirely private class (after instantiating) that handles player inputs."""
+
 from ursina import *
 import numpy
 import json
@@ -85,6 +87,7 @@ class PlayerController(Entity):
             self.character.velocity_components["keyboard"] = move_direction * self.character.speed
 
     def handle_keyboard_rotation(self, updown_rotation, leftright_rotation):
+        """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
         # Keyboard Rotation
         # Slow down left/right rotation by multiplying by cos(x rotation)
         self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x)), 0))
@@ -92,6 +95,7 @@ class PlayerController(Entity):
         self.fix_camera_rotation()
 
     def handle_mouse_rotation(self):
+        """Handles rotation from right clicking and dragging the mouse."""
         # Mouse rotation:
         diff = mouse.position - self.prev_mouse_position
         vel = Vec3(-1 * diff[1], diff[0] * numpy.cos(numpy.radians(self.focus.rotation_x)), 0)
@@ -100,7 +104,8 @@ class PlayerController(Entity):
         self.fix_camera_rotation()
 
     def fix_camera_rotation(self):
-        # Adjust everything
+        """Handles all the problems that results from the camera rotating.
+        Caps vertical rotation, removes z rotation, rotates character."""
         max_vert_rotation = 80
         self.focus.rotation_z = 0
         self.character.rotation_y = self.focus.rotation_y
@@ -126,18 +131,22 @@ class PlayerController(Entity):
         self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
 
     def fix_player_namelabel(self):
-        """Hacky fix to player's namelabel being slow"""
+        """Hacky fix to player's namelabel being slow.
+        Just make the parent of the namelabel the focus and that's it"""
         self.character.namelabel.parent = self.focus
         self.character.namelabel.position = Vec3(0, self.character.height, 0)
         self.character.namelabel.fix_rotation = lambda: None
         self.character.namelabel.fix_position = lambda: None
 
     def set_target(self, target):
+        """Set character's target.
+
+        target: Character"""
         self.character.target = target
         print(f"Now targeting: {target.name}")
 
     def bind_keys(self):
-        # Bind keys based on key_mappings.json
+        """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
         with open("data/key_mappings.json") as keymap:
             keymap_json = json.load(keymap)
             for k, v in keymap_json.items():
