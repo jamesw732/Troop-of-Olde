@@ -2,8 +2,6 @@ from ursina import *
 from ursina.networking import *
 
 from .base import *
-from ..physics import PhysicalState
-from ..combat import CombatState
 
 from ..gamestate import *
 

@@ -1,4 +1,5 @@
-"""Contains basic networking definitions, free to be accessed by any module"""
+"""Defines and declares the network state. Also some universally helpful
+networking methods. Any file that uses networking will import this."""
 from ursina import *
 from ursina.networking import *
 

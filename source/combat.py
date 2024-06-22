@@ -4,36 +4,6 @@ import random
 from .networking.base import *
 
 # PUBLIC
-# Update this to expand CombatState
-combat_state_attrs = {
-    "maxhealth": int,
-    "health": int,
-}
-
-class CombatState:
-    """The real intention behind this class is to encompass host-authoritative
-    Character attributes. Pure combat vars like health and mana belong here, things
-    like character target do not."""
-    def __init__(self, char=None, **kwargs):
-        # If a character was passed, take its attributes
-        if char is not None:
-            for attr in combat_state_attrs:
-                if hasattr(char, attr):
-                    val = getattr(char, attr)
-                    # Only include attrs intentionally set
-                    if val is not None:
-                        setattr(self, attr, val)
-        # Otherwise, read the attributes straight off
-        else:
-            for attr in combat_state_attrs:
-                if attr in kwargs:
-                    setattr(self, attr, kwargs[attr])
-
-    def __str__(self):
-        return str({attr: getattr(self, attr)
-                for attr in combat_state_attrs if hasattr(self, attr)})
-
-
 def attempt_melee_hit(src, tgt):
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if random.random() < 0.2:

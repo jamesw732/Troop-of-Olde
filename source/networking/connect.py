@@ -5,10 +5,8 @@ import os
 
 from .base import *
 from ..character import Character
-from ..combat import CombatState, combat_state_attrs
 from ..npc_controller import NPC_Controller
 from ..gamestate import *
-from ..physics import PhysicalState, phys_state_attrs
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 
