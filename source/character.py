@@ -2,7 +2,7 @@
 logic."""
 from ursina import *
 
-from .combat import attempt_melee_hit
+from .combat import attempt_melee_hit, get_haste_modifier
 from .networking.base import *
 from .physics import handle_movement
 from .gamestate import *
@@ -95,7 +95,7 @@ class Character(Entity):
         self.agi = 0
         # self.int = 0
 
-        # self.haste = 0
+        self.haste = 0
         self.speed = 10
 
         # self.maxspellshield = 0
@@ -106,7 +106,7 @@ class Character(Entity):
         # self.rcold = 0
         # self.relec = 0
 
-        self.max_combat_timer = 0.1
+        self.max_combat_timer = 1
         self.combat_timer = 0
         self.attackrange = 10
         self.alive = True
@@ -196,7 +196,7 @@ class Character(Entity):
     def progress_combat_timer(self):
         """Increment combat timer by dt. If past max, attempt a melee hit."""
         # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
-        self.combat_timer += time.dt
+        self.combat_timer += time.dt * get_haste_modifier(self.haste)
         if self.combat_timer > self.max_combat_timer:
             self.combat_timer -= self.max_combat_timer
             if self.get_target_hittable():

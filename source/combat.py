@@ -33,6 +33,10 @@ def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid:
         attempt_melee_hit(src, tgt)
 
 
+def get_haste_modifier(haste):
+    return max(0, 1 + haste / 100)
+
+
 # PRIVATE
 def get_dmg(src, tgt):
     """Get damage from reading source and target's stats"""

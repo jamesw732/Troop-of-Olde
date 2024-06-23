@@ -79,7 +79,7 @@ combat_state_attrs = {
     "agi": int,
     # "int": int,
 
-    # "haste": int,
+    "haste": int,
     "speed": int,
     # "armor": int,
 
