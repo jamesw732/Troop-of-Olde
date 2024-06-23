@@ -34,6 +34,7 @@ def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid:
 
 
 def get_haste_modifier(haste):
+    """Convert haste to a multiplicative time modifier"""
     return max(0, 1 + haste / 100)
 
 
