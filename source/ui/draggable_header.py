@@ -8,11 +8,6 @@ class DraggableHeader(Entity):
         self.dragging = False
         self.step = Vec2(0, 0)
 
-        self.max_x = window.right[0] - self.scale_x
-        self.min_x = window.left[0]
-        self.max_y = window.top[1]
-        self.min_y = window.bottom[1] + self.scale_y
-
     def input(self, key):
         if self.hovered and key == "left mouse down":
             self.dragging = True
@@ -24,5 +19,10 @@ class DraggableHeader(Entity):
         if self.dragging:
             if mouse.position:
                 self.position = mouse.position + self.step
-                self.x = clamp(self.x, self.min_x, self.max_x)
-                self.y = clamp(self.y, self.min_y, self.max_y)
+
+                max_x = window.right[0] - self.scale_x
+                min_x = window.left[0]
+                max_y = window.top[1]
+                min_y = window.bottom[1] + self.scale_y
+                self.x = clamp(self.x, min_x, max_x)
+                self.y = clamp(self.y, min_y, max_y)
