@@ -36,8 +36,8 @@ def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid:
 def get_dmg(src, tgt):
     """Get damage from reading source and target's stats"""
     # Damage is uniform from min to max
-    min_hit = 5
-    max_hit = 15
+    min_hit = 5 + src.str
+    max_hit = 15 + src.str
     dmg = random.randint(min_hit, max_hit)
     return dmg
 

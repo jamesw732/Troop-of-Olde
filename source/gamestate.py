@@ -72,7 +72,7 @@ combat_state_attrs = {
     # "stamina": int,
 
     "bdy": int,
-    # "str": int,
+    "str": int,
     # "dex": int,
     # "ref": int,
     # "agi": int,
@@ -80,6 +80,7 @@ combat_state_attrs = {
 
     # "haste": int,
     "speed": int,
+    # "armor": int,
 
     # "spellshield": int,
     # "rmagic": int,

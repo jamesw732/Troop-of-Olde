@@ -89,7 +89,7 @@ class Character(Entity):
         # self.stamina = self.maxstamina
 
         self.bdy = 0
-        # self.str = 0
+        self.str = 0
         # self.dex = 0
         # self.ref = 0
         # self.agi = 0
