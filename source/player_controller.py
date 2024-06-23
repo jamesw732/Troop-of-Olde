@@ -143,7 +143,7 @@ class PlayerController(Entity):
 
         target: Character"""
         self.character.target = target
-        print(f"Now targeting: {target.name}")
+        print(f"Now targeting: {target.cname}")
 
     def bind_keys(self):
         """Load and read data/key_mappings.json and bind them in ursina.input_handler"""

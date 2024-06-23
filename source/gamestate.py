@@ -25,7 +25,7 @@ phys_state_attrs = {
     "rotation": Vec3,
     "color": str,
 
-    "name": str,
+    "cname": str,
     "type": str,
     "target": int,
     "in_combat": bool,
@@ -35,7 +35,7 @@ class PhysicalState:
     """The real intention behind this class is to encompass client-authoritative
     Character attributes. Inclusions are pretty loose; for example in_combat seems
     like it should belong in CombatState but it makes more sense for it to be
-    client-authoritative.."""
+    client-authoritative."""
     def __init__(self, char=None, **kwargs):
         """Possible kwargs given by phys_state_attrs.
 
@@ -65,19 +65,20 @@ class PhysicalState:
 
 
 # Update this to expand CombatState
+# Commented means not yet implemented
 combat_state_attrs = {
     "health": int,
-    "mana": int,
-    "stamina": int,
+    # "mana": int,
+    # "stamina": int,
 
     "bdy": int,
-    "str": int,
-    "dex": int,
-    "ref": int,
-    "agi": int,
-    "int": int,
+    # "str": int,
+    # "dex": int,
+    # "ref": int,
+    # "agi": int,
+    # "int": int,
 
-    "haste": int,
+    # "haste": int,
     "speed": int,
 
     # "spellshield": int,

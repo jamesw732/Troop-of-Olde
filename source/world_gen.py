@@ -4,8 +4,8 @@ import json
 import os
 
 from .character import Character
+from .gamestate import CombatState, PhysicalState
 
-tuple_vars = ["origin", "position", "world_position", "rotation", "world_rotation", "texture_scale"]
 
 class GenerateWorld:
     def __init__(self, file):
@@ -16,9 +16,9 @@ class GenerateWorld:
         self.zones_path = os.path.join(path, "..", "data", "zones")
         zonepath = os.path.join(self.zones_path, file)
         if "json" in zonepath:
-            self.parse_json(zonepath)
+            self.parse_json_zone(zonepath)
 
-    def parse_json(self, file):
+    def parse_json_zone(self, file):
         """Load the world by parsing a json
 
         file: str, name of file to load in data/zones. Not full path."""
@@ -28,7 +28,7 @@ class GenerateWorld:
             if entity == "Sky":
                 Sky(**data)
             else:
-                Entity(**self.parse_colors_tuples(data))
+                Entity(**self.parse_colors(data))
 
     def create_npcs(self, file):
         """Spawn npcs.
@@ -37,15 +37,19 @@ class GenerateWorld:
         path = os.path.join(self.zones_path, file)
         with open(path) as f:
             npc_data = json.load(f)
-        return [Character(**self.parse_colors_tuples(data)) for (npc, data) in npc_data.items()]
+        states = [(PhysicalState(**data["physical"]),
+                   CombatState(**data["combat"]))
+                   for (npc, data) in npc_data.items()]
+        for state in states:
+            print(state[0])
+            print(state[1])
+        return [Character(type="npc", pstate=state[0], cbstate=state[1])
+                for state in states]
 
-    def parse_colors_tuples(self, data):
-        """Parses colors and tuples from a json, which are just formatted as strings.
+    def parse_colors(self, data):
+        """Parses colors from a json, which are just formatted as strings.
 
         data: dict, probably returned by a json.load"""
         if "color" in data:
             data["color"] = color.colors[data["color"]]
-        for var in tuple_vars:
-            if var in data:
-                data[var] = [float(a) for a in data[var].split(", ")]
         return data

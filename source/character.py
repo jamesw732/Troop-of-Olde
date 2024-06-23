@@ -9,33 +9,53 @@ from .gamestate import *
 
 
 class Character(Entity):
-    def __init__(self, *args, name="Player",  uuid=None, type="player",
-                 pstate=None, cbstate = None, **kwargs):
-        """ *args and **kwargs are just passed directly into Entity().
+    def __init__(self, cname="Player",  uuid=None, type="player",
+                 pstate=None, cbstate = None):
+        """Initializes a character using a PhysicalState and a CharacterState.
 
-        name: name of character, str
+        cname: name of character, str
         uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
         type: "player" or "npc"
         pstate: PhysicalState; defines client-authoritative attrs
         cbstate: CombatState; defines host-authoritative attrs"""
-        super().__init__(*args, **kwargs)
+        # Character-specific attrs
         self.type = type
-        self.name = name
+        self.cname = cname
         self.uuid = uuid
         self.controller = None
-
+        # Update timer for attrs that don't get overwritten by
+        # state updates, but still should be affected by state updates
         self.sec_update_rate = 1
         self.sec_update_timer = 0
 
+        # Physical attrs
+        # First, initialize Entity
+        super().__init__()
+        # Initialize base physical attributes
         self._init_phys_attrs()
-        self._init_cb_attrs()
-
+        # Apply phys state, overwriting some of the initialized attrs
         if pstate:
             self.apply_physical_state(pstate)
+        # Make namelabel
+        self.namelabel = NameLabel(self)
+        # Finally, prep lerp
+        self._init_lerp_attrs()
+
+        # Combat attrs
+        # First, initialize combat attrs
+        self._init_cb_attrs()
+        # Apply cb state, overwriting some of the initialized attrs
         if cbstate:
             self.apply_combat_state(cbstate)
-
-        self._init_lerp_attrs()
+        # Compute new max ratings
+        self._update_sec_cb_attrs()
+        # If cbstate didn't tell us ratings, assume they're max
+        if not hasattr(cbstate, "health"):
+            self.health = self.maxhealth
+        # if not hasattr(cbstate, "mana"):
+        #     self.mana = self.maxmana
+        # if not hasattr(cbstate, "stamina"):
+        #     self.stamina = self.maxstamina
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -59,25 +79,23 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
-        self.namelabel = NameLabel(self)
-
     def _init_cb_attrs(self):
         """Initialize base combat attributes. These will definitely change."""
         self.maxhealth = 100
         self.health = self.maxhealth
-        self.maxmana = 100
-        self.mana = self.maxmana
-        self.maxstamina = 100
-        self.stamina = self.maxstamina
+        # self.maxmana = 100
+        # self.mana = self.maxmana
+        # self.maxstamina = 100
+        # self.stamina = self.maxstamina
 
         self.bdy = 0
-        self.str = 0
-        self.dex = 0
-        self.ref = 0
-        self.agi = 0
-        self.int = 0
+        # self.str = 0
+        # self.dex = 0
+        # self.ref = 0
+        # self.agi = 0
+        # self.int = 0
 
-        self.haste = 0
+        # self.haste = 0
         self.speed = 10
 
         # self.maxspellshield = 0
@@ -105,7 +123,9 @@ class Character(Entity):
         self.lerp_timer = 0.2
 
     def _update_sec_phys_attrs(self):
-        """Adjust secondary physical attributes to state changes"""
+        """Adjust secondary physical attributes to state changes.
+        These attrs are not adjusted directly by state changes,
+        but still deserve to be updated by them."""
         self.height = self.scale_y
         self.max_jump_height = self.height * 1.5
         self.rem_jump_height = self.max_jump_height
@@ -113,13 +133,15 @@ class Character(Entity):
         self.rem_jump_time = self.max_jump_time
 
     def _update_sec_cb_attrs(self):
-        """Adjust secondary combat attributes to state changes"""
+        """Adjust secondary combat attributes to state changes.
+        These attrs are not adjusted directly by state changes,
+        but still deserve to be updated by them."""
         self.maxhealth = 100 + self.bdy * 10
-        self.maxmana = 100 + self.int * 10
-        self.maxstamina = 100 + self.bdy * 5 + self.str * 5
+        # self.maxmana = 100 + self.int * 10
+        # self.maxstamina = 100 + self.bdy * 5 + self.str * 5
 
     def _update_secondary_vals(self):
-        """Increment timer and update secondary values"""
+        """Increment timer for and update secondary values"""
         self.sec_update_timer += time.dt
         if self.sec_update_timer >= self.sec_update_rate:
             self.sec_update_timer -= self.sec_update_rate
@@ -224,7 +246,7 @@ class Character(Entity):
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
-        print(f"{self.name} perishes.")
+        print(f"{self.cname} perishes.")
         self.alive = False
         if network.peer.is_hosting():
             broadcast(network.peer.remote_death, self.uuid)
@@ -277,12 +299,16 @@ class Character(Entity):
             if hasattr(state, attr):
                 val = getattr(state, attr)
                 setattr(self, attr, val)
+        # Is this really the right place for this?
+        self.health = min(self.health, self.maxhealth)
+        # self.mana = min(self.mana, self.maxmana)
+        # self.stamina = min(self.mana, self.maxstamina)
 
 
 class NameLabel(Text):
     def __init__(self, char):
         """Creates a namelabel above a character"""
-        super().__init__(char.name, parent=scene, scale=10, origin=(0, 0, 0),
+        super().__init__(char.cname, parent=scene, scale=10, origin=(0, 0, 0),
                          position=char.position + Vec3(0, char.height + 1, 0))
         self.char = char
 

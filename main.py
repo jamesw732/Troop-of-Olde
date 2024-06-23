@@ -12,7 +12,7 @@ gs.world = GenerateWorld("demo.json")
 pstate = PhysicalState(position=(0, 1, 0))
 cbstate = CombatState(health=100, speed=20)
 
-player = Character(name="Player", pstate=pstate, cbstate=cbstate)
+player = Character(pstate=pstate, cbstate=cbstate)
 gs.pc = PlayerController(player)
 
 npcs = gs.world.create_npcs("demo_npcs.json")

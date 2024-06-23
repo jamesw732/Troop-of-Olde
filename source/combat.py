@@ -45,8 +45,8 @@ def get_melee_hit_string(src, tgt, dmg=0, miss=False):
     """Produce a string with information about the melee hit."""
     style = "pummel"
     if miss:
-        return f"{src.name} attempted to {style} {tgt.name}, but missed!"
-    return f"{src.name} {style}s {tgt.name} for {dmg} damage!"
+        return f"{src.cname} attempted to {style} {tgt.cname}, but missed!"
+    return f"{src.cname} {style}s {tgt.cname} for {dmg} damage!"
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
