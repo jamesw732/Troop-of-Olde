@@ -1,6 +1,8 @@
 from ursina import *
 
-class DraggableHeader(Entity):
+class Header(Entity):
+    """Class for draggable headers. Any interface that uses a Header
+    should designate it as the parent."""
     def __init__(self, position=Vec2(0, 0), scale=(.5, 0.03), color=color.yellow):
         super().__init__(parent=camera.ui, model='quad', origin=(-.5, .5),
                          collider='box', position=position, scale=scale,

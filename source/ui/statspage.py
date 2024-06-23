@@ -1,11 +1,11 @@
 from ursina import *
 
-from .draggable_header import *
+from .header import *
 from ..gamestate import gs
 
 class StatsPage(Entity):
     def __init__(self):
-        header = DraggableHeader(position=(0.2, 0.2),
+        header = Header(position=(0.2, 0.2),
                                  scale=(.5, .03),
                                  color=color.rgb32(115, 85, 57))
         super().__init__(parent=header, model='quad', origin=(-.5, .5),
