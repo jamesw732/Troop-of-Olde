@@ -90,9 +90,9 @@ class Character(Entity):
 
         self.bdy = 0
         self.str = 0
-        # self.dex = 0
-        # self.ref = 0
-        # self.agi = 0
+        self.dex = 0
+        self.ref = 0
+        self.agi = 0
         # self.int = 0
 
         # self.haste = 0

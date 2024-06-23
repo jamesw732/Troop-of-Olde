@@ -10,7 +10,7 @@ app = Ursina(borderless=False)
 gs.world = GenerateWorld("demo.json")
 
 pstate = PhysicalState(position=(0, 1, 0))
-cbstate = CombatState(health=100, speed=20, str=10)
+cbstate = CombatState(health=100, speed=20, str=10, dex=10)
 
 player = Character(pstate=pstate, cbstate=cbstate)
 gs.pc = PlayerController(player)

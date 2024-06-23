@@ -40,9 +40,6 @@ class GenerateWorld:
         states = [(PhysicalState(**data["physical"]),
                    CombatState(**data["combat"]))
                    for (npc, data) in npc_data.items()]
-        for state in states:
-            print(state[0])
-            print(state[1])
         return [Character(type="npc", pstate=state[0], cbstate=state[1])
                 for state in states]
 

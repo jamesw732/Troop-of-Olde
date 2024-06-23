@@ -1,5 +1,6 @@
 """Defines states and declares a global game state. Most files will import this."""
 from ursina import *
+import math
 
 
 class GameState:
@@ -73,9 +74,9 @@ combat_state_attrs = {
 
     "bdy": int,
     "str": int,
-    # "dex": int,
-    # "ref": int,
-    # "agi": int,
+    "dex": int,
+    "ref": int,
+    "agi": int,
     # "int": int,
 
     # "haste": int,
@@ -117,3 +118,7 @@ class CombatState:
     def __str__(self):
         return str({attr: getattr(self, attr)
                 for attr in combat_state_attrs if hasattr(self, attr)})
+
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))

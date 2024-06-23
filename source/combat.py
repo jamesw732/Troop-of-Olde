@@ -1,6 +1,7 @@
 from ursina import *
 import random
 
+from .gamestate import *
 from .networking.base import *
 
 # PUBLIC
@@ -10,7 +11,7 @@ def attempt_melee_hit(src, tgt):
     Only main client (ie host or offline client) should call this. If not main client,
     call remote version."""
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
-    if random.random() < 0.2:
+    if random.random() < sigmoid((src.dex - tgt.ref - tgt.agi) / 10):
         # It's a miss
         hitstring = get_melee_hit_string(src, tgt, miss=True)
     else:
