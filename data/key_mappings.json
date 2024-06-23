@@ -8,5 +8,6 @@
     "up arrow": "rotate_up",
     "down arrow": "rotate_down",
     "space": "jump",
-    "1": "toggle_combat"
+    "1": "toggle_combat",
+    "c": "open stats"
 }
