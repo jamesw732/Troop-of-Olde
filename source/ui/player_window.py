@@ -24,7 +24,7 @@ class PlayerWindow(Entity):
 
         self.stats = StatsWindow(parent=self, model='quad', origin=(-.5, .5),
                                  scale=(.8, .8), position=(.1, -.1, -1),
-                                 color=color.gray,
+                                 color=window_fg_color,
                                  collider='box')
 
         self.parent.visible = False

@@ -3,6 +3,7 @@ from ursina import *
 # COLORS:
 header_color = color.hex("8a6240")
 window_bg_color = color.hex("4c6444")
+window_fg_color = color.gray
 
 
 
