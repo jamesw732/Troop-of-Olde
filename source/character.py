@@ -83,28 +83,31 @@ class Character(Entity):
         """Initialize base combat attributes. These will definitely change."""
         self.maxhealth = 100
         self.health = self.maxhealth
-        # self.maxmana = 100
-        # self.mana = self.maxmana
-        # self.maxstamina = 100
-        # self.stamina = self.maxstamina
+        self.maxmana = 100
+        self.mana = self.maxmana
+        self.maxstamina = 100
+        self.stamina = self.maxstamina
+        self.maxspellshield = 0
+        self.spellshield = self.maxspellshield
 
         self.bdy = 0
         self.str = 0
         self.dex = 0
         self.ref = 0
         self.agi = 0
-        # self.int = 0
+        self.int = 0
 
         self.haste = 0
         self.speed = 10
+        self.armor = 0
 
-        # self.maxspellshield = 0
-        # self.spellshield = self.maxspellshield
-        # self.rmagic = 0
-        # self.rphys = 0
-        # self.rfire = 0
-        # self.rcold = 0
-        # self.relec = 0
+        self.rmagic = 0
+        self.rphys = 0
+        self.rfire = 0
+        self.rcold = 0
+        self.relec = 0
+        self.rpois = 0
+        self.rdis = 0
 
         self.max_combat_timer = 1
         self.combat_timer = 0

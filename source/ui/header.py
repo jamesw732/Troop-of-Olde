@@ -3,12 +3,16 @@ from ursina import *
 class Header(Entity):
     """Class for draggable headers. Any interface that uses a Header
     should designate it as the parent."""
-    def __init__(self, position=Vec2(0, 0), scale=(.5, 0.03), color=color.yellow):
+    def __init__(self, position=Vec2(0, 0), scale=Vec2(.5, 0.03),
+                 color=color.yellow, text=""):
         super().__init__(parent=camera.ui, model='quad', origin=(-.5, .5),
                          collider='box', position=position, scale=scale,
                          color=color)
         self.dragging = False
         self.step = Vec2(0, 0)
+
+        self.text = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5),
+                         world_scale=(20, 20))
 
     def input(self, key):
         if self.hovered and key == "left mouse down":

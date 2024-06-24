@@ -5,7 +5,9 @@ from source.player_controller import *
 from source.npc_controller import *
 from source.world_gen import *
 from source.gamestate import *
-from source.ui.statspage import *
+
+from source.ui.player_window import *
+from source.ui.stats_window import *
 
 app = Ursina(borderless=False)
 gs.world = GenerateWorld("demo.json")
@@ -23,6 +25,6 @@ for npc in npcs:
 gs.chars += npcs
 gs.chars.append(player)
 
-sp = StatsPage()
+sp = PlayerWindow()
 
 app.run()

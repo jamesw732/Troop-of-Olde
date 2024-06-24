@@ -69,26 +69,26 @@ class PhysicalState:
 # Commented means not yet implemented
 combat_state_attrs = {
     "health": int,
-    # "mana": int,
-    # "stamina": int,
+    "mana": int,
+    "stamina": int,
 
     "bdy": int,
     "str": int,
     "dex": int,
     "ref": int,
     "agi": int,
-    # "int": int,
+    "int": int,
 
     "haste": int,
     "speed": int,
-    # "armor": int,
+    "armor": int,
 
-    # "spellshield": int,
-    # "rmagic": int,
-    # "rphys": int,
-    # "rfire": int,
-    # "rcold": int,
-    # "relec": int,
+    "spellshield": int,
+    "rmagic": int,
+    "rphys": int,
+    "rfire": int,
+    "rcold": int,
+    "relec": int,
 }
 
 class CombatState:
