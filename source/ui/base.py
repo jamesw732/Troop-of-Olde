@@ -27,3 +27,18 @@ def grid(entity, num_rows, num_cols, margin_x=0, margin_y=0):
                       -1 + margin_y,
                       0)]
         Entity(parent=entity, model=Mesh(vertices=vertices, mode="line"), color=color.white)
+
+def get_hovered(entity):
+    # Returns whether this entity is hovered, or whether any of its children are hovered
+    if entity.hovered:
+        return True
+    if not entity.children:
+        return False
+    return any((get_hovered(child) for child in entity.children if child.collider))
+
+def set_transparency(entity, alpha, ignore_text=True):
+    # Sets transparency of entity and all children of entity
+    entity.alpha = alpha
+    for child in entity.children:
+        if not ignore_text or not isinstance(child, Text):
+            set_transparency(child, alpha, ignore_text=ignore_text)

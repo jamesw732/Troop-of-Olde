@@ -47,15 +47,6 @@ class StatsWindow(Entity):
         self.write_ratings()
         self.write_stats()
         self.write_resists()
-        # grid(self, self.num_rows, self.num_cols)
-
-    def update(self):
-        if self.hovered or self.parent.hovered:
-            self.alpha = 1
-            self.parent.alpha = 1
-        else:
-            self.alpha = 150 / 255
-            self.parent.alpha = 150 / 255
 
     def input(self, key):
         if key == "open stats":
@@ -63,40 +54,40 @@ class StatsWindow(Entity):
 
     def write_ratings(self):
         Text(text="Ratings", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.5, -0.5 * self.row_width))
+             position=(0.5, -0.5 * self.row_width, -1))
         # Rows then columns
         locations = [
             [(self.col_width * (j + 0.5) + 0.01,
-              -self.row_width * i - 0.5 * self.row_width)
+              -self.row_width * i - 0.5 * self.row_width, -2)
             for i in range(1, 5 - j)] for j in range(2)
         ]
         for i, loc in enumerate(itertools.chain(*locations)):
             txt = f"{self.rating_labels[i][1]}: " \
                   f"{getattr(self.player, self.rating_labels[i][0])}"
             Text(text=txt, parent=self, position=loc, origin=(0, 0),
-                 world_scale=(14, 14), color=color.white, alpha=255)
+                 world_scale=(14, 14), color=color.white)
 
     def write_stats(self):
         Text(text="Innate Stats", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.5, (-5 - 0.5) * self.row_width))
+             position=(0.5, (-5 - 0.5) * self.row_width, -2))
         locations = [
             [(self.col_width * (j + 0.5) + 0.01,
-              -self.row_width * i - 0.5 * self.row_width)
+              -self.row_width * i - 0.5 * self.row_width, -2)
             for i in range(6, 9)] for j in range(2)
         ]
         for i, loc in enumerate(itertools.chain(*locations)):
             txt = f"{self.stat_labels[i][1]}: " \
                   f"{getattr(self.player, self.stat_labels[i][0])}"
             Text(text=txt, parent=self, position=loc, origin=(0, 0),
-                 world_scale=(14, 14), color=color.white, alpha=255)
+                 world_scale=(14, 14), color=color.white)
 
     def write_resists(self):
         Text(text="Resists", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.5, (-9 - 0.5) * self.row_width))
+             position=(0.5, (-9 - 0.5) * self.row_width, -2))
         # Rows then columns
         locations = [
             [(self.col_width * (j + 0.5) + 0.01,
-              -self.row_width * i - 0.5 * self.row_width)
+              -self.row_width * i - 0.5 * self.row_width, -2)
             for i in range(10, 14 - j)] for j in range(2)
         ]
         for i, loc in enumerate(itertools.chain(*locations)):
@@ -104,3 +95,35 @@ class StatsWindow(Entity):
                   f"{getattr(self.player, self.resist_labels[i][0])}"
             Text(text=txt, parent=self, position=loc, origin=(0, 0),
                  world_scale=(14, 14), color=color.white)
+
+
+# class RatingsSection(Entity):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+
+#         self.rating_labels = [
+#             ('health', 'Health'),
+#             ('mana', 'Mana'),
+#             ('stamina', 'Stamina'),
+#             ('spellshield', 'Spell Shield'),
+#             ('haste', 'Haste'),
+#             ('speed', 'Speed'),
+#             ('armor', 'Armor')
+#         ]
+
+#         self.write_ratings()
+    
+#     def write_ratings(self):
+#         Text(text="Ratings", parent=self, origin=(0, 0), world_scale=(18, 18),
+#              position=(0.5, -1/8))
+#         # Rows then columns
+#         locations = [
+#             [(1/4 * (j + 0.5) + 0.01,
+#               -1/4 * i - 1/8)
+#             for i in range(1, 5 - j)] for j in range(2)
+#         ]
+#         for i, loc in enumerate(itertools.chain(*locations)):
+#             txt = f"{self.rating_labels[i][1]}: " \
+#                   f"{getattr(self.parent.player, self.rating_labels[i][0])}"
+#             Text(text=txt, parent=self, position=loc, origin=(0, 0),
+#                  world_scale=(14, 14), color=color.white, alpha=255)

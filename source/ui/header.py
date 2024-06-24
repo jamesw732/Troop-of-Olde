@@ -1,5 +1,7 @@
 from ursina import *
 
+from .base import *
+
 class Header(Entity):
     """Class for draggable headers. Any interface that uses a Header
     should designate it as the parent."""
@@ -11,8 +13,10 @@ class Header(Entity):
         self.dragging = False
         self.step = Vec2(0, 0)
 
-        self.text = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5),
-                         world_scale=(20, 20))
+        self.text = Text(text=text, parent=self, origin=(0, 0),
+                         position=(0.5, -0.5, -1), world_scale=(20, 20))
+
+        self.transparent = False
 
     def input(self, key):
         if self.hovered and key == "left mouse down":
@@ -32,3 +36,10 @@ class Header(Entity):
                 min_y = window.bottom[1] + self.scale_y
                 self.x = clamp(self.x, min_x, max_x)
                 self.y = clamp(self.y, min_y, max_y)
+        hovered = get_hovered(self)
+        if self.transparent and hovered:
+            set_transparency(self, 1, ignore_text=True)
+            self.transparent = False
+        elif not self.transparent and not hovered:
+            set_transparency(self, 155 / 250)
+            self.transparent = True
