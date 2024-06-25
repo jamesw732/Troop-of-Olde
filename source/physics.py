@@ -52,20 +52,16 @@ def set_jump_vel(char):
 
 def handle_grounding(char, velocity):
     """Determine whether character is on the ground or not."""
-    # If going up, definitely not on the ground.
-    if velocity[1] > 0:
-        char.grounded = False
-    # If velocity is 0, check if there's an entity below.
-    elif velocity[1] == 0:
-        ground = raycast(char.position, direction=(0, -1, 0), distance=0.01, ignore=char.ignore_traverse)
-        char.grounded = ground.hit
-    # Otherwise, look ahead by predicted distance given by velocity.
-    else:
+    # If ground is within next timestep, we're grounded.
+    if velocity[1] < 0:
         ground = raycast(char.position, direction=(0, -1, 0),
                          distance=abs(velocity[1] * time.dt),
                          ignore=char.ignore_traverse)
-        if ground.hit:
-            char.grounded = True
+    # Otherwise, just check a small step downwards.
+    else:
+        ground = raycast(char.position, direction=(0, -1, 0), distance=0.01, ignore=char.ignore_traverse)
+    char.grounded = ground.hit
+        
 
 
 def handle_collision(char, velocity):
