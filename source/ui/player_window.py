@@ -24,18 +24,9 @@ class PlayerWindow(Entity):
 
         self.stats = StatsWindow(parent=self, model='quad', origin=(-.5, .5),
                                  scale=(.8, .8), position=(.1, -.1, -1),
-                                 color=window_fg_color,
-                                 collider='box')
+                                 color=window_fg_color)
 
         self.parent.visible = False
-
-    # def update(self):
-    #     if self.hovered or self.parent.hovered:
-    #         self.alpha = 1
-    #         self.parent.alpha = 1
-    #     else:
-    #         self.alpha = 150 / 255
-    #         self.parent.alpha = 150 / 255
 
     def write_stats(self):
         pass

@@ -46,6 +46,12 @@ class StatsWindow(Entity):
     def input(self, key):
         if key == "open stats":
             self.header.visible = not self.header.visible
+            if self.header.visible:
+                self.header.collider = "box"
+                self.parent.collider = "box"
+            else:
+                self.header.collider = None
+                self.parent.collider = None
 
     def write_ratings(self):
         Text(text="Ratings", parent=self, origin=(0, 0), world_scale=(18, 18),
