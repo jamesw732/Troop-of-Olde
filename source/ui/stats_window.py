@@ -32,17 +32,12 @@ class StatsWindow(Entity):
             ('str', 'Strength'),
             ('dex', 'Dexterity'),
             ('ref', 'Reflexes'),
-            ('agi', 'Agility'),
             ('int', 'Intelligence')
         ]
         self.resist_labels = [
             ('rmagic', 'Magic'),
-            ('rfire', 'Fire'),
-            ('rcold', 'Cold'),
-            ('relec', 'Electric'),
             ('rphys', 'Physical'),
-            ('rpois', 'Poison'),
-            ('rdis', 'Disease')
+
         ]
         self.write_ratings()
         self.write_stats()

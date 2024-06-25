@@ -94,7 +94,6 @@ class Character(Entity):
         self.str = 0
         self.dex = 0
         self.ref = 0
-        self.agi = 0
         self.int = 0
 
         self.haste = 0
@@ -103,11 +102,6 @@ class Character(Entity):
 
         self.rmagic = 0
         self.rphys = 0
-        self.rfire = 0
-        self.rcold = 0
-        self.relec = 0
-        self.rpois = 0
-        self.rdis = 0
 
         self.max_combat_timer = 1
         self.combat_timer = 0
