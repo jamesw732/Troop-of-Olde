@@ -9,5 +9,8 @@
     "down arrow": "rotate_down",
     "space": "jump",
     "1": "toggle_combat",
+    "i": "open items",
+    "b": "open lexicon",
+    "k": "open skills",
     "c": "open stats"
 }

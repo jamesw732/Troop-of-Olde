@@ -18,7 +18,7 @@ class StatsWindow(Entity):
 
         self.entries = {}
         self.entry_font_size = (11, 11)
-        self.entry_width = 19
+        self.entry_width = 23
 
         # grid(self, 14, 2)
 
@@ -48,16 +48,6 @@ class StatsWindow(Entity):
         self.write_ratings()
         self.write_innate()
         self.write_resists()
-
-    def input(self, key):
-        if key == "open stats":
-            self.header.visible = not self.header.visible
-            if self.header.visible:
-                self.header.collider = "box"
-                self.parent.collider = "box"
-            else:
-                self.header.collider = None
-                self.parent.collider = None
 
     def update(self):
         # If this causes performance problems, just add a timer slower than every frame
