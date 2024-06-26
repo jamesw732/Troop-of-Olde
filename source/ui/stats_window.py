@@ -16,7 +16,13 @@ class StatsWindow(Entity):
         self.row_width = 1 / self.num_rows
         self.col_width = 1 / self.num_cols
 
+        self.entries = {}
+        self.entry_font_size = (11, 11)
+        self.entry_width = 30
+
         # grid(self, 14, 2)
+
+        self.labels_out_of_max = {"health", "mana", "stamina", "spellshield"}
 
         self.rating_labels = [
             ('health', 'Health'),
@@ -53,6 +59,12 @@ class StatsWindow(Entity):
                 self.header.collider = None
                 self.parent.collider = None
 
+    def update(self):
+        # If this causes performance problems, just add a timer slower than every frame
+        if self.visible:
+            for attr in self.entries:
+                self.update_label(attr)
+
     def write_ratings(self):
         Text(text="Ratings", parent=self, origin=(0, 0), world_scale=(18, 18),
              position=(0.5, -0.5 * self.row_width, -1))
@@ -70,13 +82,16 @@ class StatsWindow(Entity):
             label = self.rating_labels[i][1]
             attr = self.rating_labels[i][0]
             cur = getattr(self.player, attr)
-            if attr in {"health", "mana", "stamina", "spellshield"}:
+            if attr in self.labels_out_of_max:
                 cap = getattr(self.player, "max" + attr)
-                txt = f"{label}: {cur}/{cap}"
+                fmt = (f"{label}:", "{}/{}")
+                txt = fmt.format(cur, cap)
             else:
-                txt = f"{label}: {cur}"
-            Text(text=txt, parent=self, position=loc, origin=(0, 0),
-                 world_scale=(12, 12), color=color.white)
+                fmt = (f"{label}:", "{}")
+                txt = fmt.format(cur)
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(0, 0),
+                 world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
+            self.entries[attr].fmt = fmt
 
     def write_innate(self):
         Text(text="Innate", parent=self, origin=(0, 0), world_scale=(18, 18),
@@ -93,9 +108,11 @@ class StatsWindow(Entity):
             label = self.innate_labels[i][1]
             attr = self.innate_labels[i][0]
             cur = getattr(self.player, attr)
-            txt = txt = f"{label}: {cur}"
-            Text(text=txt, parent=self, position=loc, origin=(0, 0),
-                 world_scale=(12, 12), color=color.white)
+            fmt = f"{label}: " + "{}"
+            txt = fmt.format(cur)
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(0, 0),
+                 world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
+            self.entries[attr].fmt = fmt
 
     def write_resists(self):
         Text(text="Resists", parent=self, origin=(0, 0), world_scale=(18, 18),
@@ -114,10 +131,22 @@ class StatsWindow(Entity):
             label = self.resist_labels[i][1]
             attr = self.resist_labels[i][0]
             cur = getattr(self.player, attr)
-            txt = txt = f"{label}: {cur}"
-            Text(text=txt, parent=self, position=loc, origin=(0, 0),
-                 world_scale=(12, 12), color=color.white)
+            fmt = f"{label}: " + "{}"
+            txt = fmt.format(cur)
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(0, 0),
+                 world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
+            self.entries[attr].fmt = fmt
 
+    def update_label(self, attr):
+        label = self.entries[attr]
+        fmt = label.fmt
+        cur = getattr(self.player, attr)
+        if attr in self.labels_out_of_max:
+            cap = getattr(self.player, "max" + attr)
+            txt = fmt.format(cur, cap)
+        else:
+            txt = fmt.format(cur)
+        label.text = txt
 
 # class RatingsSection(Entity):
 #     def __init__(self, *args, **kwargs):
