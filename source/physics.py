@@ -13,12 +13,12 @@ def handle_movement(char):
 
     velocity = sum(list(char.velocity_components.values()))
 
-    if type(velocity) is int:
-        velocity = Vec3(0, 0, 0)
-
     handle_grounding(char, velocity)
-    velocity = handle_collision(char, velocity)
-    velocity = handle_upward_collision(char, velocity)
+
+    # Save some performance if not moving
+    if velocity != Vec3.zero:
+        velocity = handle_collision(char, velocity)
+        velocity = handle_upward_collision(char, velocity)
 
     char.position += velocity * time.dt
 
@@ -28,10 +28,10 @@ def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
     if not char.grounded and not char.jumping:
-        grav -= Vec3(0, 100 * time.dt, 0)
+        grav -= Vec3(0, 0.75, 0)
     elif char.grounded:
         grav = Vec3(0, 0, 0)
-    char.velocity_components["gravity"] = grav # Try deleting this line
+    char.velocity_components["gravity"] = grav
 
 
 def set_jump_vel(char):
@@ -61,30 +61,37 @@ def handle_grounding(char, velocity):
     else:
         ground = raycast(char.position, direction=(0, -1, 0), distance=0.01, ignore=char.ignore_traverse)
     char.grounded = ground.hit
-        
 
 
-def handle_collision(char, velocity):
-    """Handles feet collision logic"""
+def handle_collision(char, velocity, depth=0):
+    """Handles feet collision logic.
+
+    The timing of this function seems very inconsistent, and sometimes slow.
+    At worst, it takes about 0.001 seconds, which """
+    # It's concave, don't try to handle it, just stop
+    if depth > 3:
+        return Vec3(0, 0, 0)
     dist = distance((0, 0, 0), velocity) * time.dt
     collision_check = raycast(char.position, direction=velocity, distance=dist, ignore=char.ignore_traverse)
     if collision_check.hit:
         normal = collision_check.world_normal
-        if numpy.dot(normal, velocity) < 0:
-            # Note this is different from character speed if multiple velocity components
-            speed = distance(Vec3.zero, velocity)
-            # Project velocity onto normal of colliding entity
-            # This is not correct.
-            velocity = velocity - (numpy.dot(normal, velocity)) * normal
-            # Match old speed
-            velocity = velocity.normalized() * speed
-            # Make sure new velocity doesn't pass through any entities, ie concave case.
-            # For now, we just don't move at all, but eventually can improve this.
-            dist2 = distance((0, 0, 0), velocity) * time.dt
-            ray = raycast(char.position, direction=velocity, distance=dist2, ignore=char.ignore_traverse)
-            if ray.hit:
-                velocity = Vec3(0, 0, 0)
-    return velocity
+        speed = distance(Vec3.zero, velocity)
+        # It's a wall
+        if normal[1] == 0:
+            new_velocity = velocity - (numpy.dot(normal, velocity)) * normal
+            new_velocity = new_velocity
+        # It's a slope
+        else:
+            point1 = collision_check.world_point
+            plane_const = numpy.dot(normal, point1)
+            x2 = velocity[0] * time.dt + point1[0]
+            z2 = velocity[2] * time.dt + point1[2]
+            y2 = (plane_const - x2 * normal[0] - z2 * normal[2]) / normal[1]
+            point2 = Vec3(x2, y2, z2)
+            new_velocity = (point2 - point1).normalized() * speed
+        return handle_collision(char, new_velocity, depth + 1)
+    else:
+        return velocity
 
 
 def handle_upward_collision(char, velocity):

@@ -16,6 +16,7 @@ pstate = PhysicalState(position=(0, 1, 0))
 cbstate = CombatState(health=100, speed=20, str=10, dex=10, haste=1000)
 
 player = Character(pstate=pstate, cbstate=cbstate)
+player.ignore_traverse = gs.chars
 gs.pc = PlayerController(player)
 
 npcs = gs.world.create_npcs("demo_npcs.json")
