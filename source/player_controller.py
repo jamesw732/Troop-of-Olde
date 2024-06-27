@@ -90,8 +90,9 @@ class PlayerController(Entity):
         """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
         # Keyboard Rotation
         # Slow down left/right rotation by multiplying by cos(x rotation)
-        self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x)), 0))
-        self.focus.rotate((updown_rotation, 0, 0))
+        self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x))
+                           * time.dt * 150, 0))
+        self.focus.rotate((updown_rotation * time.dt * 150, 0, 0))
         self.fix_camera_rotation()
 
     def handle_mouse_rotation(self):
