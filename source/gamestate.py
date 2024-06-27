@@ -80,11 +80,11 @@ combat_state_attrs = {
     "ref": int,
     "int": int,
 
-    "rfire": int,
-    "rcold": int,
-    "relec": int,
-    "rpois": int,
-    "rdis": int,
+    "afire": int,
+    "acold": int,
+    "aelec": int,
+    "apois": int,
+    "adis": int,
 
     "haste": int,
     "speed": int,

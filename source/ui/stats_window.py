@@ -36,12 +36,12 @@ class StatsWindow(Entity):
             ('ref', 'Reflexes'),
             ('int', 'Intelligence')
         ]
-        self.resist_labels = [
-            ('rfire', 'Fire'),
-            ('rcold', 'Cold'),
-            ('relec', 'Electric'),
-            ('rpois', 'Poison'),
-            ('rdis', 'Disease')
+        self.affinity_labels = [
+            ('afire', 'Fire'),
+            ('acold', 'Cold'),
+            ('aelec', 'Electric'),
+            ('apois', 'Poison'),
+            ('adis', 'Disease')
         ]
         self.mod_labels = [
             ('speed', 'Speed'),
@@ -54,7 +54,7 @@ class StatsWindow(Entity):
 
         self.write_ratings()
         self.write_innate()
-        self.write_resists()
+        self.write_affinities()
         self.write_mods()
 
         self.update_rate = 1.0
@@ -110,17 +110,17 @@ class StatsWindow(Entity):
                  world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
             self.entries[attr].fmt = fmt
 
-    def write_resists(self):
-        Text(text="Resists", parent=self, origin=(0, 0), world_scale=(18, 18),
+    def write_affinities(self):
+        Text(text="Affinities", parent=self, origin=(0, 0), world_scale=(18, 18),
              position=(0.75, -1.5 * self.row_width, -2))
         start_row = 2
-        end_row = start_row + len(self.resist_labels)
+        end_row = start_row + len(self.affinity_labels)
         # Rows then columns
         locations = [(0.52, (-0.5 -  i) * self.row_width, -2)
             for i in range(start_row, end_row)]
         for i, loc in enumerate(locations):
-            label = self.resist_labels[i][1]
-            attr = self.resist_labels[i][0]
+            label = self.affinity_labels[i][1]
+            attr = self.affinity_labels[i][0]
             cur = getattr(self.player, attr)
             fmt = (f"{label}:", "{}")
             txt = self.format_string(fmt, cur)
@@ -129,7 +129,7 @@ class StatsWindow(Entity):
             self.entries[attr].fmt = fmt
 
     def write_mods(self):
-        y_offset = len(self.resist_labels)
+        y_offset = len(self.affinity_labels)
         Text(text="Modifiers", parent=self, origin=(0, 0), world_scale=(18, 18),
              position=(0.75, (-3.5 - y_offset) * self.row_width, -2))
         start_row = 4 + y_offset
