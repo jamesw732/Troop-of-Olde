@@ -84,21 +84,37 @@ class PlayerWindow(Entity):
         Text(parent=self.statsbutton, text="Stats", world_scale=(15, 15),
              origin=(0, 0),position=(0.5, -0.5, -2))
 
-        self.input_triggers = {
+        self.input_to_interface = {
             "open items": self.items,
             "open lexicon": self.lex,
             "open skills": self.skills,
             "open stats": self.stats}
 
+        self.input_to_button = {
+            "open items": self.itemsbutton,
+            "open lexicon": self.lexbutton,
+            "open skills": self.skillsbutton,
+            "open stats": self.statsbutton
+        }
+
         self.active_tab = self.items
+        self.active_button = self.itemsbutton
         self.parent.visible = False
 
     def input(self, key):
-        if key in self.input_triggers:
+        if key in self.input_to_interface:
             self.open_window(key)
 
     def open_window(self, key):
-        new_active_tab = self.input_triggers[key]
+        new_active_tab = self.input_to_interface[key]
+
+        new_active_button = self.input_to_button[key]
+        if self.active_button != new_active_button:
+            new_active_button.color = active_button_color
+            self.active_button.color = header_color
+            self.active_button.alpha = 155 / 250
+            self.active_button = new_active_button
+
         if new_active_tab == self.active_tab:
             # Close the window
             self.parent.visible = False

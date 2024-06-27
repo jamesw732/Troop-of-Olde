@@ -2,6 +2,7 @@ from ursina import *
 
 # COLORS:
 header_color = color.hex("8a6240")
+active_button_color = color.hex("68401e")
 window_bg_color = color.hex("4c6444")
 window_fg_color = color.hex("666666")
 
