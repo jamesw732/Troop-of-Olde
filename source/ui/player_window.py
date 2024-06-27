@@ -26,13 +26,22 @@ class PlayerWindow(Entity):
             color=window_bg_color,
             collider='box'
         )
+
+        margin_length = 0.025
+        button_height = 0.08
+        # tab_scale = (.95, .8725)
+        # tab_pos = (.025, -.1, -1)
+        subheader_height = 3 * margin_length + button_height
+        tab_scale = (1 - 2 * margin_length, 1 - subheader_height)
+        tab_pos = (.025, -subheader_height + margin_length, -1)
+
         # Make Items window/button
         self.items = ItemsWindow(parent=self, model='quad', origin=(-.5, .5),
-                                 scale=(.95, .8725), position=(.025, -.1, -1),
+                                 scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.itemsbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
-            position=(0.025, -0.01, -1), scale=(0.12, 0.08),
+            position=(0.025, -margin_length, -1), scale=(0.13, button_height),
             color=header_color, collider="box"
         )
         self.itemsbutton.on_click = lambda: self.open_window("open items")
@@ -40,11 +49,11 @@ class PlayerWindow(Entity):
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Lexicon window/button
         self.lex = LexiconWindow(parent=self, model='quad', origin=(-.5, .5),
-                                 scale=(.95, .8725), position=(.025, -.1, -1),
+                                 scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.lexbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
-            position=(0.17, -0.01, -1), scale=(0.16, 0.08),
+            position=(0.18, -margin_length, -1), scale=(0.17, button_height),
             color=header_color
         )
         self.lexbutton.on_click = lambda: self.open_window("open lexicon")
@@ -52,11 +61,11 @@ class PlayerWindow(Entity):
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Skills window/button
         self.skills = SkillsWindow(parent=self, model='quad', origin=(-.5, .5),
-                                 scale=(.95, .8725), position=(.025, -.1, -1),
+                                 scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.skillsbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
-            position=(0.355, -0.01, -1), scale=(0.12, 0.08),
+            position=(0.375, -margin_length, -1), scale=(0.12, button_height),
             color=header_color
         )
         self.skillsbutton.on_click = lambda: self.open_window("open skills")
@@ -64,11 +73,11 @@ class PlayerWindow(Entity):
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Stats window/button
         self.stats = StatsWindow(parent=self, model='quad', origin=(-.5, .5),
-                                 scale=(.95, .8725), position=(.025, -.1, -1),
+                                 scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.statsbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
-            position=(0.5, -0.01, -1), scale=(0.12, 0.08),
+            position=(0.52, -margin_length, -1), scale=(0.12, button_height),
             color=header_color
         )
         self.statsbutton.on_click = lambda: self.open_window("open stats")
