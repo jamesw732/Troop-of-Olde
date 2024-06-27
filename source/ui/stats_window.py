@@ -11,27 +11,23 @@ class StatsWindow(Entity):
         self.player = gs.pc.character
         self.header = self.parent.parent
 
-        self.num_rows = 14
+        self.num_rows = 16
         self.num_cols = 2
         self.row_width = 1 / self.num_rows
         self.col_width = 1 / self.num_cols
 
         self.entries = {}
         self.entry_font_size = (11, 11)
-        self.entry_width = 23
+        self.entry_width = 22
 
         # grid(self, 14, 2)
-
-        self.labels_out_of_max = {"health", "mana", "stamina", "spellshield"}
 
         self.rating_labels = [
             ('health', 'Health'),
             ('mana', 'Mana'),
             ('stamina', 'Stamina'),
-            ('spellshield', 'Spell Shield'),
-            ('haste', 'Haste'),
-            ('speed', 'Speed'),
-            ('armor', 'Armor')
+            ('armor', 'Armor'),
+            ('spellshield', 'Spell Shield')
         ]
         self.innate_labels = [
             ('bdy', 'Body'),
@@ -41,13 +37,25 @@ class StatsWindow(Entity):
             ('int', 'Intelligence')
         ]
         self.resist_labels = [
-            ('rmagic', 'Magic'),
-            ('rphys', 'Physical'),
-
+            ('rfire', 'Fire'),
+            ('rcold', 'Cold'),
+            ('relec', 'Electric'),
+            ('rpois', 'Poison'),
+            ('rdis', 'Disease')
         ]
+        self.mod_labels = [
+            ('speed', 'Speed'),
+            ('haste', 'Haste'),
+            ('casthaste', 'Casting Haste'),
+            ('healmod', 'Heal')
+        ]
+
+        self.labels_out_of_max = [tup[0] for tup in self.rating_labels]
+
         self.write_ratings()
         self.write_innate()
         self.write_resists()
+        self.write_mods()
 
     def update(self):
         # If this causes performance problems, just add a timer slower than every frame
@@ -57,17 +65,12 @@ class StatsWindow(Entity):
 
     def write_ratings(self):
         Text(text="Ratings", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.5, -0.5 * self.row_width, -1))
-        start_row = 1
-        end_row = start_row + math.ceil(len(self.rating_labels) / 2)
+             position=(0.25, -1.5 * self.row_width, -2))
+        start_row = 2
+        end_row = start_row + len(self.rating_labels)
         # Rows then columns
-        locations = [
-            [(self.col_width * (j + 0.5) + 0.01,
-              -self.row_width * i - 0.5 * self.row_width, -2)
-            for i in range(start_row, end_row)] for j in range(2)
-        ]
-        # Flatten locations, and only take the number needed
-        locations = list(itertools.chain(*locations))[:len(self.rating_labels)]
+        locations = [(0.02, (-0.5 -  i) * self.row_width, -2)
+            for i in range(start_row, end_row)]
         for i, loc in enumerate(locations):
             label = self.rating_labels[i][1]
             attr = self.rating_labels[i][0]
@@ -79,51 +82,61 @@ class StatsWindow(Entity):
             else:
                 fmt = (f"{label}:", "{}")
                 txt = self.format_string(fmt, cur)
-            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(0, 0),
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(-0.5, 0.5),
                  world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
             self.entries[attr].fmt = fmt
 
     def write_innate(self):
+        y_offset = len(self.rating_labels)
         Text(text="Innate", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.5, (-6 - 0.5) * self.row_width, -2))
-        start_row = 3 + math.ceil(len(self.rating_labels) / 2)
-        end_row = start_row + math.ceil(len(self.innate_labels) / 2)
-        locations = [
-            [(self.col_width * (j + 0.5) + 0.01,
-              -self.row_width * i - 0.5 * self.row_width, -2)
-            for i in range(start_row, end_row)] for j in range(2)
-        ]
-        locations = list(itertools.chain(*locations))[:len(self.innate_labels)]
+             position=(0.25, (-3.5 - y_offset) * self.row_width, -2))
+        start_row = 4 + y_offset
+        end_row = start_row + len(self.innate_labels)
+        locations = [(0.02, (-0.5 - i) * self.row_width, -2)
+                     for i in range(start_row, end_row)]
         for i, loc in enumerate(locations):
             label = self.innate_labels[i][1]
             attr = self.innate_labels[i][0]
             cur = getattr(self.player, attr)
             fmt = (f"{label}:", "{}")
             txt = self.format_string(fmt, cur)
-            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(0, 0),
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(-0.5, 0.5),
                  world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
             self.entries[attr].fmt = fmt
 
     def write_resists(self):
         Text(text="Resists", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.5, (-11 - 0.5) * self.row_width, -2))
-        start_row = 5 + math.ceil(len(self.rating_labels) / 2) \
-                      + math.ceil(len(self.innate_labels) / 2)
-        end_row = start_row + math.ceil(len(self.resist_labels) / 2)
+             position=(0.75, -1.5 * self.row_width, -2))
+        start_row = 2
+        end_row = start_row + len(self.resist_labels)
         # Rows then columns
-        locations = [
-            [(self.col_width * (j + 0.5) + 0.01,
-              -self.row_width * i - 0.5 * self.row_width, -2)
-            for i in range(start_row, end_row)] for j in range(2)
-        ]
-        locations = list(itertools.chain(*locations))[:len(self.resist_labels)]
+        locations = [(0.52, (-0.5 -  i) * self.row_width, -2)
+            for i in range(start_row, end_row)]
         for i, loc in enumerate(locations):
             label = self.resist_labels[i][1]
             attr = self.resist_labels[i][0]
             cur = getattr(self.player, attr)
             fmt = (f"{label}:", "{}")
             txt = self.format_string(fmt, cur)
-            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(0, 0),
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(-0.5, 0.5),
+                 world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
+            self.entries[attr].fmt = fmt
+
+    def write_mods(self):
+        y_offset = len(self.resist_labels)
+        Text(text="Modifiers", parent=self, origin=(0, 0), world_scale=(18, 18),
+             position=(0.75, (-3.5 - y_offset) * self.row_width, -2))
+        start_row = 4 + y_offset
+        end_row = start_row + len(self.mod_labels)
+        locations = [(0.52, (-0.5 - i) * self.row_width, -2)
+                     for i in range(start_row, end_row)]
+        for i, loc in enumerate(locations):
+            label = self.mod_labels[i][1]
+            attr = self.mod_labels[i][0]
+            cur = getattr(self.player, attr)
+            fmt = (f"{label}:", "{}%")
+            txt = self.format_string(fmt, cur)
+            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(-0.5, 0.5),
                  world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
             self.entries[attr].fmt = fmt
 

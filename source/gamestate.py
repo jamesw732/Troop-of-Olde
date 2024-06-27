@@ -72,9 +72,6 @@ combat_state_attrs = {
     "mana": int,
     "stamina": int,
     "spellshield": int,
-
-    "haste": int,
-    "speed": int,
     "armor": int,
 
     "bdy": int,
@@ -83,9 +80,16 @@ combat_state_attrs = {
     "ref": int,
     "int": int,
 
-    "rmagic": int,
-    "rphys": int,
+    "rfire": int,
+    "rcold": int,
+    "relec": int,
+    "rpois": int,
+    "rdis": int,
 
+    "haste": int,
+    "speed": int,
+    "casthaste": int,
+    "healmod": int
 }
 
 class CombatState:

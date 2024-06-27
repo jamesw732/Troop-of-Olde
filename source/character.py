@@ -89,6 +89,8 @@ class Character(Entity):
         self.stamina = self.maxstamina
         self.maxspellshield = 0
         self.spellshield = self.maxspellshield
+        self.maxarmor = 0
+        self.armor = self.maxarmor
 
         self.bdy = 0
         self.str = 0
@@ -98,10 +100,14 @@ class Character(Entity):
 
         self.haste = 0
         self.speed = 10
-        self.armor = 0
+        self.casthaste = 0
+        self.healmod = 0
 
-        self.rmagic = 0
-        self.rphys = 0
+        self.rfire = 0
+        self.rcold = 0
+        self.relec = 0
+        self.rpois = 0
+        self.rdis = 0
 
         self.max_combat_timer = 1
         self.combat_timer = 0
