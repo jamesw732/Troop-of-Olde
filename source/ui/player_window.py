@@ -101,6 +101,7 @@ class PlayerWindow(Entity):
         self.active_tab = self.items
         self.active_button = self.itemsbutton
         self.parent.visible = False
+        self.remove_colliders()
 
     def input(self, key):
         if key in self.input_to_interface:
@@ -120,7 +121,7 @@ class PlayerWindow(Entity):
             # Close the window
             self.parent.visible = False
             self.active_tab.visible = False
-            self.add_colliders()
+            self.remove_colliders()
             self.active_tab = None
         elif not self.parent.visible:
             # Open player window and specified tab, add collider
