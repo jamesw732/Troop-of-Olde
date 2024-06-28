@@ -6,6 +6,7 @@ from source.npc_controller import *
 from source.world_gen import *
 from source.gamestate import *
 
+from source.ui.bars import *
 from source.ui.player_window import *
 from source.ui.stats_window import *
 
@@ -27,5 +28,6 @@ gs.chars += npcs
 gs.chars.append(player)
 
 sp = PlayerWindow()
+bw = BarWindow()
 
 app.run()

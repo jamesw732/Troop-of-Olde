@@ -17,7 +17,8 @@ class PlayerWindow(Entity):
             position=(0.2, 0.2),
             scale=(.44, .033),
             color=header_color,
-            text=self.player.cname
+            text=self.player.cname,
+            ignore_key=lambda c: isinstance(c, Text)
         )
         # Make outer window
         super().__init__(

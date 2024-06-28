@@ -38,9 +38,9 @@ def get_hovered(entity):
         return False
     return any((get_hovered(child) for child in entity.children if child.collider))
 
-def set_transparency(entity, alpha, ignore_text=True):
+def set_transparency(entity, alpha, ignore_key=lambda c: False):
     # Sets transparency of entity and all children of entity
     entity.alpha = alpha
     for child in entity.children:
-        if not ignore_text or not isinstance(child, Text):
-            set_transparency(child, alpha, ignore_text=ignore_text)
+        if not ignore_key(child):
+            set_transparency(child, alpha, ignore_key=ignore_key)

@@ -6,7 +6,7 @@ class Header(Entity):
     """Class for draggable headers. Any interface that uses a Header
     should designate it as the parent."""
     def __init__(self, position=Vec2(0, 0), scale=Vec2(.5, 0.03),
-                 color=color.yellow, text=""):
+                 color=color.yellow, text="", ignore_key=lambda c: False):
         super().__init__(parent=camera.ui, model='quad', origin=(-.5, .5),
                          collider='box', position=position, scale=scale,
                          color=color)
@@ -15,6 +15,8 @@ class Header(Entity):
 
         self.text = Text(text=text, parent=self, origin=(0, 0),
                          position=(0.5, -0.5, -1), world_scale=(20, 20))
+
+        self.ignore_key = ignore_key
 
         self.transparent = False
 
@@ -38,8 +40,8 @@ class Header(Entity):
                 self.y = clamp(self.y, min_y, max_y)
         hovered = get_hovered(self)
         if self.transparent and hovered:
-            set_transparency(self, 1, ignore_text=True)
+            set_transparency(self, 1)
             self.transparent = False
         elif not self.transparent and not hovered:
-            set_transparency(self, 155 / 250)
+            set_transparency(self, 150 / 255, ignore_key=self.ignore_key)
             self.transparent = True
