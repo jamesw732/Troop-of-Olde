@@ -23,7 +23,7 @@ class BarWindow(Entity):
         self.bar_bg = Entity(
             parent=self, model='quad', origin=(-.5, .5),
             position=(0.05, -0.05, -1), scale=(0.9, 0.9),
-            color=color.black)
+            color=window_bg_color)
 
         self.bar_height = 1/3
 
