@@ -87,6 +87,7 @@ def input(key):
                 network.uuid_counter += 1
 
             network.peer.start("localhost", 8080, is_host=True)
+            from ..ui.main import bars, player_window
         elif key == "c":
             print("Attempting to connect")
             network.peer.start("localhost", 8080, is_host=False)
@@ -120,6 +121,7 @@ def on_connect(connection, time_connected):
             else:
                 network.peer.spawn_character(conn, char.uuid, new_pstate, new_cbstate)
         network.peer.bind_player(connection, char.uuid)
+        network.peer.make_ui(connection)
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
@@ -150,3 +152,7 @@ def bind_player(connection, time_received, uuid:int):
         gs.pc = PlayerController(char, network.peer)
         gs.pc.character = char
         char.controller = gs.pc
+
+@rpc(network.peer)
+def make_ui(connection, time_received):
+    from ..ui.main import bars, player_window
