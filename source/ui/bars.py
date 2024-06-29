@@ -36,7 +36,7 @@ class BarWindow(Entity):
             parent=self.bar_bg, model='quad', origin=(-.5, .5),
             position=(0, -self.bar_height, -2),
             scale=(1, self.bar_height),
-            color=color.blue
+            color=color.hex("0000cc")
         )
         self.stambar = Entity(
             parent=self.bar_bg, model='quad', origin=(-.5, .5),
