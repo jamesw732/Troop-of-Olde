@@ -25,7 +25,6 @@ network = Network()
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
     """Remotely print a message for another player"""
-    print(msg)
     ui.gamewindow.add_message(msg)
 
 def broadcast(func, *args):

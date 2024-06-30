@@ -26,7 +26,7 @@ class GameWindow(Entity):
         self.scrollbar = ScrollBar(parent=self.scrollbar_box, scale=(1, 0.25), position=(0, 0, -2))
 
         self.font_size = Vec2(11, 11)
-        self.text_height = 0.4 # Magic number, real scale is 0.55 but includes padding
+        self.text_height = 0.32 # Magic number, real scale is 0.55 but includes padding
         self.messages = []
 
         self.textcontainer = Entity(parent=self, origin=(-.5, .5),

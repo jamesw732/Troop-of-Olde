@@ -250,7 +250,6 @@ class Character(Entity):
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
         msg = f"{self.cname} perishes."
-        print(msg)
         ui.gamewindow.add_message(msg)
         self.alive = False
         if network.peer.is_hosting():

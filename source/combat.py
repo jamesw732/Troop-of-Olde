@@ -20,7 +20,6 @@ def attempt_melee_hit(src, tgt):
         dmg = get_dmg(src, tgt)
         hitstring = get_melee_hit_string(src, tgt, dmg=dmg)
         tgt.reduce_health(dmg)
-    print(hitstring)
     ui.gamewindow.add_message(hitstring)
     # Broadcast the hit info to all peers, if host
     broadcast(network.peer.remote_print, hitstring)

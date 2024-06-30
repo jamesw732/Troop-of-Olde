@@ -70,7 +70,8 @@ class PlayerController(Entity):
             if type(tgt) is Character:
                 self.set_target(tgt)
         if key == "toggle_combat":
-            print("Now entering combat" if not self.character.in_combat else "Now leaving combat")
+            msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
+            ui.gamewindow.add_message(msg)
             self.character.in_combat = not self.character.in_combat
 
     def handle_keyboard_movement(self, movement_inputs):
@@ -146,7 +147,6 @@ class PlayerController(Entity):
         target: Character"""
         self.character.target = target
         msg = f"Now targeting: {target.cname}"
-        print(msg)
         ui.gamewindow.add_message(msg)
 
     def bind_keys(self):
