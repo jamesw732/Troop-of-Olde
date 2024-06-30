@@ -5,7 +5,7 @@ from .header import *
 
 class GameWindow(Entity):
     def __init__(self):
-        header = Header(
+        self.header = Header(
             position=(-0.87, -0.25, 0),
             scale=(0.35, 0.033),
             color=header_color,
@@ -14,7 +14,7 @@ class GameWindow(Entity):
         )
 
         super().__init__(
-            parent=header, model='quad', origin=(-.5, .5),
+            parent=self.header, model='quad', origin=(-.5, .5),
             position=(0, -1, 0), scale=(1, 6),
             color=window_bg_color,
             collider='box'
@@ -48,12 +48,27 @@ class GameWindow(Entity):
 
     def update(self):
         if self.scrollbar.dragging:
-            min_scroll_y = -1 + self.scrollbar.scale_y
-            max_scroll_y = 0
-            scrollbar_ratio = (min_scroll_y - self.scrollbar.y) / (max_scroll_y - min_scroll_y)
-            offset = scrollbar_ratio * (self.max_visible - self.min_visible)
-            self.text_bottom.world_y = self.bottom_y + offset
-            self.text_top.world_y = self.top_y + offset
+            self.match_text_to_scrollbar()
+
+    def input(self, key):
+        if key == "scroll up" and mouse.hovered_entity \
+            and mouse.hovered_entity.has_ancestor(self.header):
+            self.scrollbar.y = clamp(self.scrollbar.y + 0.05,
+                                     self.scrollbar.min_y, self.scrollbar.max_y)
+            self.match_text_to_scrollbar()
+        if key == "scroll down" and mouse.hovered_entity \
+            and mouse.hovered_entity.has_ancestor(self.header):
+            self.scrollbar.y = clamp(self.scrollbar.y - 0.05,
+                                     self.scrollbar.min_y, self.scrollbar.max_y)
+            self.match_text_to_scrollbar()
+
+    def match_text_to_scrollbar(self):
+        min_scroll_y = -1 + self.scrollbar.scale_y
+        max_scroll_y = 0
+        scrollbar_ratio = (min_scroll_y - self.scrollbar.y) / (max_scroll_y - min_scroll_y)
+        offset = scrollbar_ratio * (self.max_visible - self.min_visible)
+        self.text_bottom.world_y = self.bottom_y + offset
+        self.text_top.world_y = self.top_y + offset
 
     def add_message(self, msg):
         # Remove word wrap magic number
