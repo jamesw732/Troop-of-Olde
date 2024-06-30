@@ -28,8 +28,22 @@ class GameWindow(Entity):
         self.font_size = Vec2(11, 11)
         self.messages = []
 
+        self.textcontainer = Entity(parent=self, origin=(-.5, .5),
+                                    position=(.05, -.1, -1), scale=(.85, .8))
+        grid(self.textcontainer, num_rows=1, num_cols=1, color=color.gray)
+        self.text_bottom = Entity(parent=self.textcontainer, origin=(-.5, .5),
+                                  position=(0, -.88, -2), scale_x=1, world_scale_y=self.font_size[1])
+
     def add_message(self, msg):
-        self.messages.append(msg)
+        txt = Text(text=msg, parent=self.text_bottom, origin=(-.5, -.5),
+             position=(0, -.03, -3), world_scale=self.font_size,         # Remove this magic number
+             color=text_color, wordwrap=45) # Remove this magic number too
+        for msg in self.messages:
+            msg.y += txt.height
+        self.messages.append(txt)
+        if len(self.messages) > 50:
+            destroy(self.messages[0])
+            self.messages.pop(0)
 
 class ScrollBar(Entity):
     def __init__(self, *args, **kwargs):
