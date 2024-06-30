@@ -57,12 +57,13 @@ class GameWindow(Entity):
 
     def add_message(self, msg):
         # Remove word wrap magic number
-        txt = Text(text=msg, parent=self.text_top, origin=(-.5, -.5),
-                   world_scale=self.font_size, color=text_color, wordwrap=45)
-        self.text_top.world_y += self.text_height * len(txt.lines)
-        self.top_y += self.text_height * len(txt.lines)
-        txt.world_position = self.text_bottom.world_position - Vec2(0, self.text_height)
-        self.messages.append(txt)
+        msg = WindowText(self.textcontainer, self.text_height, text=msg, parent=self.text_top,
+                         origin=(-.5, -.5), world_scale=self.font_size, color=text_color,
+                         wordwrap=45)
+        self.text_top.world_y += self.text_height * len(msg.txt.lines)
+        self.top_y += self.text_height * len(msg.txt.lines)
+        msg.txt.world_position = self.text_bottom.world_position - Vec2(0, self.text_height)
+        self.messages.append(msg)
         if len(self.messages) > self.max_lines: # Imprecise, but whatever
             destroy(self.messages[0])
             self.messages.pop(0)
@@ -94,3 +95,23 @@ class ScrollBar(Entity):
                 global_min_y = get_global_y(self.min_y, self)
                 y = mouse.y + self.step
                 self.y = get_local_y(clamp(y, global_min_y, global_max_y), self.parents)
+
+class WindowText(Entity):
+    def __init__(self, box, textheight, *args, **kwargs):
+        super().__init__()
+        self.txt = Text(*args, **kwargs)
+        self.box = box
+        self._height = textheight * len(self.txt.lines)
+
+    def update(self):
+        max_y = self.box.world_y
+        min_y = self.box.world_y - self.box.world_scale_y
+        # Text origin is bottom left
+        show = (self.txt.world_y + self._height < max_y) and (self.txt.world_y > min_y)
+        if self.txt.visible and not show:
+            self.txt.visible = False
+        elif not self.txt.visible and show:
+            self.txt.visible = True
+
+    def on_destroy(self):
+        destroy(self.txt)
