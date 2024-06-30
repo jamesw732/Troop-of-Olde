@@ -9,6 +9,8 @@ from ..npc_controller import NPC_Controller
 from ..gamestate import *
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
+from ..ui.main import ui
+
 
 # These are all the same, define logic for serializing and deserializing states
 def serialize_combat_state(writer, state):
@@ -87,7 +89,7 @@ def input(key):
                 network.uuid_counter += 1
 
             network.peer.start("localhost", 8080, is_host=True)
-            from ..ui.main import bars, player_window
+            ui.make()
         elif key == "c":
             print("Attempting to connect")
             network.peer.start("localhost", 8080, is_host=False)
@@ -155,4 +157,4 @@ def bind_player(connection, time_received, uuid:int):
 
 @rpc(network.peer)
 def make_ui(connection, time_received):
-    from ..ui.main import bars, player_window
+    ui.make()
