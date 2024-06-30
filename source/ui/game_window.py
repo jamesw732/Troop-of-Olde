@@ -38,15 +38,32 @@ class GameWindow(Entity):
                                   world_scale_y=self.text_height)
         self.text_top = Entity(parent=self.textcontainer, origin=(-.5, .5),
                                position=self.text_bottom.position, scale=self.text_bottom.scale)
+        # Top/bottom demarkers which are variant under adding messages, but invariant under scrolling
+        self.bottom_y = self.text_bottom.world_y
+        self.top_y = self.text_top.world_y
+
+        self.max_lines = 100
+        self.min_visible = 0
+        self.max_visible = self.max_lines * self.text_height
+
+    def update(self):
+        if self.scrollbar.dragging:
+            min_scroll_y = -1 + self.scrollbar.scale_y
+            max_scroll_y = 0
+            scrollbar_ratio = (min_scroll_y - self.scrollbar.y) / (max_scroll_y - min_scroll_y)
+            offset = scrollbar_ratio * (self.max_visible - self.min_visible)
+            self.text_bottom.world_y = self.bottom_y + offset
+            self.text_top.world_y = self.top_y + offset
 
     def add_message(self, msg):
         # Remove word wrap magic number
         txt = Text(text=msg, parent=self.text_top, origin=(-.5, -.5),
                    world_scale=self.font_size, color=text_color, wordwrap=45)
         self.text_top.world_y += self.text_height * len(txt.lines)
+        self.top_y += self.text_height * len(txt.lines)
         txt.world_position = self.text_bottom.world_position - Vec2(0, self.text_height)
         self.messages.append(txt)
-        if len(self.messages) > 50:
+        if len(self.messages) > self.max_lines: # Imprecise, but whatever
             destroy(self.messages[0])
             self.messages.pop(0)
 
