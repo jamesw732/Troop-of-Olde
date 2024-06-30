@@ -151,3 +151,6 @@ class PlayerWindow(Entity):
         self.lexbutton.collider = "box"
         self.skillsbutton.collider = "box"
         self.statsbutton.collider = "box"
+
+
+playerwindow = PlayerWindow()

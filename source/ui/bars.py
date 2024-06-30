@@ -69,3 +69,5 @@ class BarWindow(Entity):
     def update_stamina(self):
         ratio = self.player.stamina / self.player.maxstamina
         self.stambar = (ratio, self.bar_height)
+
+bars = BarWindow()

@@ -52,3 +52,5 @@ class ScrollBar(Entity):
                 global_min_y = get_global_y(self.min_y, self)
                 y = mouse.y + self.step
                 self.y = get_local_y(clamp(y, global_min_y, global_max_y), self.parents)
+
+gamewindow = GameWindow()
