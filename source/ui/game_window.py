@@ -19,14 +19,18 @@ class GameWindow(Entity):
             color=window_bg_color,
             collider='box'
         )
-        self.scrollbar = ScrollBar(parent=self, scale=(0.05, 0.2), position=(0.925, -0.1, -1))
+        self.scrollbar_box = Entity(parent=self, origin=(-.5, .5),
+                                    position=(.925, -.1, -1), scale=(0.05, 0.8),
+                                    collider='box')
+        grid(self.scrollbar_box, num_rows=1, num_cols=1, color=color.gray)
+        self.scrollbar = ScrollBar(parent=self.scrollbar_box, scale=(1, 0.25), position=(0, 0, -2))
 
 class ScrollBar(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, model='quad', collider='box',
                          origin=(-.5, .5), color=color.gray, **kwargs)
-        self.max_y = -0.1
-        self.min_y = -0.9 + self.scale_y
+        self.max_y = 0
+        self.min_y = -1 + self.scale_y
         self.y = self.min_y
         self.global_parent = self.parent.parent
         # The offset between mouse position and origin of scrollbar position
