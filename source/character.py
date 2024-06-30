@@ -6,7 +6,7 @@ from .combat import attempt_melee_hit, get_haste_modifier
 from .networking.base import *
 from .physics import handle_movement
 from .gamestate import *
-
+from .ui.main import ui
 
 class Character(Entity):
     def __init__(self, cname="Player",  uuid=None, type="player",
@@ -249,7 +249,9 @@ class Character(Entity):
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
-        print(f"{self.cname} perishes.")
+        msg = f"{self.cname} perishes."
+        print(msg)
+        ui.gamewindow.add_message(msg)
         self.alive = False
         if network.peer.is_hosting():
             broadcast(network.peer.remote_death, self.uuid)

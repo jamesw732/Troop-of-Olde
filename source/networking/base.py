@@ -2,7 +2,7 @@
 networking methods. Any file that uses networking will import this."""
 from ursina import *
 from ursina.networking import *
-
+from ..ui.main import ui
 
 class Network:
     """Represent's client's view of the network state"""
@@ -26,6 +26,7 @@ network = Network()
 def remote_print(connection, time_received, msg: str):
     """Remotely print a message for another player"""
     print(msg)
+    ui.gamewindow.add_message(msg)
 
 def broadcast(func, *args):
     """Calls an RPC function for each connection to host

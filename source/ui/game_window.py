@@ -25,6 +25,12 @@ class GameWindow(Entity):
         grid(self.scrollbar_box, num_rows=1, num_cols=1, color=color.gray)
         self.scrollbar = ScrollBar(parent=self.scrollbar_box, scale=(1, 0.25), position=(0, 0, -2))
 
+        self.font_size = Vec2(11, 11)
+        self.messages = []
+
+    def add_message(self, msg):
+        self.messages.append(msg)
+
 class ScrollBar(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, model='quad', collider='box',

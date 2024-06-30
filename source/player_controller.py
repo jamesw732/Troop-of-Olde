@@ -5,6 +5,7 @@ import numpy
 import json
 
 from .character import Character
+from .ui.main import ui
 
 
 class PlayerController(Entity):
@@ -144,7 +145,9 @@ class PlayerController(Entity):
 
         target: Character"""
         self.character.target = target
-        print(f"Now targeting: {target.cname}")
+        msg = f"Now targeting: {target.cname}"
+        print(msg)
+        ui.gamewindow.add_message(msg)
 
     def bind_keys(self):
         """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
