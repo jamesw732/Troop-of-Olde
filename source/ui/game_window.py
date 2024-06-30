@@ -26,6 +26,7 @@ class GameWindow(Entity):
         self.scrollbar = ScrollBar(parent=self.scrollbar_box, scale=(1, 0.25), position=(0, 0, -2))
 
         self.font_size = Vec2(11, 11)
+        self.text_height = 0.4 # Magic number, real scale is 0.55 but includes padding
         self.messages = []
 
         self.textcontainer = Entity(parent=self, origin=(-.5, .5),
@@ -33,35 +34,21 @@ class GameWindow(Entity):
         grid(self.textcontainer, num_rows=1, num_cols=1, color=color.gray)
         # Remove these magic numbers for position and scale
         self.text_bottom = Entity(parent=self.textcontainer, origin=(-.5, .5),
-                                  position=(0, -.86, -2), scale=(1, 0.12),
-                                 )
+                                  position=(0.01, -.86, -2), scale_x=0.99,
+                                  world_scale_y=self.text_height)
+        self.text_top = Entity(parent=self.textcontainer, origin=(-.5, .5),
+                               position=self.text_bottom.position, scale=self.text_bottom.scale)
 
     def add_message(self, msg):
-        txt = Text(text=msg, parent=self.text_bottom, origin=(-.5, -.5),
-             position=(0.01, -1, -3), world_scale=self.font_size,
-             color=text_color, wordwrap=45) # Remove word wrap magic number
-        for msg in self.messages:
-            msg.y += len(txt.lines)
+        # Remove word wrap magic number
+        txt = Text(text=msg, parent=self.text_top, origin=(-.5, -.5),
+                   world_scale=self.font_size, color=text_color, wordwrap=45)
+        self.text_top.world_y += self.text_height * len(txt.lines)
+        txt.world_position = self.text_bottom.world_position - Vec2(0, self.text_height)
         self.messages.append(txt)
         if len(self.messages) > 50:
             destroy(self.messages[0])
             self.messages.pop(0)
-
-# self.text_top = Entity(parent=self.textcontainer, origin=(-.5, .5),
-#                                position=(0, -.88, -2), scale_x=1, world_scale_y=self.font_size[1],
-#                                model='quad')
-
-#     def add_message(self, msg):
-#         txt = Text(text=msg, parent=self.text_top, origin=(-.5, -.5),
-#              x=0, world_y=self.text_bottom.world_y, world_scale=self.font_size,         # Remove this magic number
-#              color=text_color, wordwrap=45) # Remove this magic number too
-#         self.text_top.y += txt.scale_y
-#         # for msg in self.messages:
-#         #     msg.y += txt.height
-#         self.messages.append(txt)
-#         if len(self.messages) > 50:
-#             destroy(self.messages[0])
-#             self.messages.pop(0)
 
 class ScrollBar(Entity):
     def __init__(self, *args, **kwargs):
