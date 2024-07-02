@@ -6,6 +6,7 @@ active_button_color = color.hex("68401e")
 window_bg_color = color.hex("4c6444")
 window_fg_color = color.hex("666666")
 text_color = color.hex("caffd7")
+slot_color=color.hex("aaaaaa")
 
 
 
