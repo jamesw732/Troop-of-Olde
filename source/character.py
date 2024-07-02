@@ -9,15 +9,18 @@ from .gamestate import *
 from .ui.main import ui
 
 class Character(Entity):
-    def __init__(self, cname="Player",  uuid=None, type="player",
-                 pstate=None, cbstate = None):
+    def __init__(self, cname="Player", uuid=None, type="player",
+                 pstate=None, cbstate=None, equipment=None, inventory=None):
         """Initializes a character using a PhysicalState and a CharacterState.
 
         cname: name of character, str
         uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
         type: "player" or "npc"
         pstate: PhysicalState; defines client-authoritative attrs
-        cbstate: CombatState; defines host-authoritative attrs"""
+        cbstate: CombatState; defines host-authoritative attrs. Should be used only for creating characters with custom values (ie npcs) and instantiating characters over the network.
+        equipment: dict of Items keyed by slot
+        inventory: list of Items
+        """
         # Character-specific attrs
         self.type = type
         self.cname = cname
@@ -48,14 +51,14 @@ class Character(Entity):
         if cbstate:
             self.apply_combat_state(cbstate)
         # Compute new max ratings
-        self._update_sec_cb_attrs()
+        self._update_max_ratings()
         # If cbstate didn't tell us ratings, assume they're max
         if not hasattr(cbstate, "health"):
             self.health = self.maxhealth
-        # if not hasattr(cbstate, "mana"):
-        #     self.mana = self.maxmana
-        # if not hasattr(cbstate, "stamina"):
-        #     self.stamina = self.maxstamina
+        if not hasattr(cbstate, "mana"):
+            self.mana = self.maxmana
+        if not hasattr(cbstate, "stamina"):
+            self.stamina = self.maxstamina
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -125,6 +128,26 @@ class Character(Entity):
         self.lerp_rate = 0
         self.lerp_timer = 0.2
 
+    def _init_equipment(self):
+        """Initialize equipment dict"""
+        self.equipment = {
+            "ear": None,
+            "head": None,
+            "neck": None,
+            "chest": None,
+            "back": None,
+            "legs": None,
+            "hands": None,
+            "feet": None,
+            "ring": None,
+            "mh": None,
+            "oh": None,
+            "ammo": None,
+        }
+
+    def _init_inventory(self):
+        self.inventory = [None] * 24
+
     def _update_sec_phys_attrs(self):
         """Adjust secondary physical attributes to state changes.
         These attrs are not adjusted directly by state changes,
@@ -135,13 +158,13 @@ class Character(Entity):
         self.max_jump_time = 0.3
         self.rem_jump_time = self.max_jump_time
 
-    def _update_sec_cb_attrs(self):
+    def _update_max_ratings(self):
         """Adjust secondary combat attributes to state changes.
         These attrs are not adjusted directly by state changes,
         but still deserve to be updated by them."""
         self.maxhealth = 100 + self.bdy * 10
-        # self.maxmana = 100 + self.int * 10
-        # self.maxstamina = 100 + self.bdy * 5 + self.str * 5
+        self.maxmana = 100 + self.int * 10
+        self.maxstamina = 100 + self.bdy * 5 + self.str * 5
 
     def _update_secondary_vals(self):
         """Increment timer for and update secondary values"""
@@ -149,7 +172,7 @@ class Character(Entity):
         if self.sec_update_timer >= self.sec_update_rate:
             self.sec_update_timer -= self.sec_update_rate
             self._update_sec_phys_attrs()
-            self._update_sec_cb_attrs()
+            self._update_max_ratings()
 
     def update(self):
         """Character updates which happen every frame"""
