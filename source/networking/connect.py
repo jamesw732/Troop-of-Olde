@@ -11,7 +11,7 @@ from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 from ..ui.main import ui
 from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb_state, deserialize_complete_cb_state
-from ..states.combat_base_state import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
+from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_ratings import RatingsState, serialize_ratings_state, deserialize_ratings_state
 from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
 

@@ -6,7 +6,7 @@ from source.npc_controller import *
 from source.world_gen import *
 from source.gamestate import *
 from source.ui.main import ui
-from source.states.combat_base_state import BaseCombatState
+from source.states.cbstate_base import BaseCombatState
 
 app = Ursina(borderless=False)
 gs.world = GenerateWorld("demo.json")

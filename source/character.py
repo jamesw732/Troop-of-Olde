@@ -7,7 +7,7 @@ from .networking.base import *
 from .physics import handle_movement
 from .gamestate import gs
 from .states.cbstate_complete import apply_complete_cb_state
-from .states.combat_base_state import apply_base_state
+from .states.cbstate_base import apply_base_state
 from .states.cbstate_ratings import apply_ratings_state
 from .states.physicalstate import PhysicalState, apply_physical_state
 # from .states.physicalstate import PhysicalState, attrs as phys_state_attrs
