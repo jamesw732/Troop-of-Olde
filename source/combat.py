@@ -6,6 +6,30 @@ from .networking.base import *
 from .ui.main import ui
 
 # PUBLIC
+def progress_combat_timer(char):
+    """Increment combat timer by dt. If past max, attempt a melee hit."""
+    # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
+    char.combat_timer += time.dt * get_haste_modifier(char.haste)
+    if char.combat_timer > char.max_combat_timer:
+        char.combat_timer -= char.max_combat_timer
+        if get_target_hittable(char):
+            if is_main_client():
+                attempt_melee_hit(char, char.target)
+            else:
+                # Host-authoritative, so we need to ask the host to compute the hit
+                network.peer.remote_attempt_melee_hit(
+                    network.peer.get_connections()[0],
+                    char.uuid, char.target.uuid)
+
+def increase_health(char, amt):
+    """Function to be used whenever increasing character's health"""
+    char.health = min(char.maxhealth, char.health + amt)
+
+def reduce_health(char, amt):
+    """Function to be used whenever decreasing character's health"""
+    char.health -= amt
+
+# PRIVATE
 def attempt_melee_hit(src, tgt):
     """Main driver method for melee combat.
     Melee combat in other files should only import this method and remote version.
@@ -19,7 +43,7 @@ def attempt_melee_hit(src, tgt):
         # If hit goes through, do some more fancy calculations to get damage
         dmg = get_dmg(src, tgt)
         hitstring = get_melee_hit_string(src, tgt, dmg=dmg)
-        tgt.reduce_health(dmg)
+        reduce_health(tgt, dmg)
     ui.gamewindow.add_message(hitstring)
     # Broadcast the hit info to all peers, if host
     broadcast(network.peer.remote_print, hitstring)
@@ -38,8 +62,6 @@ def get_haste_modifier(haste):
     """Convert haste to a multiplicative time modifier"""
     return max(0, 1 + haste / 100)
 
-
-# PRIVATE
 def get_dmg(src, tgt):
     """Get damage from reading source and target's stats"""
     # Damage is uniform from min to max
@@ -61,3 +83,8 @@ def remote_death(connection, time_received, char_uuid: int):
     char = network.uuid_to_char.get(char_uuid)
     if char:
         char.die()
+
+def get_target_hittable(char):
+    """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
+    in_range = distance(char, char.target) < char.attackrange
+    return in_range and char.get_tgt_los(char.target)

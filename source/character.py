@@ -2,7 +2,7 @@
 logic."""
 from ursina import *
 
-from .combat import attempt_melee_hit, get_haste_modifier
+from .combat import progress_combat_timer
 from .networking.base import *
 from .physics import handle_movement
 from .gamestate import gs
@@ -68,6 +68,41 @@ class Character(Entity):
             apply_complete_cb_state(self, complete_cb_state)
         elif ratings_state:
             apply_ratings_state(self, ratings_state)
+
+    def update(self):
+        """Character updates which happen every frame"""
+        # Movement Handling
+        if not self.lerping:
+            handle_movement(self)
+        elif self.lerping and self.prev_state:
+            self.lerp_timer += time.dt
+            # If timer finished, just apply the new state
+            if self.lerp_timer >= self.lerp_rate:
+                self.lerping = False
+                apply_physical_state(self, self.new_state)
+            # Otherwise, LERP normally
+            else:
+                self.position = lerp(self.prev_state.position,
+                                     self.new_state.position,
+                                     self.lerp_timer / self.lerp_rate)
+                self.rotation = lerp(self.prev_state.rotation,
+                                     self.new_state.rotation,
+                                     self.lerp_timer / self.lerp_rate)
+        # Namelabel Handling
+        self.namelabel.fix_position()
+        self.namelabel.fix_rotation()
+        # Combat Handling
+        if self.target and self.target.alive and self.in_combat:
+                progress_combat_timer(self)
+        else:
+            self.combat_timer = 0
+            if self.target and not self.target.alive:
+                self.target = None
+        # Death Handling
+        if self.health <= 0:
+            # Wait for server to tell character to die
+            if is_main_client():
+                self.die()
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -188,41 +223,6 @@ class Character(Entity):
             self._update_sec_phys_attrs()
             self._update_max_ratings()
 
-    def update(self):
-        """Character updates which happen every frame"""
-        # Movement Handling
-        if not self.lerping:
-            handle_movement(self)
-        elif self.lerping and self.prev_state:
-            self.lerp_timer += time.dt
-            # If timer finished, just apply the new state
-            if self.lerp_timer >= self.lerp_rate:
-                self.lerping = False
-                apply_physical_state(self, self.new_state)
-            # Otherwise, LERP normally
-            else:
-                self.position = lerp(self.prev_state.position,
-                                     self.new_state.position,
-                                     self.lerp_timer / self.lerp_rate)
-                self.rotation = lerp(self.prev_state.rotation,
-                                     self.new_state.rotation,
-                                     self.lerp_timer / self.lerp_rate)
-        # Namelabel Handling
-        self.namelabel.fix_position()
-        self.namelabel.fix_rotation()
-        # Combat Handling
-        if self.target and self.target.alive and self.in_combat:
-                self.progress_combat_timer()
-        else:
-            self.combat_timer = 0
-            if self.target and not self.target.alive:
-                self.target = None
-        # Death Handling
-        if self.health <= 0:
-            # Wait for server to tell character to die
-            if is_main_client():
-                self.die()
-
     def start_jump(self):
         """Set self.jumping to be true if not grounded"""
         if self.grounded:
@@ -233,26 +233,6 @@ class Character(Entity):
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
 
-    def progress_combat_timer(self):
-        """Increment combat timer by dt. If past max, attempt a melee hit."""
-        # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
-        self.combat_timer += time.dt * get_haste_modifier(self.haste)
-        if self.combat_timer > self.max_combat_timer:
-            self.combat_timer -= self.max_combat_timer
-            if self.get_target_hittable():
-                if is_main_client():
-                    attempt_melee_hit(self, self.target)
-                else:
-                    # Host-authoritative, so we need to ask the host to compute the hit
-                    network.peer.remote_attempt_melee_hit(
-                        network.peer.get_connections()[0],
-                        self.uuid, self.target.uuid)
-
-    def get_target_hittable(self):
-        """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
-        in_range = distance(self, self.target) < self.attackrange
-        return in_range and self.get_tgt_los(self.target)
-
     def get_tgt_los(self, target):
         """Returns whether the target is in line of sight"""
         dist = distance(self, target)
@@ -262,14 +242,6 @@ class Character(Entity):
         line_of_sight = raycast(src_pos, direction=dir, distance=dist,
                                 ignore=[entity for entity in scene.entities if type(entity) is Character])
         return len(line_of_sight.entities) == 0
-
-    def increase_health(self, amt):
-        """Function to be used whenever increasing character's health"""
-        self.health = min(self.maxhealth, self.health + amt)
-
-    def reduce_health(self, amt):
-        """Function to be used whenever decreasing character's health"""
-        self.health -= amt
 
     def on_destroy(self):
         """Upon being destroyed, remove all references to objects attached to this character"""
