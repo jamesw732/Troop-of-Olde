@@ -1,3 +1,5 @@
+"""DO NOT import attrs"""
+
 from ursina import *
 
 attrs = {

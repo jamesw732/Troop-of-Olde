@@ -1,9 +1,13 @@
+"""DO NOT import attrs"""
+
 from ursina import *
 
 attrs = {
     "statichealth": int,
     "staticmana": int,
     "staticstamina": int,
+    "maxarmor": int,
+    "maxspellshield": int,
 
     "bdy": int,
     "str": int,
@@ -63,3 +67,9 @@ def deserialize_base_cb_state(reader):
             return state
         val = reader.read(attrs[attr])
         setattr(state, attr, val)
+
+def apply_base_state(char, state):
+    for attr in attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            setattr(char, attr, val)

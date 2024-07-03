@@ -4,7 +4,8 @@ import json
 import os
 
 from .character import Character
-from .gamestate import CombatState, PhysicalState
+from .gamestate import PhysicalState
+from .states.combat_base_state import BaseCombatState
 
 
 class GenerateWorld:
@@ -38,9 +39,9 @@ class GenerateWorld:
         with open(path) as f:
             npc_data = json.load(f)
         states = [(PhysicalState(**data["physical"]),
-                   CombatState(**data["combat"]))
+                   BaseCombatState(**data["combat"]))
                    for (npc, data) in npc_data.items()]
-        return [Character(type="npc", pstate=state[0], cbstate=state[1])
+        return [Character(type="npc", pstate=state[0], base_state=state[1])
                 for state in states]
 
     def parse_colors(self, data):

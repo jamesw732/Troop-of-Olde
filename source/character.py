@@ -5,19 +5,28 @@ from ursina import *
 from .combat import attempt_melee_hit, get_haste_modifier
 from .networking.base import *
 from .physics import handle_movement
-from .gamestate import *
+from .gamestate import gs, PhysicalState, phys_state_attrs
+from .states.cbstate_complete import apply_complete_cb_state
+from .states.combat_base_state import apply_base_state
+from .states.cbstate_ratings import apply_ratings_state
+# from .states.physicalstate import PhysicalState, attrs as phys_state_attrs
 from .ui.main import ui
 
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
-                 pstate=None, cbstate=None, equipment=None, inventory=None):
+                 pstate=None, complete_cb_state=None,
+                 ratings_state=None, base_state=None):
         """Initializes a character using a PhysicalState and a CharacterState.
 
         cname: name of character, str
         uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
         type: "player" or "npc"
         pstate: PhysicalState; defines client-authoritative attrs
-        cbstate: CombatState; defines host-authoritative attrs. Should be used only for creating characters with custom values (ie npcs) and instantiating characters over the network.
+        complete_cb_state: CompleteCombatState; If specified, skip all computation and copy all attrs from
+        complete state. Use only for receiving player character states.
+        ratings_state: RatingsState; If specified, only initializes the most minimal attrs that the player
+        needs to see from other characters. Use only for receiving character states besides the PC's
+        base_state: BaseCombatState; Use for common initialization if the main client.
         equipment: dict of Items keyed by slot
         inventory: list of Items
         """
@@ -45,20 +54,19 @@ class Character(Entity):
         self._init_lerp_attrs()
 
         # Combat attrs
-        # First, initialize combat attrs
         self._init_cb_attrs()
-        # Apply cb state, overwriting some of the initialized attrs
-        if cbstate:
-            self.apply_combat_state(cbstate)
-        # Compute new max ratings
-        self._update_max_ratings()
-        # If cbstate didn't tell us ratings, assume they're max
-        if not hasattr(cbstate, "health"):
-            self.health = self.maxhealth
-        if not hasattr(cbstate, "mana"):
-            self.mana = self.maxmana
-        if not hasattr(cbstate, "stamina"):
-            self.stamina = self.maxstamina
+        if base_state and is_main_client():
+            apply_base_state(self, base_state)
+            # ... apply items, effects
+            self._update_max_ratings()
+            for attr in ["health", "mana", "stamina", "armor", "spellshield"]:
+                if not hasattr(base_state, attr):
+                    maxval = getattr(self, "max" + attr)
+                    setattr(self, attr, maxval)
+        elif complete_cb_state:
+            apply_complete_cb_state(self, complete_cb_state)
+        elif ratings_state:
+            apply_ratings_state(self, ratings_state)
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -82,18 +90,25 @@ class Character(Entity):
         self.traverse_target = scene
         self.ignore_traverse = [self]
 
+        self.alive = True
+        self.in_combat = False
+        self.target = None
+
     def _init_cb_attrs(self):
-        """Initialize base combat attributes. These will definitely change."""
-        self.maxhealth = 100
-        self.health = self.maxhealth
-        self.maxmana = 100
-        self.mana = self.maxmana
-        self.maxstamina = 100
-        self.stamina = self.maxstamina
+        """Initialize base default combat attributes."""
+        self.maxhealth = 0
+        self.health = 100
+        self.statichealth = 100
+        self.maxmana = 0
+        self.mana = 100
+        self.staticmana = 100
+        self.maxstamina = 0
+        self.stamina = 100
+        self.staticstamina = 100
         self.maxspellshield = 0
-        self.spellshield = self.maxspellshield
+        self.spellshield = 0
         self.maxarmor = 0
-        self.armor = self.maxarmor
+        self.armor = 0
 
         self.bdy = 0
         self.str = 0
@@ -102,7 +117,7 @@ class Character(Entity):
         self.int = 0
 
         self.haste = 0
-        self.speed = 10
+        self.speed = 20
         self.casthaste = 0
         self.healmod = 0
 
@@ -115,9 +130,6 @@ class Character(Entity):
         self.max_combat_timer = 1
         self.combat_timer = 0
         self.attackrange = 10
-        self.alive = True
-        self.in_combat = False
-        self.target = None
 
     def _init_lerp_attrs(self):
         """Initialize lerp logic"""
@@ -154,17 +166,18 @@ class Character(Entity):
         but still deserve to be updated by them."""
         self.height = self.scale_y
         self.max_jump_height = self.height * 1.5
-        self.rem_jump_height = self.max_jump_height
         self.max_jump_time = 0.3
-        self.rem_jump_time = self.max_jump_time
+        if not self.jumping:
+            self.rem_jump_height = self.max_jump_height
+            self.rem_jump_time = self.max_jump_time
 
     def _update_max_ratings(self):
         """Adjust secondary combat attributes to state changes.
         These attrs are not adjusted directly by state changes,
         but still deserve to be updated by them."""
-        self.maxhealth = 100 + self.bdy * 10
-        self.maxmana = 100 + self.int * 10
-        self.maxstamina = 100 + self.bdy * 5 + self.str * 5
+        self.maxhealth = self.statichealth + self.bdy * 10
+        self.maxmana = self.staticmana + self.int * 10
+        self.maxstamina = self.staticstamina + self.bdy * 5 + self.str * 5
 
     def _update_secondary_vals(self):
         """Increment timer for and update secondary values"""
@@ -278,6 +291,19 @@ class Character(Entity):
         if network.peer.is_hosting():
             broadcast(network.peer.remote_death, self.uuid)
         destroy(self)
+
+    def update_lerp_state(self, state, time):
+        """Essentially just increments the lerp setup.
+        Slide prev and new state, set self.lerping = True, and apply old state"""
+        self.prev_state = self.new_state
+        self.new_state = state
+        if self.prev_state:
+            self.lerping = True
+            self.lerp_rate = time - self.prev_lerp_recv
+            self.prev_lerp_recv = time
+            self.lerp_timer = 0
+            # Apply old state to ensure synchronization and update non-lerp attrs
+            self.apply_physical_state(self.prev_state)
     
     def get_physical_state(self):
         """Computes the current state of Character's client-authoritative attributes"""
@@ -302,34 +328,6 @@ class Character(Entity):
         # Overwriting model causes origin to break, for some reason
         if hasattr(state, "model"):
             self.origin = Vec3(0, -0.5, 0)
-
-    def update_lerp_state(self, state, time):
-        """Essentially just increments the lerp setup.
-        Slide prev and new state, set self.lerping = True, and apply old state"""
-        self.prev_state = self.new_state
-        self.new_state = state
-        if self.prev_state:
-            self.lerping = True
-            self.lerp_rate = time - self.prev_lerp_recv
-            self.prev_lerp_recv = time
-            self.lerp_timer = 0
-            # Apply old state to ensure synchronization and update non-lerp attrs
-            self.apply_physical_state(self.prev_state)
-
-    def get_combat_state(self):
-        """Computes the current state of Character's host-authoritative attributes"""
-        return CombatState(char=self)
-
-    def apply_combat_state(self, state):
-        """Applies state of host-authoritative attributes"""
-        for attr in combat_state_attrs:
-            if hasattr(state, attr):
-                val = getattr(state, attr)
-                setattr(self, attr, val)
-        # Is this really the right place for this?
-        self.health = min(self.health, self.maxhealth)
-        # self.mana = min(self.mana, self.maxmana)
-        # self.stamina = min(self.mana, self.maxstamina)
 
 
 class NameLabel(Text):

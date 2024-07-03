@@ -1,3 +1,4 @@
+"""DO NOT import attrs"""
 from ursina import *
 
 attrs = {
@@ -52,3 +53,9 @@ def deserialize_ratings_state(reader):
             return state
         val = reader.read(attrs[attr])
         setattr(state, attr, val)
+
+def apply_ratings_state(char, state):
+    for attr in attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            setattr(char, attr, val)
