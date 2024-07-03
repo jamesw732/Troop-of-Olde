@@ -2,6 +2,8 @@
 
 from ursina import *
 
+from ..networking.base import network
+
 attrs = {
     "model": str,
     "scale": Vec3,
@@ -65,3 +67,21 @@ def deserialize_physical_state(reader):
             return state
         val = reader.read(attrs[attr])
         setattr(state, attr, val)
+
+def apply_physical_state(char, state):
+    for attr in attrs:
+        if hasattr(state, attr):
+            val = getattr(state, attr)
+            # Ursina is smart about assigning model/collider, but not color
+            if attr == "color":
+                val = color.colors[val]
+            elif attr == "target":
+                # target is a uuid, not a char
+                if val in network.uuid_to_char:
+                    val = network.uuid_to_char[val]
+                else:
+                    continue
+            setattr(char, attr, val)
+        # Overwriting model causes origin to break, for some reason
+        if hasattr(state, "model"):
+            char.origin = Vec3(0, -0.5, 0)

@@ -3,9 +3,10 @@ from ursina.networking import *
 
 from .base import *
 
-from ..gamestate import *
+from ..gamestate import gs
 from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
 from ..states.cbstate_ratings import RatingsState, apply_ratings_state
+from ..states.physicalstate import PhysicalState, apply_physical_state
 
 
 def update():
@@ -20,7 +21,7 @@ def update():
     network.update_timer += time.dt
     if network.update_timer >= network.update_rate:
         network.update_timer -= network.update_rate
-        new_state = my_char.get_physical_state()
+        new_state = PhysicalState(my_char)
         connections = network.peer.get_connections()
         for connection in connections:
             network.peer.update_char_pstate(connection, my_char.uuid, new_state)
@@ -47,7 +48,7 @@ def update_char_pstate(connection, time_received, uuid: int,
     if char:
         char.update_lerp_state(phys_state, time_received)
     if network.peer.is_hosting():
-        state = char.get_physical_state()
+        state = PhysicalState(char)
         for conn in network.peer.get_connections():
             if conn is not connection:
                 network.peer.update_char_pstate(conn, state)

@@ -4,8 +4,8 @@ import json
 import os
 
 from .character import Character
-from .gamestate import PhysicalState
 from .states.combat_base_state import BaseCombatState
+from .states.physicalstate import PhysicalState
 
 
 class GenerateWorld:

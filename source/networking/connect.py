@@ -6,43 +6,25 @@ import os
 from .base import *
 from ..character import Character
 from ..npc_controller import NPC_Controller
-from ..gamestate import *
+from ..gamestate import gs
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 from ..ui.main import ui
 from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb_state, deserialize_complete_cb_state
 from ..states.combat_base_state import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_ratings import RatingsState, serialize_ratings_state, deserialize_ratings_state
-
-
-def serialize_physical_state(writer, state):
-    for attr in phys_state_attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            if val is not None:
-                if attr == "target":
-                    # Don't write the character, write its uuid
-                    val = val.uuid
-                writer.write(attr)
-                writer.write(val)
-    writer.write("end")
-
-def deserialize_physical_state(reader):
-    state = PhysicalState()
-    while reader.iter.getRemainingSize() > 0:
-        attr = reader.read(str)
-        if attr == "end":
-            return state
-        val = reader.read(phys_state_attrs[attr])
-        setattr(state, attr, val)
+from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
 
 
 # Actually register the states as types sendable over the network
 network.peer.register_type(PhysicalState, serialize_physical_state,
                            deserialize_physical_state)
-network.peer.register_type(CompleteCombatState, serialize_complete_cb_state, deserialize_complete_cb_state)
-network.peer.register_type(BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state)
-network.peer.register_type(RatingsState, serialize_ratings_state, deserialize_ratings_state)
+network.peer.register_type(CompleteCombatState, serialize_complete_cb_state,
+                           deserialize_complete_cb_state)
+network.peer.register_type(BaseCombatState, serialize_base_cb_state,
+                           deserialize_base_cb_state)
+network.peer.register_type(RatingsState, serialize_ratings_state,
+                           deserialize_ratings_state)
 
 
 def input(key):
@@ -101,7 +83,7 @@ def on_connect(connection, time_connected):
             # New user needs all characters
             if conn == connection:
                 for ch in gs.chars:
-                    pstate = ch.get_physical_state()
+                    pstate = PhysicalState(ch)
                     # The player will want to be able to see everything about their character
                     if ch is char:
                         cstate = CompleteCombatState(ch)

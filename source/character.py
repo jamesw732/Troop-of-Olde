@@ -5,10 +5,11 @@ from ursina import *
 from .combat import attempt_melee_hit, get_haste_modifier
 from .networking.base import *
 from .physics import handle_movement
-from .gamestate import gs, PhysicalState, phys_state_attrs
+from .gamestate import gs
 from .states.cbstate_complete import apply_complete_cb_state
 from .states.combat_base_state import apply_base_state
 from .states.cbstate_ratings import apply_ratings_state
+from .states.physicalstate import PhysicalState, apply_physical_state
 # from .states.physicalstate import PhysicalState, attrs as phys_state_attrs
 from .ui.main import ui
 
@@ -47,7 +48,7 @@ class Character(Entity):
         self._init_phys_attrs()
         # Apply phys state, overwriting some of the initialized attrs
         if pstate:
-            self.apply_physical_state(pstate)
+            apply_physical_state(self, pstate)
         # Make namelabel
         self.namelabel = NameLabel(self)
         # Finally, prep lerp
@@ -134,7 +135,7 @@ class Character(Entity):
     def _init_lerp_attrs(self):
         """Initialize lerp logic"""
         self.prev_state = None
-        self.new_state = self.get_physical_state()
+        self.new_state = PhysicalState(self)
         self.prev_lerp_recv = 0
         self.lerping = False
         self.lerp_rate = 0
@@ -197,7 +198,7 @@ class Character(Entity):
             # If timer finished, just apply the new state
             if self.lerp_timer >= self.lerp_rate:
                 self.lerping = False
-                self.apply_physical_state(self.new_state)
+                apply_physical_state(self, self.new_state)
             # Otherwise, LERP normally
             else:
                 self.position = lerp(self.prev_state.position,
@@ -303,31 +304,7 @@ class Character(Entity):
             self.prev_lerp_recv = time
             self.lerp_timer = 0
             # Apply old state to ensure synchronization and update non-lerp attrs
-            self.apply_physical_state(self.prev_state)
-    
-    def get_physical_state(self):
-        """Computes the current state of Character's client-authoritative attributes"""
-        return PhysicalState(char=self)
-    
-    def apply_physical_state(self, state):
-        """Applies state of client-authoritative attributes.
-        Should really only be called by update_lerp_state"""
-        for attr in phys_state_attrs:
-            if hasattr(state, attr):
-                val = getattr(state, attr)
-                # Ursina is smart about assigning model/collider, but not color
-                if attr == "color":
-                    val = color.colors[val]
-                elif attr == "target":
-                    # target is a uuid, not a char
-                    if val in network.uuid_to_char:
-                        val = network.uuid_to_char[val]
-                    else:
-                        continue
-                setattr(self, attr, val)
-        # Overwriting model causes origin to break, for some reason
-        if hasattr(state, "model"):
-            self.origin = Vec3(0, -0.5, 0)
+            apply_physical_state(self, self.prev_state)
 
 
 class NameLabel(Text):
