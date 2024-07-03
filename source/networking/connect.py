@@ -10,26 +10,9 @@ from ..gamestate import *
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 from ..ui.main import ui
-
-
-# These are all the same, define logic for serializing and deserializing states
-def serialize_combat_state(writer, state):
-    for attr in combat_state_attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            if val is not None:
-                writer.write(attr)
-                writer.write(val)
-    writer.write("end")
-
-def deserialize_combat_state(reader):
-    state = CombatState()
-    while reader.iter.getRemainingSize() > 0:
-        attr = reader.read(str)
-        if attr == "end":
-            return state
-        val = reader.read(combat_state_attrs[attr])
-        setattr(state, attr, val)
+from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb_state, deserialize_complete_cb_state
+from ..states.combat_base_state import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
+from ..states.cbstate_ratings import RatingsState, serialize_ratings_state, deserialize_ratings_state
 
 
 def serialize_physical_state(writer, state):
@@ -57,8 +40,9 @@ def deserialize_physical_state(reader):
 # Actually register the states as types sendable over the network
 network.peer.register_type(PhysicalState, serialize_physical_state,
                            deserialize_physical_state)
-network.peer.register_type(CombatState, serialize_combat_state,
-                           deserialize_combat_state)
+network.peer.register_type(CompleteCombatState, serialize_complete_cb_state, deserialize_complete_cb_state)
+network.peer.register_type(BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state)
+network.peer.register_type(RatingsState, serialize_ratings_state, deserialize_ratings_state)
 
 
 def input(key):
@@ -69,8 +53,8 @@ def input(key):
     if not network.peer.is_running():
         if key == "h":
             pstate = PhysicalState(position=(0, 1, 0))
-            cbstate = CombatState(health=100, speed=20)
-            char = Character(pstate=pstate, cbstate=cbstate)
+            cbstate = BaseCombatState(health=100, speed=20)
+            char = Character(pstate=pstate, base_state=cbstate)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
             char.uuid = network.my_uuid
@@ -104,24 +88,31 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if network.peer.is_hosting():
         new_pstate = PhysicalState(position=(0, 1, 0))
-        new_cbstate = CombatState(health=100, speed=20)
-        char = Character(pstate=new_pstate, cbstate=new_cbstate)
+        new_base_cb_state = BaseCombatState(health=100, speed=20)
+        char = Character(pstate=new_pstate, base_state=new_base_cb_state)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
         gs.chars.append(char)
         network.connection_to_char[connection] = char
         network.peer.generate_world(connection, "demo.json")
+        new_ratings_state = RatingsState(char)
         for conn in network.peer.get_connections():
             # New user needs all characters
             if conn == connection:
                 for ch in gs.chars:
                     pstate = ch.get_physical_state()
-                    cstate = ch.get_combat_state()
-                    network.peer.spawn_character(conn, ch.uuid, pstate, cstate)
+                    # The player will want to be able to see everything about their character
+                    if ch is char:
+                        cstate = CompleteCombatState(ch)
+                        network.peer.spawn_pc(conn, ch.uuid, pstate, cstate)
+                    # But the player won't be able to see everything about other characters
+                    else:
+                        cstate = RatingsState(ch)
+                        network.peer.spawn_npc(conn, ch.uuid, pstate, cstate)
             # Existing users just need new character
             else:
-                network.peer.spawn_character(conn, char.uuid, new_pstate, new_cbstate)
+                network.peer.spawn_npc(conn, char.uuid, new_pstate, new_ratings_state)
         network.peer.bind_player(connection, char.uuid)
         network.peer.make_ui(connection)
 
@@ -131,13 +122,25 @@ def generate_world(connection, time_received, zone:str):
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_character(connection, time_received, uuid: int,
-                    phys_state: PhysicalState, cb_state: CombatState):
-    """Remotely spawn a character and bind its uuid"""
+def spawn_pc(connection, time_received, uuid: int,
+             phys_state: PhysicalState, complete_cb_state: CompleteCombatState):
+    """Remotely spawn the player character"""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        char = Character(pstate=phys_state, cbstate=cb_state)
+        char = Character(pstate=phys_state, complete_cb_state=complete_cb_state)
+        gs.chars.append(char)
+        network.uuid_to_char[uuid] = char
+        char.uuid = uuid
+
+@rpc(network.peer)
+def spawn_npc(connection, time_received, uuid: int,
+             phys_state: PhysicalState, ratings_state: RatingsState):
+    """Remotely spawn a character that isn't the client's player character (could also be other players)"""
+    if network.peer.is_hosting():
+        return
+    if uuid not in network.uuid_to_char:
+        char = Character(pstate=phys_state, ratings_state=ratings_state)
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid

@@ -4,6 +4,8 @@ from ursina.networking import *
 from .base import *
 
 from ..gamestate import *
+from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
+from ..states.cbstate_ratings import RatingsState, apply_ratings_state
 
 
 def update():
@@ -24,9 +26,14 @@ def update():
             network.peer.update_char_pstate(connection, my_char.uuid, new_state)
         if network.peer.is_hosting():
             for char in gs.chars:
-                cbstate = char.get_combat_state()
+                ratings_state = RatingsState(char)
                 for connection in connections:
-                    network.peer.update_char_cstate(connection, char.uuid, cbstate)
+                    if network.connection_to_char[connection] is char:
+                        network.peer.update_pc_cbstate(connection, char.uuid,
+                                                       CompleteCombatState(char))
+                    else:
+                        network.peer.update_npc_cbstate(connection, char.uuid,
+                                                        ratings_state)
 
 
 @rpc(network.peer)
@@ -46,8 +53,15 @@ def update_char_pstate(connection, time_received, uuid: int,
                 network.peer.update_char_pstate(conn, state)
 
 @rpc(network.peer)
-def update_char_cstate(connection, time_received, uuid: int, cbstate: CombatState):
-    """Host-authoritatively apply combat state updates."""
+def update_pc_cbstate(connection, time_received, uuid: int, cbstate: CompleteCombatState):
+    """Update state for somebody else's player character"""
     char = network.uuid_to_char.get(uuid)
     if char:
-        char.apply_combat_state(cbstate)
+        apply_complete_cb_state(char, cbstate)
+
+@rpc(network.peer)
+def update_npc_cbstate(connection, time_received, uuid: int, cbstate: RatingsState):
+    """Update state for character that the client doesn't care about very much"""
+    char = network.uuid_to_char.get(uuid)
+    if char:
+        apply_ratings_state(char, cbstate)
