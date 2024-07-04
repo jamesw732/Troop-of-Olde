@@ -71,7 +71,7 @@ class ItemsWindow(Entity):
         for i, item in self.player.equipment.items():
             if item is not None:
                 icon = ItemIcon(item, container=self.player.equipment, slot=i,
-                         parent=self.equipped_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.black)
+                         parent=self.equipped_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.random_color())
                 self.item_icons.append(icon)
 
     def enable_colliders(self):
@@ -129,15 +129,35 @@ class ItemIcon(Entity):
                     new_parent = mouse.hovered_entity
                     if isinstance(new_parent, ItemSlot):
                         self.move(new_parent)
-                    self.position = Vec3(0, 0, -1)
+                    elif isinstance(new_parent, ItemIcon):
+                        self.swap_locs(new_parent)
+                    self.position = Vec3(0, 0, -2)
                     self.collision = True
             if self.dragging:
                 if mouse.position:
                     self.set_position(mouse.position + self.step, camera.ui)
 
+    def swap_locs(self, other_item):
+        other_slot = other_item.parent
+        other_container = other_slot.container
+        other_loc = other_slot.slot
+        my_container = self.parent.container
+        my_loc = self.parent.slot
+        if other_item is not None:
+            # Need to swap the two items
+            other_item.parent = self.parent
+            other_item.position = Vec3(0, 0, -2)
+            my_container[my_loc] = other_item
 
-    def move(self, new_parent):
-        self.parent = new_parent
+            self.parent = other_slot
+            other_container[other_loc] = self
+
+    def move(self, new_slot):
+        new_container = new_slot.container
+        new_loc = new_slot.slot
+
+        self.parent = new_slot
+        new_container[new_loc] = self
 
     # def on_click(self):
     #     option = self.item['functions'][0]

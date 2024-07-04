@@ -62,6 +62,10 @@ class Character(Entity):
         self._init_cb_attrs()
         if equipment:
             equip_many_items(self, equipment)
+        if inventory:
+            for i, item in enumerate(inventory):
+                # Assumes inventory is at most length 24 and gaps are filled with None
+                self.inventory[i] = item
         # Full creation of character from the ground up
         if base_state and network.is_main_client():
             apply_base_state(self, base_state)
