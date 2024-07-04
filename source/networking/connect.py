@@ -1,9 +1,6 @@
-from ursina import *
-from ursina.networking import *
+from ursina.networking import rpc
 
-import os
-
-from .base import *
+from .base import network
 from ..character import Character
 from ..npc_controller import NPC_Controller
 from ..gamestate import gs

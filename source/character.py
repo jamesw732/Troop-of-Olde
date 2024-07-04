@@ -2,8 +2,9 @@
 logic."""
 from ursina import *
 
+from .base import sqdist
 from .combat import progress_combat_timer
-from .networking.base import *
+from .networking.base import network
 from .physics import handle_movement
 from .gamestate import gs
 from .states.cbstate_complete import apply_complete_cb_state
@@ -56,7 +57,7 @@ class Character(Entity):
 
         # Combat attrs
         self._init_cb_attrs()
-        if base_state and is_main_client():
+        if base_state and network.is_main_client():
             apply_base_state(self, base_state)
             # ... apply items, effects
             self._update_max_ratings()
@@ -101,7 +102,7 @@ class Character(Entity):
         # Death Handling
         if self.health <= 0:
             # Wait for server to tell character to die
-            if is_main_client():
+            if network.is_main_client():
                 self.die()
 
     def _init_phys_attrs(self):
@@ -235,13 +236,17 @@ class Character(Entity):
 
     def get_tgt_los(self, target):
         """Returns whether the target is in line of sight"""
-        dist = distance(self, target)
+        sdist = sqdist(self.position, self.target.position)
         src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
         tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
         dir = tgt_pos - src_pos
-        line_of_sight = raycast(src_pos, direction=dir, distance=dist,
+        line_of_sight = raycast(src_pos, direction=dir, distance=inf,
                                 ignore=[entity for entity in scene.entities if type(entity) is Character])
-        return len(line_of_sight.entities) == 0
+        if line_of_sight.hit:
+            entity = line_of_sight.entity
+            if sqdist(entity.position, self.position) < sdist:
+                return False
+        return True
 
     def on_destroy(self):
         """Upon being destroyed, remove all references to objects attached to this character"""
@@ -262,7 +267,7 @@ class Character(Entity):
         ui.gamewindow.add_message(msg)
         self.alive = False
         if network.peer.is_hosting():
-            broadcast(network.peer.remote_death, self.uuid)
+            network.broadcast(network.peer.remote_death, self.uuid)
         destroy(self)
 
     def update_lerp_state(self, state, time):

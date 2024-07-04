@@ -1,5 +1,5 @@
 # Handles all world generation.
-from ursina import *
+from ursina import Entity, Sky, color
 import json
 import os
 

@@ -1,8 +1,9 @@
-from ursina import *
+from ursina import time
+from ursina.networking import rpc
 import random
 
-from .gamestate import *
-from .networking.base import *
+from .base import sigmoid, sqdist
+from .networking.base import network
 from .ui.main import ui
 
 # PUBLIC
@@ -13,7 +14,7 @@ def progress_combat_timer(char):
     if char.combat_timer > char.max_combat_timer:
         char.combat_timer -= char.max_combat_timer
         if get_target_hittable(char):
-            if is_main_client():
+            if network.is_main_client():
                 attempt_melee_hit(char, char.target)
             else:
                 # Host-authoritative, so we need to ask the host to compute the hit
@@ -46,7 +47,7 @@ def attempt_melee_hit(src, tgt):
         reduce_health(tgt, dmg)
     ui.gamewindow.add_message(hitstring)
     # Broadcast the hit info to all peers, if host
-    broadcast(network.peer.remote_print, hitstring)
+    network.broadcast(network.peer.remote_print, hitstring)
 
 
 @rpc(network.peer)
@@ -86,5 +87,5 @@ def remote_death(connection, time_received, char_uuid: int):
 
 def get_target_hittable(char):
     """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
-    in_range = distance(char, char.target) < char.attackrange
+    in_range = sqdist(char.position, char.target.position) < char.attackrange ** 2
     return in_range and char.get_tgt_los(char.target)

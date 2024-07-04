@@ -1,6 +1,6 @@
 """Defines all 'physical' NPC behavior"""
 
-from ursina import *
+from ursina import Entity
 
 class NPC_Controller(Entity):
     def __init__(self, character, player):

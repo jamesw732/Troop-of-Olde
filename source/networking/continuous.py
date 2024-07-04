@@ -1,12 +1,12 @@
-from ursina import *
-from ursina.networking import *
+from ursina import time
+from ursina.networking import rpc
 
-from .base import *
+from .base import network
 
 from ..gamestate import gs
 from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
 from ..states.cbstate_ratings import RatingsState, apply_ratings_state
-from ..states.physicalstate import PhysicalState, apply_physical_state
+from ..states.physicalstate import PhysicalState
 
 
 def update():

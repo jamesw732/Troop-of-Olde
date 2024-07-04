@@ -1,6 +1,4 @@
 """Defines states and declares a global game state. Most files will import this."""
-from ursina import *
-import math
 
 
 class GameState:
@@ -16,6 +14,3 @@ class GameState:
         self.chars.clear()
 
 gs = GameState()
-
-def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
