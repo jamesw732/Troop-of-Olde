@@ -111,6 +111,7 @@ class Character(Entity):
             self.combat_timer = 0
             if self.target and not self.target.alive:
                 self.target = None
+        self._update_incremental_vals() # It might be nice to just do this exactly when needed, not incrementally...
         # Death Handling
         if self.health <= 0:
             # Wait for server to tell character to die
@@ -227,13 +228,17 @@ class Character(Entity):
         self.maxhealth = self.statichealth + self.bdy * 10
         self.maxmana = self.staticmana + self.int * 10
         self.maxstamina = self.staticstamina + self.bdy * 5 + self.str * 5
+        self.health = min(self.maxhealth, self.health)
+        self.mana = min(self.maxmana, self.mana)
+        self.stamina = min(self.maxstamina, self.stamina)
 
-    def _update_secondary_vals(self):
-        """Increment timer for and update secondary values"""
+    def _update_incremental_vals(self):
+        """Increment timer for and update values that need continuous update, but
+        don't want to do this every frame"""
         self.sec_update_timer += time.dt
         if self.sec_update_timer >= self.sec_update_rate:
             self.sec_update_timer -= self.sec_update_rate
-            self._update_sec_phys_attrs()
+            # self._update_sec_phys_attrs() # For now, this is unnecessary
             self._update_max_ratings()
 
     def start_jump(self):

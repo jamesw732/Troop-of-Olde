@@ -65,37 +65,26 @@ with open(items_file) as items:
 
 # Define public functions here
 def equip_many_items(char, itemsdict):
-    """Equips all items in itemsdict
+    """Magically equips all items in itemsdict. Use this only when characters enter world.
     char: Character
     itemsdict: dict mapping equipment slots to Items"""
     for slot, item in itemsdict.items():
-        equip_item(char, slot, item)
+        _equip_item(char, slot, item)
 
-def equip_item(char, slot, item=None, idx=None):
-    """Equips an item assuming the desired slot is empty
-    char: Character
-    slot: str, equipment slot
-    item: Item, item to equip, optional if idx is specified
-    idx: int, location of item within inventory. Skip if equipping items from spawn."""
-    if char.equipment[slot] or (item is None and idx is None):
-        return
-    # Assume we're equipping from inventory if and only if idx is specified
-    if idx is not None:
-        if item is None:
-            item = char.inventory[idx]
-        char.inventory[idx] = None
-    # If we're equipping from, say, spawn in, we don't need to reset an inventory slot
-    char.equipment[slot] = item
-    _apply_stats(char, item['stats'])
+def replace_slot(char, container1, slot1, container2, slot2):
+    """Swap the locations of two items by containers"""
+    item1 = container1[slot1]
+    item2 = container2[slot2]
 
-# def replace_slot(char, slot, replace_idx):
-#     """Equips an item by replacing an existing item"""
-#     new_item = char.inventory[replace_idx]
-#     old_item = char.equipment[slot]
-#     char.inventory[replace_idx] = old_item
-#     char.equipment[slot] = new_item
-#     _remove_stats(char, old_item['stats'])
-#     _apply_stats(char, new_item['stats'])
+    container2[slot2] = item1
+    container1[slot1] = item2
+
+    if isinstance(container1, dict):
+        _apply_stats(char, item2)
+        _remove_stats(char, item1)
+    if isinstance(container2, dict):
+        _apply_stats(char, item1)
+        _remove_stats(char, item2)
 
 # def unequip_slot(char, slot):
 #     """Unequips an item into a necessarily empty inventory slot"""
@@ -134,12 +123,27 @@ class Item(dict):
         if "functions" not in self:
             self['functions'] = self.type_to_options.get(self["type"], [])
 
-def _apply_stats(char, stats):
+def _equip_item(char, slot, item):
+    """Equips an item assuming the desired slot is empty. Do not use this except for
+    initializing a character's equipment when entering world.
+    char: Character
+    slot: str, equipment slot
+    item: Item, item to equip"""
+    char.equipment[slot] = item
+    _apply_stats(char, item)
+
+def _apply_stats(char, item):
+    if item is None:
+        return
+    stats = item.get("stats", {})
     for statname, val in stats.items():
         original_val = getattr(char, statname)
         setattr(char, statname, original_val + val)
 
-def _remove_stats(char, stats):
+def _remove_stats(char, item):
+    if item is None:
+        return
+    stats = item.get("stats", {})
     for statname, val in stats.items():
         original_val = getattr(char, statname)
         setattr(char, statname, original_val - val)

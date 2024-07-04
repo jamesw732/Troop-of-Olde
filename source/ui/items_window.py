@@ -128,7 +128,7 @@ class ItemIcon(Entity):
                     self.dragging = False
                     new_parent = mouse.hovered_entity
                     if isinstance(new_parent, ItemSlot):
-                        self.move(new_parent)
+                        self.move_to(new_parent)
                     elif isinstance(new_parent, ItemIcon):
                         self.swap_locs(new_parent)
                     self.position = Vec3(0, 0, -2)
@@ -138,6 +138,7 @@ class ItemIcon(Entity):
                     self.set_position(mouse.position + self.step, camera.ui)
 
     def swap_locs(self, other_item):
+        """Swaps parents of this item and another item, and also swaps internally."""
         other_slot = other_item.parent
         other_container = other_slot.container
         other_loc = other_slot.slot
@@ -147,18 +148,17 @@ class ItemIcon(Entity):
             # Need to swap the two items
             other_item.parent = self.parent
             other_item.position = Vec3(0, 0, -2)
-            my_container[my_loc] = other_item
 
             self.parent = other_slot
-            other_container[other_loc] = self
+            player = gs.pc.character
+            replace_slot(player, my_container, my_loc, other_container, other_loc)
 
-    def move(self, new_slot):
+    def move_to(self, new_slot):
         new_container = new_slot.container
         new_loc = new_slot.slot
+        my_container = self.parent.container
+        my_loc = self.parent.slot
+        player = gs.pc.character
+        replace_slot(player, my_container, my_loc, new_container, new_loc)
 
         self.parent = new_slot
-        new_container[new_loc] = self
-
-    # def on_click(self):
-    #     option = self.item['functions'][0]
-    #     func = self.item.name_to_func[option]
