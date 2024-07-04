@@ -18,7 +18,7 @@ class GameWindow(Entity):
             color=window_bg_color,
             collider='box'
         )
-        self.header.set_ui_scale()
+        self.header.set_ui_scale(self)
 
         self.scrollbar_box = Entity(parent=self, origin=(-.5, .5),
                                     position=(.925, -.1, -1), scale=(0.05, 0.8),
@@ -91,7 +91,6 @@ class ScrollBar(Entity):
         self.max_y = 0
         self.min_y = -1 + self.scale_y
         self.y = self.min_y
-        self.global_parent = self.parent.parent
         # The offset between mouse position and origin of scrollbar position
         self.step = 0
         self.dragging = False

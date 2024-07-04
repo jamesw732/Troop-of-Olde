@@ -52,10 +52,9 @@ class Header(Entity):
             set_transparency(self, 150 / 255, ignore_key=self.ignore_key)
             self.transparent = True
 
-    def set_ui_scale(self):
+    def set_ui_scale(self, child):
         """Set the scale with respect to camera.ui"""
-        self.ui_scale = self.getScale(camera.ui) \
-                        + max(child.getScale(camera.ui) for child in self.children)
+        self.ui_scale = self.getScale(camera.ui) + Vec3(0, child.getScale(camera.ui)[1], 0)
 
     def get_hovered(self):
         """Return whether the mouse hovers the parented window"""
