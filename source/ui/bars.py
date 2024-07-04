@@ -20,6 +20,8 @@ class BarWindow(Entity):
             color=window_bg_color,
             collider='box'
         )
+        header.set_ui_scale()
+
         self.bar_bg = Entity(
             parent=self, model='quad', origin=(-.5, .5),
             position=(0.05, -0.05, -1), scale=(0.9, 0.9),

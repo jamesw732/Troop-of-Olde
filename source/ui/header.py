@@ -6,7 +6,11 @@ class Header(Entity):
     """Class for draggable headers. Any interface that uses a Header
     should designate it as the parent."""
     def __init__(self, position=Vec2(0, 0), scale=Vec2(.5, 0.03),
-                 color=color.yellow, text="", ignore_key=lambda c: False):
+                 color=header_color, text="", ignore_key=lambda c: False):
+        """
+        window_size: scale of the whole window relative to camera.ui, used for determining if mouse is hovering the parented window
+        ignore_key: function to tell the header which children to ignore when setting
+        transparency, usually ignore text"""
         super().__init__(parent=camera.ui, model='quad', origin=(-.5, .5),
                          collider='box', position=position, scale=scale,
                          color=color)
@@ -19,6 +23,8 @@ class Header(Entity):
         self.ignore_key = ignore_key
 
         self.transparent = False
+
+        self.ui_scale = self.getScale(camera.ui)
 
     def input(self, key):
         if self.hovered and key == "left mouse down":
@@ -38,10 +44,23 @@ class Header(Entity):
                 min_y = window.bottom[1] + self.scale_y
                 self.x = clamp(self.x, min_x, max_x)
                 self.y = clamp(self.y, min_y, max_y)
-        hovered = get_hovered(self)
+        hovered = self.get_hovered()
         if self.transparent and hovered:
             set_transparency(self, 1)
             self.transparent = False
         elif not self.transparent and not hovered:
             set_transparency(self, 150 / 255, ignore_key=self.ignore_key)
             self.transparent = True
+
+    def set_ui_scale(self):
+        """Set the scale with respect to camera.ui"""
+        self.ui_scale = self.getScale(camera.ui) \
+                        + max(child.getScale(camera.ui) for child in self.children)
+
+    def get_hovered(self):
+        """Return whether the mouse hovers the parented window"""
+        left = self.getX(camera.ui)
+        top = self.getY(camera.ui)
+        right = left + self.ui_scale[0]
+        bottom = top - self.ui_scale[1]
+        return (left <= mouse.x <= right) and (bottom <= mouse.y <= top)

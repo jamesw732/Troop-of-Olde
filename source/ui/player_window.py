@@ -27,6 +27,7 @@ class PlayerWindow(Entity):
             color=window_bg_color,
             collider='box'
         )
+        header.set_ui_scale()
 
         margin_length = 0.025
         button_height = 0.08

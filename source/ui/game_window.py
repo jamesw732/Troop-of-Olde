@@ -12,13 +12,14 @@ class GameWindow(Entity):
             text="Game",
             ignore_key = lambda c: isinstance(c, Text)
         )
-
         super().__init__(
             parent=self.header, model='quad', origin=(-.5, .5),
             position=(0, -1, 0), scale=(1, 6),
             color=window_bg_color,
             collider='box'
         )
+        self.header.set_ui_scale()
+
         self.scrollbar_box = Entity(parent=self, origin=(-.5, .5),
                                     position=(.925, -.1, -1), scale=(0.05, 0.8),
                                     collider='box')
