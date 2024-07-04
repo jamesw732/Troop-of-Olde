@@ -7,17 +7,18 @@ from .combat import progress_combat_timer
 from .networking.base import network
 from .physics import handle_movement
 from .gamestate import gs
+from .item import equip_many_items
 from .states.cbstate_complete import apply_complete_cb_state
 from .states.cbstate_base import apply_base_state
 from .states.cbstate_ratings import apply_ratings_state
 from .states.physicalstate import PhysicalState, apply_physical_state
-# from .states.physicalstate import PhysicalState, attrs as phys_state_attrs
 from .ui.main import ui
 
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
                  pstate=None, complete_cb_state=None,
-                 ratings_state=None, base_state=None):
+                 ratings_state=None, base_state=None,
+                 equipment={}, inventory={}):
         """Initializes a character using a PhysicalState and a CharacterState.
 
         cname: name of character, str
@@ -30,7 +31,7 @@ class Character(Entity):
         needs to see from other characters. Use only for receiving character states besides the PC's
         base_state: BaseCombatState; Use for common initialization if the main client.
         equipment: dict of Items keyed by slot
-        inventory: list of Items
+        inventory: dict of Items keyed by index within inventory, 0-23
         """
         # Character-specific attrs
         self.type = type
@@ -55,18 +56,25 @@ class Character(Entity):
         # Finally, prep lerp
         self._init_lerp_attrs()
 
+        self._init_equipment()
+        self._init_inventory()
         # Combat attrs
         self._init_cb_attrs()
+        if equipment:
+            equip_many_items(self, equipment)
+        # Full creation of character from the ground up
         if base_state and network.is_main_client():
             apply_base_state(self, base_state)
-            # ... apply items, effects
+            # ... apply effects
             self._update_max_ratings()
             for attr in ["health", "mana", "stamina", "armor", "spellshield"]:
                 if not hasattr(base_state, attr):
                     maxval = getattr(self, "max" + attr)
                     setattr(self, attr, maxval)
+        # Host created my character
         elif complete_cb_state:
             apply_complete_cb_state(self, complete_cb_state)
+        # Host created a character that isn't mine
         elif ratings_state:
             apply_ratings_state(self, ratings_state)
 

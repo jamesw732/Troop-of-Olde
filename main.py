@@ -5,6 +5,7 @@ from source.player_controller import *
 from source.npc_controller import *
 from source.world_gen import *
 from source.gamestate import *
+from source.item import *
 from source.ui.main import ui
 from source.states.cbstate_base import BaseCombatState
 
@@ -13,8 +14,10 @@ gs.world = GenerateWorld("demo.json")
 
 pstate = PhysicalState(position=Vec3(0, 1, 0))
 basestate = BaseCombatState(haste=1000, bdy=100)
+sword = Item(id="1")
 
-player = Character(pstate=pstate, base_state=basestate)
+player = Character(pstate=pstate, base_state=basestate,
+                   equipment={"mh": sword})
 player.ignore_traverse = gs.chars
 gs.pc = PlayerController(player)
 
