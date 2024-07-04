@@ -6,6 +6,7 @@ import json
 
 from .character import Character
 from .ui.main import ui
+from .ui.items_window import ItemIcon
 
 
 class PlayerController(Entity):
@@ -69,8 +70,11 @@ class PlayerController(Entity):
             # mouse.visible = True
         if key == "left mouse down":
             tgt = mouse.hovered_entity
-            if type(tgt) is Character:
+            if isinstance(tgt, Character):
                 self.set_target(tgt)
+            elif isinstance(tgt, ItemIcon):
+                tgt.clicked = True
+                tgt.step = tgt.get_position(camera.ui) - mouse.position
         if key == "toggle_combat":
             msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
             ui.gamewindow.add_message(msg)

@@ -7,6 +7,8 @@ from ..item import *
 class ItemsWindow(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.player = gs.pc.character
+
         square_ratio = self.world_scale_x / self.world_scale_y
         edge_margin = 0.05
 
@@ -31,8 +33,9 @@ class ItemsWindow(Entity):
             "ammo": Vec3(2/3, 0, -1)
         }
         self.equipped_slots = {
-            slot: ItemSlot(text=slot, parent=self.equipped_subframe, origin=(-.5, .5),
-                           position=loc * Vec2(1.2, 1.66), scale=(1/3, 1/7), model='quad', color=slot_color)
+            slot: ItemSlot(text=slot, container=self.player.equipment, slot=slot,
+                           parent=self.equipped_subframe, position=loc * Vec2(1.2, 1.66),
+                           scale=(1/3, 1/7), color=slot_color)
             for slot, loc in self.equipped_locs.items()
         }
 
@@ -41,9 +44,10 @@ class ItemsWindow(Entity):
                                         scale=(sq_size * 4, sq_size * 7 * square_ratio))
 
         self.inventory_locs = [(i / 4, -j / 7, -1) for i in range(4) for j in range(6)]
-        self.inventory_slots = [ItemSlot(parent=self.inventory_subframe, origin=(-.5, .5),
-                           position=loc, scale=(1/4, 1/7), model='quad', color=slot_color)
-                           for loc in self.inventory_locs]
+        self.inventory_slots = [ItemSlot(container=self.player.inventory, slot=i,
+                                         parent=self.inventory_subframe,
+                                         position=loc, scale=(1/4, 1/7), color=slot_color)
+                                for i, loc in enumerate(self.inventory_locs)]
 
         # Eventually, don't grid whole equipped, just do a 1x1 grid on each slot
         for slot in self.equipped_slots.values():
@@ -53,7 +57,6 @@ class ItemsWindow(Entity):
 
         self.item_icons = []
 
-        self.player = gs.pc.character
         self.make_char_items()
 
     def make_char_items(self):
@@ -63,32 +66,62 @@ class ItemsWindow(Entity):
         for i, item in enumerate(self.player.inventory):
             if item is not None:
                 icon = ItemIcon(item, container=self.player.inventory, slot=i,
-                         parent=self.inventory_slots[i], scale=(1, 1), position=(0, 0, -2),
-                         origin=(-.5, .5), model='quad', color=color.black)
+                         parent=self.inventory_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.black)
                 self.item_icons.append(icon)
         for i, item in self.player.equipment.items():
             if item is not None:
                 icon = ItemIcon(item, container=self.player.equipment, slot=i,
-                         parent=self.equipped_slots[i], scale=(1, 1), position=(0, 0, -2),
-                         origin=(-.5, .5), model='quad', color=color.black)
+                         parent=self.equipped_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.black)
                 self.item_icons.append(icon)
 
 class ItemSlot(Entity):
-    def __init__(self, *args, text="", **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, text="", container=None, slot=None, **kwargs):
+        super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         if text:
             self.text = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
                              world_scale=(11, 11), color=window_fg_color)
-
-class ItemIcon(Entity):
-    def __init__(self, item, *args, container=None, slot=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.item = item
         self.container = container
         self.slot = slot
 
-    # def move(self, new_container, new_slot):
-    #     pass
+class ItemIcon(Entity):
+    def __init__(self, item, *args, **kwargs):
+        super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
+        self.item = item
+
+        self.previous_parent = None
+        self.clicked = False
+        self.clicked_time = 0
+        self.drag_threshold = 0.1
+        self.dragging = False
+        self.step = Vec3(0, 0, 0)
+
+    def update(self):
+        if self.clicked:
+            if held_keys["left mouse"]:
+                # Wait until we're sure the player is dragging
+                if self.clicked_time < self.drag_threshold:
+                    self.clicked_time += time.dt
+                # When we are sure, start dragging
+                elif not self.dragging:
+                    self.dragging = True
+                    self.collision = False
+            else:
+                self.clicked_time = 0
+                self.clicked = False
+                if self.dragging:
+                    self.dragging = False
+                    new_parent = mouse.hovered_entity
+                    if isinstance(new_parent, ItemSlot):
+                        self.parent = new_parent
+                    self.position = Vec3(0, 0, -1)
+                    self.collision = True
+            if self.dragging:
+                if mouse.position:
+                    self.set_position(mouse.position + self.step, camera.ui)
+
+
+    def move(self, new_parent):
+        self.parent = new_parent
 
     # def on_click(self):
     #     option = self.item['functions'][0]
