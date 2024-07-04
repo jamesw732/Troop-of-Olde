@@ -74,6 +74,22 @@ class ItemsWindow(Entity):
                          parent=self.equipped_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.black)
                 self.item_icons.append(icon)
 
+    def enable_colliders(self):
+        for slot in self.equipped_slots.values():
+            slot.collision = True
+        for slot in self.inventory_slots:
+            slot.collision = True
+        for icon in self.item_icons:
+            icon.collision = True
+
+    def disable_colliders(self):
+        for slot in self.equipped_slots.values():
+            slot.collision = False
+        for slot in self.inventory_slots:
+            slot.collision = False
+        for icon in self.item_icons:
+            icon.collision = False
+
 class ItemSlot(Entity):
     def __init__(self, *args, text="", container=None, slot=None, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
@@ -112,7 +128,7 @@ class ItemIcon(Entity):
                     self.dragging = False
                     new_parent = mouse.hovered_entity
                     if isinstance(new_parent, ItemSlot):
-                        self.parent = new_parent
+                        self.move(new_parent)
                     self.position = Vec3(0, 0, -1)
                     self.collision = True
             if self.dragging:

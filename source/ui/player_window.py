@@ -118,6 +118,7 @@ class PlayerWindow(Entity):
             # Close the window
             self.parent.visible = False
             self.active_tab.visible = False
+            self.active_tab.disable_colliders()
             self.disable_colliders()
             self.active_tab = None
 
@@ -128,6 +129,7 @@ class PlayerWindow(Entity):
             self.parent.visible = True
             new_active_tab.visible = True
             self.active_tab = new_active_tab
+            self.active_tab.enable_colliders()
             self.enable_colliders()
 
             new_active_button.color = active_button_color
@@ -135,8 +137,10 @@ class PlayerWindow(Entity):
         else:
             # Swap to new active tab
             self.active_tab.visible = False
+            self.active_tab.disable_colliders()
             self.active_tab = new_active_tab
             self.active_tab.visible = True
+            self.active_tab.enable_colliders()
             new_active_button.color = active_button_color
             self.active_button.color = header_color
             self.active_button = new_active_button

@@ -164,6 +164,12 @@ class StatsWindow(Entity):
             txt = self.format_string(fmt, cur)
         label.text = txt
 
+    def enable_colliders(self):
+        pass
+
+    def disable_colliders(self):
+        pass
+
 # class RatingsSection(Entity):
 #     def __init__(self, *args, **kwargs):
 #         super().__init__(*args, **kwargs)
