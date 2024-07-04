@@ -55,7 +55,7 @@ class PlayerWindow(Entity):
         self.lexbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
             position=(0.18, -margin_length, -1), scale=(0.17, button_height),
-            color=header_color
+            color=header_color, collider="box"
         )
         self.lexbutton.on_click = lambda: self.open_window("open lexicon")
         Text(parent=self.lexbutton, text="Lexicon", world_scale=(15, 15),
@@ -67,7 +67,7 @@ class PlayerWindow(Entity):
         self.skillsbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
             position=(0.375, -margin_length, -1), scale=(0.12, button_height),
-            color=header_color
+            color=header_color, collider="box"
         )
         self.skillsbutton.on_click = lambda: self.open_window("open skills")
         Text(parent=self.skillsbutton, text="Skills", world_scale=(15, 15),
@@ -79,7 +79,7 @@ class PlayerWindow(Entity):
         self.statsbutton = Entity(
             parent=self, model='quad', origin=(-.5, .5),
             position=(0.52, -margin_length, -1), scale=(0.12, button_height),
-            color=header_color
+            color=header_color, collider="box"
         )
         self.statsbutton.on_click = lambda: self.open_window("open stats")
         Text(parent=self.statsbutton, text="Stats", world_scale=(15, 15),
@@ -98,10 +98,12 @@ class PlayerWindow(Entity):
             "open stats": self.statsbutton
         }
 
-        self.active_tab = self.items
-        self.active_button = self.itemsbutton
+        self.active_tab = None
+        self.active_button = None
         self.parent.visible = False
-        self.remove_colliders()
+        self.disable_colliders()
+        for window in [self.items, self.lex, self.skills, self.stats]:
+            window.visible = False
 
     def input(self, key):
         if key in self.input_to_interface:
@@ -109,45 +111,48 @@ class PlayerWindow(Entity):
 
     def open_window(self, key):
         new_active_tab = self.input_to_interface[key]
-
         new_active_button = self.input_to_button[key]
-        if self.active_button != new_active_button:
-            new_active_button.color = active_button_color
-            self.active_button.color = header_color
-            self.active_button.alpha = 155 / 250
-            self.active_button = new_active_button
 
         if new_active_tab == self.active_tab:
             # Close the window
             self.parent.visible = False
             self.active_tab.visible = False
-            self.remove_colliders()
+            self.disable_colliders()
             self.active_tab = None
+
+            self.active_button.color = header_color
+            self.active_button = None
         elif not self.parent.visible:
             # Open player window and specified tab, add collider
             self.parent.visible = True
             new_active_tab.visible = True
             self.active_tab = new_active_tab
-            self.add_colliders()
+            self.enable_colliders()
+
+            new_active_button.color = active_button_color
+            self.active_button = new_active_button
         else:
             # Swap to new active tab
             self.active_tab.visible = False
             self.active_tab = new_active_tab
             self.active_tab.visible = True
+            new_active_button.color = active_button_color
+            self.active_button.color = header_color
+            self.active_button = new_active_button
             # Will likely need to add colliders for lexicon and inventory eventually
 
-    def remove_colliders(self):
-        self.parent.collider = None
-        self.collider = None
-        self.itemsbutton.collider = None
-        self.lexbutton.collider = None
-        self.skillsbutton.collider = None
-        self.statsbutton.collider = None
+    def disable_colliders(self):
+        self.parent.collision = False
+        self.collision = False
+        self.itemsbutton.collision = False
+        self.lexbutton.collision = False
+        self.skillsbutton.collision = False
+        self.statsbutton.collision = False
 
-    def add_colliders(self):
-        self.parent.collider = "box"
-        self.collider = "box"
-        self.itemsbutton.collider = "box"
-        self.lexbutton.collider = "box"
-        self.skillsbutton.collider = "box"
-        self.statsbutton.collider = "box"
+    def enable_colliders(self):
+        self.parent.collision = True
+        self.collision = True
+        self.itemsbutton.collision = True
+        self.lexbutton.collision = True
+        self.skillsbutton.collision = True
+        self.statsbutton.collision = True
