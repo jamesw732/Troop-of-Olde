@@ -1,7 +1,6 @@
 from ursina import *
 import json
 
-from .ui.main import ui
 
 """
 JSON Structure:
@@ -89,28 +88,28 @@ def equip_item(char, slot, item=None, idx=None):
     char.equipment[slot] = item
     _apply_stats(char, item['stats'])
 
-def replace_slot(char, slot, replace_idx):
-    """Equips an item by replacing an existing item"""
-    new_item = char.inventory[replace_idx]
-    old_item = char.equipment[slot]
-    char.inventory[replace_idx] = old_item
-    char.equipment[slot] = new_item
-    _remove_stats(char, old_item['stats'])
-    _apply_stats(char, new_item['stats'])
+# def replace_slot(char, slot, replace_idx):
+#     """Equips an item by replacing an existing item"""
+#     new_item = char.inventory[replace_idx]
+#     old_item = char.equipment[slot]
+#     char.inventory[replace_idx] = old_item
+#     char.equipment[slot] = new_item
+#     _remove_stats(char, old_item['stats'])
+#     _apply_stats(char, new_item['stats'])
 
-def unequip_slot(char, slot):
-    """Unequips an item into a necessarily empty inventory slot"""
-    item = char.equipment[slot]
-    if item:
-        _remove_stats(char, item['stats'])
-        try:
-            open_slot = char.inventory.index(None)
-            char.inventory[open_slot] = item
-            char.equipment[slot] = None
-            _remove_stats(char, item['stats'])
-        # IE inventory was full
-        except ValueError:
-            ui.gamewindow.add_message("Inventory full, cannot unequip")
+# def unequip_slot(char, slot):
+#     """Unequips an item into a necessarily empty inventory slot"""
+#     item = char.equipment[slot]
+#     if item:
+#         _remove_stats(char, item['stats'])
+#         try:
+#             open_slot = char.inventory.index(None)
+#             char.inventory[open_slot] = item
+#             char.equipment[slot] = None
+#             _remove_stats(char, item['stats'])
+#         # IE inventory was full; this should go in player_controller
+#         except ValueError:
+#             ui.gamewindow.add_message("Inventory full, cannot unequip")
 
 class Item(dict):
     type_to_options = {
@@ -118,9 +117,9 @@ class Item(dict):
         "equipment": ["equip", "expunge"]
     }
 
-    name_to_function = {
-        "equip": replace_slot
-    }
+    # name_to_function = {
+    #     "equip": replace_slot
+    # }
 
     def __init__(self, id=None, **kwargs):
         """An item is literally just a dict.
@@ -133,7 +132,7 @@ class Item(dict):
         if "stats" not in self and self.type in ["weapon", "equipment"]:
             self['stats'] = {}
         if "functions" not in self:
-            self['functions'] = self.types_to_options.get([self.type], [])
+            self['functions'] = self.type_to_options.get(self["type"], [])
 
 def _apply_stats(char, stats):
     for statname, val in stats.items():
