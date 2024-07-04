@@ -1,7 +1,6 @@
 from ursina import *
 
 from .base import *
-from .header import Header
 from ..gamestate import gs
 
 class ItemsWindow(Entity):

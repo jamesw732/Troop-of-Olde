@@ -17,6 +17,7 @@ JSON Structure:
             "stat1": val1,
             "stat2": val2, etc
         }
+        "functions": [funcname1, funcname2, etc]
     }
 }
 Eventual attrs: on_use (an Effect), model (a str), texture (a str)
@@ -54,6 +55,8 @@ haste
 speed
 casthaste
 healmod
+
+functions: Names of functions this item has access to. Optional, if not specified the options are inferred from the type.
 """
 
 # Probably better to have this somewhere else
@@ -61,32 +64,7 @@ items_file = os.path.join(os.path.dirname(__file__), "..", "data", "items.json")
 with open(items_file) as items:
     items_dict = json.load(items)
 
-
-class Item:
-    def __init__(self, id=None, **kwargs):
-        """
-        name: str, name of item,
-        slots: str, name of equipped items slot,
-        stats: dict, maps character stats to ints"""
-        if id is not None:
-            self.from_dict(str(id))
-        else:
-            for attr, val in kwargs.items():
-                setattr(self, attr, val)
-
-    def from_dict(self, id):
-        """Assign attributes from dict"""
-        # Just start by copying the base attrs
-        item_dict = items_dict.get(id)
-        if item_dict:
-            for attr, val in item_dict.items():
-                setattr(self, attr, val)
-
-            item_type = item_dict["type"]
-            if "stats" not in item_dict and item_type in ["weapon", "equipment"]:
-                # We expect a stats dict
-                self.stats = {}
-
+# Define public functions here
 def equip_many_items(char, itemsdict):
     """Equips all items in itemsdict
     char: Character
@@ -109,7 +87,7 @@ def equip_item(char, slot, item=None, idx=None):
         char.inventory[idx] = None
     # If we're equipping from, say, spawn in, we don't need to reset an inventory slot
     char.equipment[slot] = item
-    _apply_stats(char, item.stats)
+    _apply_stats(char, item['stats'])
 
 def replace_slot(char, slot, replace_idx):
     """Equips an item by replacing an existing item"""
@@ -117,8 +95,8 @@ def replace_slot(char, slot, replace_idx):
     old_item = char.equipment[slot]
     char.inventory[replace_idx] = old_item
     char.equipment[slot] = new_item
-    _remove_stats(char, old_item.stats)
-    _apply_stats(char, new_item.stats)
+    _remove_stats(char, old_item['stats'])
+    _apply_stats(char, new_item['stats'])
 
 def unequip_slot(char, slot):
     """Unequips an item into a necessarily empty inventory slot"""
@@ -129,10 +107,34 @@ def unequip_slot(char, slot):
             open_slot = char.inventory.index(None)
             char.inventory[open_slot] = item
             char.equipment[slot] = None
-            _remove_stats(char, item.stats)
+            _remove_stats(char, item['stats'])
         # IE inventory was full
         except ValueError:
             ui.gamewindow.add_message("Inventory full, cannot unequip")
+
+class Item(dict):
+    type_to_options = {
+        "weapon": ["equip", "expunge"],
+        "equipment": ["equip", "expunge"]
+    }
+
+    name_to_function = {
+        "equip": replace_slot
+    }
+
+    def __init__(self, id=None, **kwargs):
+        """An item is literally just a dict.
+        name: str, name of item,
+        slots: str, name of equipped items slot,
+        stats: dict, maps character stats to ints"""
+        if id is not None:
+            super().__init__(**items_dict[id])
+        else:
+            super().__init__(**kwargs)
+        if "stats" not in self and self.type in ["weapon", "equipment"]:
+            self['stats'] = {}
+        if "functions" not in self:
+            self['functions'] = self.types_to_options.get([self.type], [])
 
 def _apply_stats(char, stats):
     for statname, val in stats.items():
