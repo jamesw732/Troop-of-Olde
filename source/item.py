@@ -124,9 +124,8 @@ class Item(dict):
 
     def __init__(self, id=None, **kwargs):
         """An item is literally just a dict.
-        name: str, name of item,
-        slots: str, name of equipped items slot,
-        stats: dict, maps character stats to ints"""
+        id: items_dict key
+        See JSON structure for valid kwargs"""
         if id is not None:
             super().__init__(**items_dict[id])
         else:
