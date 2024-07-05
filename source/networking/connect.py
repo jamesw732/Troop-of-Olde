@@ -32,7 +32,7 @@ def input(key):
     if not network.peer.is_running():
         if key == "h":
             pstate = PhysicalState(position=(0, 1, 0))
-            cbstate = BaseCombatState(health=100, speed=20)
+            cbstate = BaseCombatState(statichealth=100, speed=20)
             char = Character(pstate=pstate, base_state=cbstate)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
@@ -67,7 +67,7 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if network.peer.is_hosting():
         new_pstate = PhysicalState(position=(0, 1, 0))
-        new_base_cb_state = BaseCombatState(health=100, speed=20)
+        new_base_cb_state = BaseCombatState(statichealth=100, speed=20)
         char = Character(pstate=new_pstate, base_state=new_base_cb_state)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char

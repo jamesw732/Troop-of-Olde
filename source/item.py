@@ -108,14 +108,13 @@ class Item(dict):
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, id=None, **kwargs):
+    def __init__(self, id):
         """An item is literally just a dict.
-        id: items_dict key
+        id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs"""
-        if id is not None:
-            super().__init__(**items_dict[id])
-        else:
-            super().__init__(**kwargs)
+        id = str(id)
+        self.id = id
+        super().__init__(**items_dict[id])
         if "stats" not in self and self.type in ["weapon", "equipment"]:
             self['stats'] = {}
         if "functions" not in self:
