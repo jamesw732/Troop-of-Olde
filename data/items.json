@@ -1,28 +1,32 @@
 {
     "1": {
-        "name": "Bronze Sword",
+        "name": "Bronze Shortsword",
         "type": "weapon",
         "info": {
             "dmg": 1,
             "delay": 1,
+            "range": 3,
             "style": "1h slash",
             "slots": ["mh", "oh"]
         },
         "stats": {
             "statichealth": 10
-        }
+        },
+        "icon": "bronze_shortsword.png"
     },
     "2": {
-        "name": "Iron Sword",
+        "name": "Iron Longsword",
         "type": "weapon",
         "info": {
             "dmg": 1,
             "delay": 1,
+            "range": 5,
             "style": "1h slash",
             "slots": ["mh", "oh"]
         },
         "stats": {
             "str": 10
-        }
+        },
+        "icon": "iron_longsword.png"
     }
 }

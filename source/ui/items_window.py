@@ -64,17 +64,29 @@ class ItemsWindow(Entity):
         for icon in self.item_icons:
             destroy(icon)
         for i, item in enumerate(self.player.inventory):
-            if item is not None:
-                icon = ItemIcon(item, container=self.player.inventory, slot=i,
-                         parent=self.inventory_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.black)
-                self.inventory_slots[i].itemicon = icon
-                self.item_icons.append(icon)
+            self.make_item_icon(item, self.inventory_slots[i])
         for k, item in self.player.equipment.items():
-            if item is not None:
-                icon = ItemIcon(item, container=self.player.equipment, slot=k,
-                         parent=self.equipped_slots[k], scale=(1, 1), position=(0, 0, -2), color=color.random_color())
-                self.equipped_slots[k].itemicon = icon
-                self.item_icons.append(icon)
+            self.make_item_icon(item, self.equipped_slots[k])
+
+    def make_item_icon(self, item, parent):
+        """Creates an item icon and puts it in the UI.
+        Assumes the internals are already taken care of.
+        item: Item
+        ui_container: list of ItemSlots
+        internal_container: list of Items
+        slot: str or int; key or index to containers"""
+        if item is None:
+            return
+        if "icon" in item:
+            texture = os.path.join(icons_dir, item["icon"])
+            load_texture(texture)
+            icon = ItemIcon(item, parent=parent, scale=(1, 1),
+                            position=(0, 0, -2), texture=item["icon"])
+        else:
+            icon = ItemIcon(item, parent=parent, scale=(1, 1),
+                            position=(0, 0, -2), color=color.gray)
+        parent.itemicon = icon
+        self.item_icons.append(icon)
 
     def enable_colliders(self):
         for slot in self.equipped_slots.values():
