@@ -66,6 +66,8 @@ class ItemsWindow(Entity):
         for i, item in enumerate(self.player.inventory):
             self.make_item_icon(item, self.inventory_slots[i])
         for k, item in self.player.equipment.items():
+            if item is not None:
+                self.equipped_slots[k].label.text = ""
             self.make_item_icon(item, self.equipped_slots[k])
 
     def make_item_icon(self, item, parent):
@@ -108,7 +110,7 @@ class ItemSlot(Entity):
     def __init__(self, *args, text="", container=None, slot=None, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         if text:
-            self.text = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
+            self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
                              world_scale=(11, 11), color=window_fg_color)
         self.container = container
         self.slot = slot
@@ -191,6 +193,12 @@ class ItemIcon(Entity):
                 self.position = Vec3(0, 0, -1)
                 return
 
+        # Remove/add text if necessary:
+        if isinstance(my_container, dict) and other_item is None:
+            self.parent.label.text = my_loc
+        if isinstance(other_container, dict):
+            other_slot.label.text = ""
+
         # Swap ItemSlots' ItemIcons
         other_slot.itemicon = self
         self.parent.itemicon = other_item
@@ -199,6 +207,7 @@ class ItemIcon(Entity):
         if other_item is not None:
             other_item.parent = self.parent
             other_item.position = Vec3(0, 0, -2)
+
         self.parent = other_slot
         self.position = Vec3(0, 0, -2)
 
