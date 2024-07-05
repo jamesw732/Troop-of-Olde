@@ -1,0 +1,15 @@
+{
+    "Demo Player": {
+        "pstate": {
+            "position": [0, 1, 0]
+        },
+        "basestate": {
+            "haste": 100
+        },
+        "equipment": {
+            "mh": 2,
+            "oh": 1
+        },
+        "inventory": [1]
+    }
+}
