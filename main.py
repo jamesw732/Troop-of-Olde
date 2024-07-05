@@ -16,9 +16,10 @@ pstate = PhysicalState(position=Vec3(0, 1, 0))
 basestate = BaseCombatState(haste=1000, bdy=100)
 sword = Item(id="1")
 sword2 = Item(id="2")
+sword3 = Item(id="2")
 
 player = Character(pstate=pstate, base_state=basestate,
-                   equipment={"mh": sword}, inventory=[sword2])
+                   equipment={"mh": sword, "oh": sword3}, inventory=[sword2])
 player.ignore_traverse = gs.chars
 gs.pc = PlayerController(player)
 

@@ -67,11 +67,13 @@ class ItemsWindow(Entity):
             if item is not None:
                 icon = ItemIcon(item, container=self.player.inventory, slot=i,
                          parent=self.inventory_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.black)
+                self.inventory_slots[i].itemicon = icon
                 self.item_icons.append(icon)
-        for i, item in self.player.equipment.items():
+        for k, item in self.player.equipment.items():
             if item is not None:
-                icon = ItemIcon(item, container=self.player.equipment, slot=i,
-                         parent=self.equipped_slots[i], scale=(1, 1), position=(0, 0, -2), color=color.random_color())
+                icon = ItemIcon(item, container=self.player.equipment, slot=k,
+                         parent=self.equipped_slots[k], scale=(1, 1), position=(0, 0, -2), color=color.random_color())
+                self.equipped_slots[k].itemicon = icon
                 self.item_icons.append(icon)
 
     def enable_colliders(self):
@@ -98,8 +100,12 @@ class ItemSlot(Entity):
                              world_scale=(11, 11), color=window_fg_color)
         self.container = container
         self.slot = slot
+        self.itemicon = None
 
 class ItemIcon(Entity):
+    """UI Representation of an Item. Logically, above Item. The reason for this is that
+    it makes sense for an Item to not have an ItemIcon, but it does not make sense for an ItemIcon
+    to not have an Item. Reversing the dependence would make the rest of this module harder to implement."""
     def __init__(self, item, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         self.item = item
@@ -107,7 +113,7 @@ class ItemIcon(Entity):
         self.previous_parent = None
         self.clicked = False
         self.clicked_time = 0
-        self.drag_threshold = 0.1
+        self.drag_threshold = 0.2
         self.dragging = False
         self.step = Vec3(0, 0, 0)
 
@@ -124,41 +130,76 @@ class ItemIcon(Entity):
             else:
                 self.clicked_time = 0
                 self.clicked = False
+                # Item was being dragged but was just released
                 if self.dragging:
                     self.dragging = False
                     new_parent = mouse.hovered_entity
                     if isinstance(new_parent, ItemSlot):
-                        self.move_to(new_parent)
+                        self.swap_locs(other_slot=new_parent)
                     elif isinstance(new_parent, ItemIcon):
-                        self.swap_locs(new_parent)
-                    self.position = Vec3(0, 0, -2)
+                        self.swap_locs(other_item=new_parent)
                     self.collision = True
+                # Item was not being dragged, execute its top function
+                else:
+                    option = self.item["functions"][0]
+                    meth = Item.option_to_meth[option]
+                    getattr(self, meth)()
             if self.dragging:
                 if mouse.position:
                     self.set_position(mouse.position + self.step, camera.ui)
 
-    def swap_locs(self, other_item):
-        """Swaps parents of this item and another item, and also swaps internally."""
-        other_slot = other_item.parent
+    def swap_locs(self, other_item=None, other_slot=None):
+        """Swaps parents of this item and another item, and also swaps internally.
+        Must specify one of other_item or other_slot.
+        other_item: ItemIcon
+        other_slot: ItemSlot"""
+        if other_item is None and other_slot is None:
+            return
+        if other_slot is None:
+            other_slot = other_item.parent
+        elif other_item is None:
+            other_item = other_slot.item
         other_container = other_slot.container
         other_loc = other_slot.slot
         my_container = self.parent.container
         my_loc = self.parent.slot
+
+        # Swap ItemSlots' ItemIcons
+        other_slot.itemicon = self
+        self.parent.itemicon = other_item
+
+        # Reparent and reposition icons
         if other_item is not None:
-            # Need to swap the two items
             other_item.parent = self.parent
             other_item.position = Vec3(0, 0, -2)
+        self.parent = other_slot
+        self.position = Vec3(0, 0, -2)
 
-            self.parent = other_slot
-            player = gs.pc.character
-            replace_slot(player, my_container, my_loc, other_container, other_loc)
-
-    def move_to(self, new_slot):
-        new_container = new_slot.container
-        new_loc = new_slot.slot
-        my_container = self.parent.container
-        my_loc = self.parent.slot
         player = gs.pc.character
-        replace_slot(player, my_container, my_loc, new_container, new_loc)
+        replace_slot(player, my_container, my_loc, other_container, other_loc)
 
-        self.parent = new_slot
+    def auto_equip(self):
+        window = self.parent.parent.parent
+        # Find the right slot
+        # First, just look for "slot"
+        iteminfo = self.item.get("info")
+        if not iteminfo:
+            return
+        slot = iteminfo.get("slot")
+        if not slot:
+            # Might not have found, that's okay, just check for first empty in slots
+            slots = iteminfo.get("slots", [])
+            if not slots:
+                return
+            for s in slots:
+                if window.equipped_slots[s].item is None:
+                    slot = s
+                    break
+            # None empty, so just take the first
+            else:
+                slot = slots[0]
+        self.swap_locs(other_slot=window.equipped_slots[slot])
+        self.position = Vec3(0, 0, -2)
+
+def auto_unequip(item):
+    pass

@@ -27,7 +27,10 @@ type is a descriptor of what kind of item this is, tells the code what kind of i
 weapon
 equipment
 
-info is not meant to be directly interoperable with a Character but are essential data about the item. Info depends :
+info is not meant to be directly interoperable with a Character but are essential data about the item. Info depends on the type of item.
+(equippable; weapons or equipment)
+slot
+slots
 (weapons)
 dmg
 delay
@@ -86,29 +89,15 @@ def replace_slot(char, container1, slot1, container2, slot2):
         _apply_stats(char, item1)
         _remove_stats(char, item2)
 
-# def unequip_slot(char, slot):
-#     """Unequips an item into a necessarily empty inventory slot"""
-#     item = char.equipment[slot]
-#     if item:
-#         _remove_stats(char, item['stats'])
-#         try:
-#             open_slot = char.inventory.index(None)
-#             char.inventory[open_slot] = item
-#             char.equipment[slot] = None
-#             _remove_stats(char, item['stats'])
-#         # IE inventory was full; this should go in player_controller
-#         except ValueError:
-#             ui.gamewindow.add_message("Inventory full, cannot unequip")
-
 class Item(dict):
     type_to_options = {
         "weapon": ["equip", "expunge"],
         "equipment": ["equip", "expunge"]
     }
-
-    # name_to_function = {
-    #     "equip": replace_slot
-    # }
+    option_to_meth = {
+        "equip": "auto_equip",
+        "unequip": "auto_unequip"
+    }
 
     def __init__(self, id=None, **kwargs):
         """An item is literally just a dict.
