@@ -134,13 +134,13 @@ class ItemIcon(Entity):
                 # Item was being dragged but was just released
                 if self.dragging:
                     self.dragging = False
-                    new_parent = mouse.hovered_entity
-                    if isinstance(new_parent, ItemSlot):
-                        self.swap_locs(other_slot=new_parent)
-                    elif isinstance(new_parent, ItemIcon):
-                        self.swap_locs(other_item=new_parent)
+                    drop_to = mouse.hovered_entity
+                    if isinstance(drop_to, ItemSlot):
+                        self.swap_locs(other_slot=drop_to)
+                    elif isinstance(drop_to, ItemIcon):
+                        self.swap_locs(other_item=drop_to)
                     else:
-                        self.position = Vec3(0, 0, 0)
+                        self.position = Vec3(0, 0, -1)
                     self.collision = True
                 # Item was not being dragged, execute its top function
                 else:
@@ -167,6 +167,18 @@ class ItemIcon(Entity):
         my_container = self.parent.container
         my_loc = self.parent.slot
 
+        # Make sure items can go to new locations
+        # Equipment checks:
+        if isinstance(my_container, dict) and other_item is not None:
+            other_item_slots = other_item.get_item_slots()
+            if my_loc not in other_item_slots:
+                return
+        if isinstance(other_container, dict):
+            my_item_slots = self.get_item_slots()
+            if other_loc not in my_item_slots:
+                self.position = Vec3(0, 0, -1)
+                return
+
         # Swap ItemSlots' ItemIcons
         other_slot.itemicon = self
         self.parent.itemicon = other_item
@@ -179,6 +191,7 @@ class ItemIcon(Entity):
         self.position = Vec3(0, 0, -2)
 
         player = gs.pc.character
+        # Do the internal, non-graphical move
         replace_slot(player, my_container, my_loc, other_container, other_loc)
 
     def auto_equip(self):
@@ -218,7 +231,7 @@ class ItemIcon(Entity):
         iteminfo = self.item.get("info")
         if not iteminfo:
             return
-        slot = iteminfo.get("slots")
+        slot = iteminfo.get("slot")
         if slot is not None:
             return [slot]
         return iteminfo.get("slots", [])
