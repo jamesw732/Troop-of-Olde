@@ -109,6 +109,7 @@ class ItemIcon(Entity):
     def __init__(self, item, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         self.item = item
+        self.window = self.parent.parent.parent
 
         self.previous_parent = None
         self.clicked = False
@@ -182,7 +183,6 @@ class ItemIcon(Entity):
 
     def auto_equip(self):
         # Item.Slot.Subframe.Window
-        window = self.parent.parent.parent
         # Find the right slot
         # First, just look for "slot"
         iteminfo = self.item.get("info")
@@ -195,22 +195,30 @@ class ItemIcon(Entity):
             if not slots:
                 return
             for s in slots:
-                if window.equipped_slots[s].itemicon is None:
+                if self.window.equipped_slots[s].itemicon is None:
                     slot = s
                     break
             # None empty, so just take the first
             else:
                 slot = slots[0]
-        self.swap_locs(other_slot=window.equipped_slots[slot])
+        self.swap_locs(other_slot=self.window.equipped_slots[slot])
 
     def auto_unequip(self):
         # Item.Slot.Subframe.Window
-        window = self.parent.parent.parent
-        inventory_icons = [s.itemicon for s in window.inventory_slots]
+        inventory_icons = [s.itemicon for s in self.window.inventory_slots]
         try:
-            # inventory_icons = map(lambda s: s.itemicon, window.inventory_slots)
+            # inventory_icons = map(lambda s: s.itemicon, self.window.inventory_slots)
             first_empty_idx = inventory_icons.index(None)
         except ValueError:
             return
-        empty_slot = window.inventory_slots[first_empty_idx]
+        empty_slot = self.window.inventory_slots[first_empty_idx]
         self.swap_locs(other_slot=empty_slot)
+
+    def get_item_slots(self):
+        iteminfo = self.item.get("info")
+        if not iteminfo:
+            return
+        slot = iteminfo.get("slots")
+        if slot is not None:
+            return [slot]
+        return iteminfo.get("slots", [])
