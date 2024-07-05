@@ -75,22 +75,24 @@ def equip_many_items(char, itemsdict):
         _equip_item(char, slot, item)
         item["functions"][0] = "unequip"
 
-def replace_slot(char, container1, slot1, container2, slot2):
+def replace_slot(char, container_name1, slot1, container_name2, slot2):
     """Swap the locations of two items by containers"""
+    container1 = getattr(char, container_name1)
+    container2 = getattr(char, container_name2)
     item1 = container1[slot1]
     item2 = container2[slot2]
 
     container2[slot2] = item1
     container1[slot1] = item2
 
-    if isinstance(container1, dict):
+    if container_name1 == "equipment":
         _apply_stats(char, item2)
         _remove_stats(char, item1)
         if item2 is not None:
             item2["functions"][0] = "unequip"
     elif item2 is not None:
         item2["functions"][0] = "equip"
-    if isinstance(container2, dict):
+    if container_name2 == "equipment":
         _apply_stats(char, item1)
         _remove_stats(char, item2)
         if item1 is not None:
