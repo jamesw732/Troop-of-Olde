@@ -1,15 +1,16 @@
 """Represents the physical player/npc entities in game. Engine-relevant character
 logic."""
 from ursina import *
+import json
 
 from .base import sqdist
 from .combat import progress_combat_timer
 from .networking.base import network
 from .physics import handle_movement
 from .gamestate import gs
-from .item import equip_many_items
+from .item import Item, equip_many_items
 from .states.cbstate_complete import apply_complete_cb_state
-from .states.cbstate_base import apply_base_state
+from .states.cbstate_base import BaseCombatState, apply_base_state
 from .states.cbstate_ratings import apply_ratings_state
 from .states.physicalstate import PhysicalState, apply_physical_state
 from .ui.main import ui
@@ -320,3 +321,21 @@ class NameLabel(Text):
         self.position = self.char.position + Vec3(0, self.char.height + 1, 0)
 
 
+def get_character_states_from_dict(d):
+    pstate_raw = d.get("pstate", {})
+    basestate_raw = d.get("basestate", {})
+    equipment_raw = d.get("equipment", {})
+    inventory_raw = d.get("inventory", [])
+    pstate = PhysicalState(**pstate_raw)
+    basestate = BaseCombatState(**basestate_raw)
+    equipment = {slot: Item(id) for slot, id in equipment_raw.items()}
+    inventory = [Item(id) if id else None for id in inventory_raw]
+    return pstate, basestate, equipment, inventory
+
+def load_character_from_json(pname):
+    players_path = os.path.join(os.path.dirname(__file__), "..", "data", "players.json")
+    with open(players_path) as players:
+        d = json.load(players)
+    pstate, basestate, equipment, inventory = get_character_states_from_dict(d[pname])
+    return Character(cname=pname, pstate=pstate, base_state=basestate,
+                        equipment=equipment, inventory=inventory)
