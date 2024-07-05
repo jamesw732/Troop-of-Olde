@@ -1,0 +1,28 @@
+{
+    "1": {
+        "name": "Bronze Sword",
+        "type": "weapon",
+        "info": {
+            "dmg": 1,
+            "delay": 1,
+            "style": "1h slash",
+            "slots": ["mh", "oh"]
+        },
+        "stats": {
+            "statichealth": 10
+        }
+    },
+    "2": {
+        "name": "Iron Sword",
+        "type": "weapon",
+        "info": {
+            "dmg": 1,
+            "delay": 1,
+            "style": "1h slash",
+            "slots": ["mh", "oh"]
+        },
+        "stats": {
+            "str": 10
+        }
+    }
+}
