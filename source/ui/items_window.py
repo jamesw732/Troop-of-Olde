@@ -43,7 +43,7 @@ class ItemsWindow(Entity):
                                         position=(edge_margin + 0.45, -edge_margin, -1),
                                         scale=(sq_size * 4, sq_size * 7 * square_ratio))
 
-        self.inventory_locs = [(i / 4, -j / 7, -1) for i in range(4) for j in range(6)]
+        self.inventory_locs = [(i / 4, -j / 7, -1) for j in range(6) for i in range(4)]
         self.inventory_slots = [ItemSlot(container=self.player.inventory, slot=i,
                                          parent=self.inventory_subframe,
                                          position=loc, scale=(1/4, 1/7), color=slot_color)
@@ -138,6 +138,8 @@ class ItemIcon(Entity):
                         self.swap_locs(other_slot=new_parent)
                     elif isinstance(new_parent, ItemIcon):
                         self.swap_locs(other_item=new_parent)
+                    else:
+                        self.position = Vec3(0, 0, 0)
                     self.collision = True
                 # Item was not being dragged, execute its top function
                 else:
@@ -158,7 +160,7 @@ class ItemIcon(Entity):
         if other_slot is None:
             other_slot = other_item.parent
         elif other_item is None:
-            other_item = other_slot.item
+            other_item = other_slot.itemicon
         other_container = other_slot.container
         other_loc = other_slot.slot
         my_container = self.parent.container
@@ -179,6 +181,7 @@ class ItemIcon(Entity):
         replace_slot(player, my_container, my_loc, other_container, other_loc)
 
     def auto_equip(self):
+        # Item.Slot.Subframe.Window
         window = self.parent.parent.parent
         # Find the right slot
         # First, just look for "slot"
@@ -192,14 +195,22 @@ class ItemIcon(Entity):
             if not slots:
                 return
             for s in slots:
-                if window.equipped_slots[s].item is None:
+                if window.equipped_slots[s].itemicon is None:
                     slot = s
                     break
             # None empty, so just take the first
             else:
                 slot = slots[0]
         self.swap_locs(other_slot=window.equipped_slots[slot])
-        self.position = Vec3(0, 0, -2)
 
-def auto_unequip(item):
-    pass
+    def auto_unequip(self):
+        # Item.Slot.Subframe.Window
+        window = self.parent.parent.parent
+        inventory_icons = [s.itemicon for s in window.inventory_slots]
+        try:
+            # inventory_icons = map(lambda s: s.itemicon, window.inventory_slots)
+            first_empty_idx = inventory_icons.index(None)
+        except ValueError:
+            return
+        empty_slot = window.inventory_slots[first_empty_idx]
+        self.swap_locs(other_slot=empty_slot)

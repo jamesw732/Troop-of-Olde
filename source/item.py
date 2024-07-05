@@ -73,6 +73,7 @@ def equip_many_items(char, itemsdict):
     itemsdict: dict mapping equipment slots to Items"""
     for slot, item in itemsdict.items():
         _equip_item(char, slot, item)
+        item["functions"][0] = "unequip"
 
 def replace_slot(char, container1, slot1, container2, slot2):
     """Swap the locations of two items by containers"""
@@ -85,9 +86,17 @@ def replace_slot(char, container1, slot1, container2, slot2):
     if isinstance(container1, dict):
         _apply_stats(char, item2)
         _remove_stats(char, item1)
+        if item2 is not None:
+            item2["functions"][0] = "unequip"
+    elif item2 is not None:
+        item2["functions"][0] = "equip"
     if isinstance(container2, dict):
         _apply_stats(char, item1)
         _remove_stats(char, item2)
+        if item1 is not None:
+            item1["functions"][0] = "unequip"
+    elif item1 is not None:
+        item1["functions"][0] = "equip"
 
 class Item(dict):
     type_to_options = {
@@ -110,7 +119,7 @@ class Item(dict):
         if "stats" not in self and self.type in ["weapon", "equipment"]:
             self['stats'] = {}
         if "functions" not in self:
-            self['functions'] = self.type_to_options.get(self["type"], [])
+            self['functions'] = copy(self.type_to_options.get(self["type"], []))
 
 def _equip_item(char, slot, item):
     """Equips an item assuming the desired slot is empty. Do not use this except for
