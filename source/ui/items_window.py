@@ -180,23 +180,25 @@ class ItemIcon(Entity):
         other_loc = other_slot.slot
         my_container = self.parent.container
         my_loc = self.parent.slot
+        equipping_mine = isinstance(other_container, dict)
+        equipping_other = isinstance(my_container, dict)
 
         # Make sure items can go to new locations
         # Equipment checks:
-        if isinstance(my_container, dict) and other_item is not None:
+        if equipping_other and other_item is not None:
             other_item_slots = other_item.get_item_slots()
             if my_loc not in other_item_slots:
                 return
-        if isinstance(other_container, dict):
+        if equipping_mine:
             my_item_slots = self.get_item_slots()
             if other_loc not in my_item_slots:
                 self.position = Vec3(0, 0, -1)
                 return
 
         # Remove/add text if necessary:
-        if isinstance(my_container, dict) and other_item is None:
+        if equipping_other and other_item is None:
             self.parent.label.text = my_loc
-        if isinstance(other_container, dict):
+        if equipping_mine:
             other_slot.label.text = ""
 
         # Swap ItemSlots' ItemIcons
@@ -216,7 +218,6 @@ class ItemIcon(Entity):
         replace_slot(player, my_container, my_loc, other_container, other_loc)
 
     def auto_equip(self):
-        # Item.Slot.Subframe.Window
         # Find the right slot
         # First, just look for "slot"
         iteminfo = self.item.get("info")
@@ -238,10 +239,8 @@ class ItemIcon(Entity):
         self.swap_locs(other_slot=self.window.equipped_slots[slot])
 
     def auto_unequip(self):
-        # Item.Slot.Subframe.Window
         inventory_icons = [s.itemicon for s in self.window.inventory_slots]
         try:
-            # inventory_icons = map(lambda s: s.itemicon, self.window.inventory_slots)
             first_empty_idx = inventory_icons.index(None)
         except ValueError:
             return
