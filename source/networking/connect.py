@@ -1,7 +1,7 @@
 from ursina.networking import rpc
 
 from .base import network
-from ..character import Character
+from ..character import Character, get_character_states_from_json
 from ..npc_controller import NPC_Controller
 from ..gamestate import gs
 from ..player_controller import PlayerController
@@ -40,7 +40,8 @@ def input(key):
             network.uuid_to_char[network.my_uuid] = char
             gs.chars.append(char)
             char.ignore_traverse = gs.chars
-            gs.pc = PlayerController(char, peer=network.peer)
+            gs.pc = char
+            gs.playercontroller = PlayerController(char, peer=network.peer)
 
             gs.world = GenerateWorld("demo.json")
             npcs = gs.world.create_npcs("demo_npcs.json")
@@ -109,12 +110,13 @@ def generate_world(connection, time_received, zone:str):
 
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int,
-             phys_state: PhysicalState, complete_cb_state: CompleteCombatState):
+             phys_state: PhysicalState, complete_cb_state:CompleteCombatState):
     """Remotely spawn the player character"""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
         char = Character(pstate=phys_state, complete_cb_state=complete_cb_state)
+        gs.pc = char
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid
@@ -140,9 +142,8 @@ def bind_player(connection, time_received, uuid:int):
     char = network.uuid_to_char.get(uuid)
     if char:
         char.ignore_traverse = gs.chars
-        gs.pc = PlayerController(char, network.peer)
-        gs.pc.character = char
-        char.controller = gs.pc
+        gs.playercontroller = PlayerController(char, network.peer)
+        char.controller = gs.playercontroller
 
 @rpc(network.peer)
 def make_ui(connection, time_received):

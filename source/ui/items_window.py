@@ -15,7 +15,7 @@ slot is the position within the internal container (so a str key if equipment, o
 class ItemsWindow(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.player = gs.pc.character
+        self.player = gs.pc
 
         square_ratio = self.world_scale_x / self.world_scale_y
         edge_margin = 0.05
@@ -221,7 +221,7 @@ class ItemIcon(Entity):
         self.parent = other_box
         self.position = Vec3(0, 0, -2)
 
-        player = gs.pc.character
+        player = gs.pc
         # Do the internal, non-graphical move
         replace_slot(player, my_container, my_slot, other_container, other_slot)
 

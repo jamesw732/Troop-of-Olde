@@ -8,7 +8,7 @@ from ..gamestate import gs
 class StatsWindow(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.player = gs.pc.character
+        self.player = gs.pc
         self.header = self.parent.parent
 
         self.num_rows = 16

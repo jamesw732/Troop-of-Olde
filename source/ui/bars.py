@@ -7,7 +7,7 @@ from ..gamestate import gs
 
 class BarWindow(Entity):
     def __init__(self):
-        self.player = gs.pc.character
+        self.player = gs.pc
         header = Header(
             position=window.top_left,
             scale=(.2, .033),

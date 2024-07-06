@@ -3,13 +3,15 @@
 
 class GameState:
     def __init__(self):
-        self.pc = None # Player Controller
+        self.pc = None # Player Character
+        self.playercontroller = None
         self.world = None
         self.chars = [] # Characters
 
     def clear(self):
         """Called upon disconnect"""
         self.pc = None
+        self.playercontroller = None
         self.world = None
         self.chars.clear()
 

@@ -312,7 +312,7 @@ class NameLabel(Text):
     def fix_rotation(self):
         """Aim the namelabel at the player with the right direction"""
         if gs.pc:
-            direction = gs.pc.character.position - camera.world_position
+            direction = gs.pc.position - camera.world_position
             self.look_at(direction + self.world_position)
             self.rotation_z = 0
 

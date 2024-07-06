@@ -11,7 +11,7 @@ from ..gamestate import gs
 
 class PlayerWindow(Entity):
     def __init__(self):
-        self.player = gs.pc.character
+        self.player = gs.pc
         # Make Header
         header = Header(
             position=(0.2, 0.2),

@@ -15,7 +15,8 @@ gs.world = GenerateWorld("demo.json")
 pname = "Demo Player"
 player = load_character_from_json(pname)
 player.ignore_traverse = gs.chars
-gs.pc = PlayerController(player)
+gs.pc = player
+gs.playercontroller = PlayerController(player)
 
 npcs = gs.world.create_npcs("demo_npcs.json")
 for npc in npcs:
