@@ -51,7 +51,7 @@ def update_char_pstate(connection, time_received, uuid: int,
         state = PhysicalState(char)
         for conn in network.peer.get_connections():
             if conn is not connection:
-                network.peer.update_char_pstate(conn, state)
+                network.peer.update_char_pstate(conn, uuid, state)
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, uuid: int, cbstate: CompleteCombatState):
