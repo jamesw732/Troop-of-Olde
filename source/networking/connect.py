@@ -65,14 +65,17 @@ def on_connect(connection, time_connected):
     Will need to generate world on peer, spawn all characters including
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
-    network.peer.request_enter_world(connection)
+    if not network.peer.is_hosting():
+        pname = "Demo Player"
+        pstate, basestate, equipment, inventory = \
+            get_character_states_from_json(pname)
+        network.peer.request_enter_world(connection, pstate, basestate)
 
 @rpc(network.peer)
-def request_enter_world(connection, time_received):
+def request_enter_world(connection, time_received, new_pstate: PhysicalState,
+                        new_basestate: BaseCombatState):
     if network.peer.is_hosting():
-        new_pstate = PhysicalState(position=(0, 1, 0))
-        new_base_cb_state = BaseCombatState(statichealth=100, speed=20)
-        char = Character(pstate=new_pstate, base_state=new_base_cb_state)
+        char = Character(pstate=new_pstate, base_state=new_basestate)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1

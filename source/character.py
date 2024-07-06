@@ -61,15 +61,15 @@ class Character(Entity):
         self._init_inventory()
         # Combat attrs
         self._init_cb_attrs()
-        if equipment:
-            equip_many_items(self, equipment)
-        if inventory:
+        if inventory and self.type == "player":
             for i, item in enumerate(inventory):
                 # Assumes inventory is at most length 24 and gaps are filled with None
                 self.inventory[i] = item
         # Full creation of character from the ground up
         if base_state and network.is_main_client():
             apply_base_state(self, base_state)
+            if equipment:
+                equip_many_items(self, equipment)
             # ... apply effects
             self._update_max_ratings()
             for attr in ["health", "mana", "stamina", "armor", "spellshield"]:
@@ -321,21 +321,25 @@ class NameLabel(Text):
         self.position = self.char.position + Vec3(0, self.char.height + 1, 0)
 
 
-def get_character_states_from_dict(d):
+def get_character_states_from_json(pname):
+    players_path = os.path.join(os.path.dirname(__file__), "..", "data", "players.json")
+    with open(players_path) as players:
+        d = json.load(players)[pname]
     pstate_raw = d.get("pstate", {})
+    for k, v in pstate_raw.items():
+        if hasattr(v, "__iter__"):
+            pstate_raw[k] = Vec3(*v)
     basestate_raw = d.get("basestate", {})
     equipment_raw = d.get("equipment", {})
     inventory_raw = d.get("inventory", [])
     pstate = PhysicalState(**pstate_raw)
+    pstate.cname = pname
     basestate = BaseCombatState(**basestate_raw)
     equipment = {slot: Item(id) for slot, id in equipment_raw.items()}
     inventory = [Item(id) if id else None for id in inventory_raw]
     return pstate, basestate, equipment, inventory
 
 def load_character_from_json(pname):
-    players_path = os.path.join(os.path.dirname(__file__), "..", "data", "players.json")
-    with open(players_path) as players:
-        d = json.load(players)
-    pstate, basestate, equipment, inventory = get_character_states_from_dict(d[pname])
+    pstate, basestate, equipment, inventory = get_character_states_from_json(pname)
     return Character(cname=pname, pstate=pstate, base_state=basestate,
                         equipment=equipment, inventory=inventory)
