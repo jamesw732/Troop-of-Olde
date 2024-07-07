@@ -1,3 +1,4 @@
+from ursina import destroy
 from ursina.networking import rpc
 
 from .base import network
@@ -31,9 +32,11 @@ def input(key):
     """
     if not network.peer.is_running():
         if key == "h":
-            pstate = PhysicalState(position=(0, 1, 0))
-            cbstate = BaseCombatState(statichealth=100, speed=20)
-            char = Character(pstate=pstate, base_state=cbstate)
+            pname = "Demo Player"
+            pstate, basestate, equipment, inventory = \
+                get_character_states_from_json(pname)
+            char = Character(pstate=pstate, base_state=basestate, equipment=equipment,
+                             inventory=inventory)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
             char.uuid = network.my_uuid
@@ -67,16 +70,20 @@ def on_connect(connection, time_connected):
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
-        pname = "Demo Player"
+        gs.pname = "Demo Player"
         pstate, basestate, equipment, inventory = \
-            get_character_states_from_json(pname)
-        network.peer.request_enter_world(connection, pstate, basestate)
+            get_character_states_from_json(gs.pname)
+        # Create a temporary Character to grab the complete state, and immediately destroy
+        temp_char = Character(base_state=basestate, equipment=equipment)
+        cb_state = CompleteCombatState(temp_char)
+        destroy(temp_char)
+        network.peer.request_enter_world(connection, pstate, cb_state)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        new_basestate: BaseCombatState):
+                        cb_state: CompleteCombatState):
     if network.peer.is_hosting():
-        char = Character(pstate=new_pstate, base_state=new_basestate)
+        char = Character(pstate=new_pstate, complete_cb_state=cb_state)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
@@ -89,18 +96,15 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
             if conn == connection:
                 for ch in gs.chars:
                     pstate = PhysicalState(ch)
-                    # The player will want to be able to see everything about their character
                     if ch is char:
-                        cstate = CompleteCombatState(ch)
-                        network.peer.spawn_pc(conn, ch.uuid, pstate, cstate)
-                    # But the player won't be able to see everything about other characters
+                        network.peer.spawn_pc(conn, ch.uuid, pstate, cb_state)
+                    # The player won't be able to see everything about other characters
                     else:
                         cstate = RatingsState(ch)
                         network.peer.spawn_npc(conn, ch.uuid, pstate, cstate)
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, char.uuid, new_pstate, new_ratings_state)
-        network.peer.bind_player(connection, char.uuid)
         network.peer.make_ui(connection)
 
 @rpc(network.peer)
@@ -109,17 +113,26 @@ def generate_world(connection, time_received, zone:str):
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_pc(connection, time_received, uuid: int,
-             phys_state: PhysicalState, complete_cb_state:CompleteCombatState):
-    """Remotely spawn the player character"""
+def spawn_pc(connection, time_received, uuid: int):
+    """Remotely spawn the player character. Use their own data for this."""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        char = Character(pstate=phys_state, complete_cb_state=complete_cb_state)
+        pstate, basestate, equipment, inventory = \
+            get_character_states_from_json(gs.pname)
+        char = Character(pstate=pstate, base_state=basestate,
+                         equipment=equipment, inventory=inventory)
+
         gs.pc = char
+        gs.playercontroller = PlayerController(char, network.peer)
+        char.controller = gs.playercontroller
+
         gs.chars.append(char)
+        char.ignore_traverse = gs.chars
+
         network.uuid_to_char[uuid] = char
         char.uuid = uuid
+        network.my_uuid = uuid
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
@@ -132,18 +145,6 @@ def spawn_npc(connection, time_received, uuid: int,
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid
-
-@rpc(network.peer)
-def bind_player(connection, time_received, uuid:int):
-    """Make client know this uuid is theirs"""
-    if network.peer.is_hosting():
-        return
-    network.my_uuid = uuid
-    char = network.uuid_to_char.get(uuid)
-    if char:
-        char.ignore_traverse = gs.chars
-        gs.playercontroller = PlayerController(char, network.peer)
-        char.controller = gs.playercontroller
 
 @rpc(network.peer)
 def make_ui(connection, time_received):

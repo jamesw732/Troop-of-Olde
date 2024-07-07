@@ -66,16 +66,16 @@ class Character(Entity):
                 # Assumes inventory is at most length 24 and gaps are filled with None
                 self.inventory[i] = item
         # Full creation of character from the ground up
-        if base_state and network.is_main_client():
+        if base_state:
             apply_base_state(self, base_state)
             if equipment:
                 equip_many_items(self, equipment)
             # ... apply effects
             self._update_max_ratings()
             for attr in ["health", "mana", "stamina", "armor", "spellshield"]:
-                if not hasattr(base_state, attr):
-                    maxval = getattr(self, "max" + attr)
-                    setattr(self, attr, maxval)
+                # if not hasattr(base_state, attr):
+                maxval = getattr(self, "max" + attr)
+                setattr(self, attr, maxval)
         # Host created my character
         elif complete_cb_state:
             apply_complete_cb_state(self, complete_cb_state)
@@ -268,9 +268,12 @@ class Character(Entity):
 
     def on_destroy(self):
         """Upon being destroyed, remove all references to objects attached to this character"""
-        if network.peer.is_running():
+        if network.peer.is_running() and self.uuid is not None:
             network.uuid_to_char.pop(self.uuid)
-        gs.chars.remove(self)
+        try:
+            gs.chars.remove(self)
+        except:
+            pass
         if self.controller:
             destroy(self.controller)
             del self.controller.character
