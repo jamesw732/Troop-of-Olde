@@ -1,6 +1,7 @@
 from ursina import *
 import json
 
+from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
 
 """
 JSON Structure:
@@ -86,15 +87,15 @@ def replace_slot(char, container_name1, slot1, container_name2, slot2):
     container1[slot1] = item2
 
     if container_name1 == "equipment":
-        _apply_stats(char, item2)
-        _remove_stats(char, item1)
+        apply_stat_change(char, item2['stats'])
+        remove_stat_change(char, item1['stats'])
         if item2 is not None:
             item2["functions"][0] = "unequip"
     elif item2 is not None:
         item2["functions"][0] = "equip"
     if container_name2 == "equipment":
-        _apply_stats(char, item1)
-        _remove_stats(char, item2)
+        apply_stat_change(char, item1['stats'])
+        remove_stat_change(char, item2['stats'])
         if item1 is not None:
             item1["functions"][0] = "unequip"
     elif item1 is not None:
@@ -116,9 +117,12 @@ class Item(dict):
         See JSON structure for valid kwargs"""
         id = str(id)
         self.id = id
-        super().__init__(**items_dict[id])
-        if "stats" not in self and self.type in ["weapon", "equipment"]:
-            self['stats'] = {}
+        data = items_dict[id]
+
+        super().__init__(**data)
+        # Need to be careful with assigning mutable objects
+        if self["type"] in ["weapon", "equipment"]:
+            self["stats"] = StatChange(**self.get("stats", {}))
         if "functions" not in self:
             self['functions'] = copy(self.type_to_options.get(self["type"], []))
 
@@ -129,20 +133,20 @@ def _equip_item(char, slot, item):
     slot: str, equipment slot
     item: Item, item to equip"""
     char.equipment[slot] = item
-    _apply_stats(char, item)
+    apply_stat_change(char, item['stats'])
 
-def _apply_stats(char, item):
-    if item is None:
-        return
-    stats = item.get("stats", {})
-    for statname, val in stats.items():
-        original_val = getattr(char, statname)
-        setattr(char, statname, original_val + val)
+# def _apply_stats(char, item):
+#     if item is None:
+#         return
+#     stats = item.get("stats", {})
+#     for statname, val in stats.items():
+#         original_val = getattr(char, statname)
+#         setattr(char, statname, original_val + val)
 
-def _remove_stats(char, item):
-    if item is None:
-        return
-    stats = item.get("stats", {})
-    for statname, val in stats.items():
-        original_val = getattr(char, statname)
-        setattr(char, statname, original_val - val)
+# def _remove_stats(char, item):
+#     if item is None:
+#         return
+#     stats = item.get("stats", {})
+#     for statname, val in stats.items():
+#         original_val = getattr(char, statname)
+#         setattr(char, statname, original_val - val)

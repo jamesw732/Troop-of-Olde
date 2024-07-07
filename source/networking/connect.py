@@ -12,7 +12,7 @@ from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb
 from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_ratings import RatingsState, serialize_ratings_state, deserialize_ratings_state
 from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
-
+from ..states.stat_change import StatChange, serialize_stat_change, deserialize_stat_change
 
 # Actually register the states as types sendable over the network
 network.peer.register_type(PhysicalState, serialize_physical_state,
@@ -23,6 +23,7 @@ network.peer.register_type(BaseCombatState, serialize_base_cb_state,
                            deserialize_base_cb_state)
 network.peer.register_type(RatingsState, serialize_ratings_state,
                            deserialize_ratings_state)
+network.peer.register_type(StatChange, serialize_stat_change, deserialize_stat_change)
 
 
 def input(key):
