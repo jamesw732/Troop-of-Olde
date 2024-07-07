@@ -1,6 +1,5 @@
 """DO NOT import attrs"""
 
-from ursina import *
 
 attrs = {
     "health": int,
@@ -35,8 +34,8 @@ attrs = {
 class CompleteCombatState:
     """This state is meant for host-authoritative overwrites of a player's own state.
     Only use is to get complete state of character A, and send to client whose player
-    character is character A. Rather than backend client-side updates, the player character's state will
-    just be overwritten by this."""
+    character is character A. Rather than backend client-side updates, the player
+    character's state will just be overwritten by this."""
     def __init__(self, char=None, **kwargs):
         """Possible kwargs given by combat_state_attrs."""
         # If a character was passed, take its attributes

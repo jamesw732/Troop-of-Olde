@@ -28,8 +28,7 @@ attrs = {
 }
 
 class BaseCombatState:
-    """This state is meant to represent the fundamental attributes of a character if nothing else is 
-    affecting them, ie equipment or effects."""
+    """This state is meant to represent the fundamental stats of a character, as if nothing else was affecting them. Meant to be assigned to a character once and only once - when it's created."""
     def __init__(self, char=None, **kwargs):
         """Possible kwargs given by combat_state_attrs."""
         # If a character was passed, take its attributes

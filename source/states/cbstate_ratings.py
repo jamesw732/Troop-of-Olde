@@ -1,6 +1,7 @@
 """DO NOT import attrs"""
-from ursina import *
 
+
+# These are very low priority, at least for now. They will probably be added eventually, though.
 attrs = {
     "health": int,
     "maxhealth": int,
