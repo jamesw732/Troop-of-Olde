@@ -4,10 +4,13 @@
 attrs = {
     "health": int,
     "maxhealth": int,
+    "statichealth": int,
     "mana": int,
     "maxmana": int,
+    "staticmana": int,
     "stamina": int,
     "maxstamina": int,
+    "staticstamina": int,
     "spellshield": int,
     "maxspellshield": int,
     "armor": int,

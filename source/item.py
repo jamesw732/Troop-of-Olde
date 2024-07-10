@@ -1,6 +1,7 @@
 from ursina import *
 import json
 
+from .networking.base import network
 from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
 
 """
@@ -67,7 +68,7 @@ items_file = os.path.join(os.path.dirname(__file__), "..", "data", "items.json")
 with open(items_file) as items:
     items_dict = json.load(items)
 
-# Define public functions here
+
 def equip_many_items(char, itemsdict):
     """Magically equips all items in itemsdict. Use this only when characters enter world.
     char: Character
@@ -76,7 +77,17 @@ def equip_many_items(char, itemsdict):
         _equip_item(char, slot, item)
         item["functions"][0] = "unequip"
 
-def replace_slot(char, container_name1, slot1, container_name2, slot2):
+def _equip_item(char, slot, item):
+    """Equips an item assuming the desired slot is empty. Do not use this except for
+    initializing a character's equipment when entering world.
+    char: Character
+    slot: str, equipment slot
+    item: Item, item to equip"""
+    char.equipment[slot] = item
+    apply_stat_change(char, item['stats'])
+
+
+def replace_items_internal(char, container_name1, slot1, container_name2, slot2):
     """Swap the locations of two items by containers"""
     container1 = getattr(char, container_name1)
     container2 = getattr(char, container_name2)
@@ -87,19 +98,39 @@ def replace_slot(char, container_name1, slot1, container_name2, slot2):
     container1[slot1] = item2
 
     if container_name1 == "equipment":
-        apply_stat_change(char, item2['stats'])
-        remove_stat_change(char, item1['stats'])
-        if item2 is not None:
-            item2["functions"][0] = "unequip"
-    elif item2 is not None:
-        item2["functions"][0] = "equip"
+        swap_item_stats(char, item2, item1)
+        update_primary_option(item2, "unequip")
+    else:
+        update_primary_option(item2, "equip")
     if container_name2 == "equipment":
-        apply_stat_change(char, item1['stats'])
-        remove_stat_change(char, item2['stats'])
-        if item1 is not None:
-            item1["functions"][0] = "unequip"
-    elif item1 is not None:
-        item1["functions"][0] = "equip"
+        swap_item_stats(char, item1, item2)
+        update_primary_option(item1, "unequip")
+    else:
+        update_primary_option(item1, "equip")
+
+def swap_item_stats(char, item1, item2):
+    """Do the stat changes resulting from equipping item 1 and unequipping item 2."""
+    stats1 = StatChange() if item1 is None else item1["stats"]
+    stats2 = StatChange() if item2 is None else item2["stats"]
+
+    if network.is_main_client():
+        apply_stat_change(char, stats1)
+        remove_stat_change(char, stats2)
+        char.update_max_ratings()
+    else:
+        conn = network.peer.get_connections()[0]
+        if stats1:
+            network.peer.remote_apply_stat_change(conn, stats1)
+        if stats2:
+            network.peer.remote_remove_stat_change(conn, stats2)
+
+def update_primary_option(item, funcname):
+    if item is None:
+        return
+    if "functions" not in item:
+        item["functions"] = [funcname]
+        return
+    item["functions"][0] = funcname
 
 class Item(dict):
     type_to_options = {
@@ -125,28 +156,3 @@ class Item(dict):
             self["stats"] = StatChange(**self.get("stats", {}))
         if "functions" not in self:
             self['functions'] = copy(self.type_to_options.get(self["type"], []))
-
-def _equip_item(char, slot, item):
-    """Equips an item assuming the desired slot is empty. Do not use this except for
-    initializing a character's equipment when entering world.
-    char: Character
-    slot: str, equipment slot
-    item: Item, item to equip"""
-    char.equipment[slot] = item
-    apply_stat_change(char, item['stats'])
-
-# def _apply_stats(char, item):
-#     if item is None:
-#         return
-#     stats = item.get("stats", {})
-#     for statname, val in stats.items():
-#         original_val = getattr(char, statname)
-#         setattr(char, statname, original_val + val)
-
-# def _remove_stats(char, item):
-#     if item is None:
-#         return
-#     stats = item.get("stats", {})
-#     for statname, val in stats.items():
-#         original_val = getattr(char, statname)
-#         setattr(char, statname, original_val - val)

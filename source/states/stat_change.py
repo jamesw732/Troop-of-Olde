@@ -1,3 +1,7 @@
+from ursina.networking import rpc
+
+from ..networking.base import network
+
 """DO NOT import attrs"""
 
 attrs = {
@@ -37,8 +41,7 @@ class StatChange(dict):
         super().__init__(**kwargs)
 
     def __str__(self):
-        return str({attr: getattr(self, attr)
-                for attr in attrs if hasattr(self, attr)})
+        return str({key: val for key, val in self.items()})
 
 def serialize_stat_change(writer, state):
     for k, v in state.items():
@@ -64,3 +67,15 @@ def remove_stat_change(char, stats):
     for attr, val in stats.items():
         original_val = getattr(char, attr)
         setattr(char, attr, original_val - val)
+
+@rpc(network.peer)
+def remote_apply_stat_change(connection, time_received, stats: StatChange):
+    char = network.connection_to_char[connection]
+    apply_stat_change(char, stats)
+    char.update_max_ratings()
+
+@rpc(network.peer)
+def remote_remove_stat_change(connection, time_received, stats: StatChange):
+    char = network.connection_to_char[connection]
+    remove_stat_change(char, stats)
+    char.update_max_ratings()

@@ -6,7 +6,7 @@ from source.npc_controller import *
 from source.world_gen import *
 from source.gamestate import *
 from source.item import *
-from source.ui.main import ui
+from source.ui.main import make_all_ui
 from source.states.cbstate_base import BaseCombatState
 
 app = Ursina(borderless=False)
@@ -25,6 +25,6 @@ for npc in npcs:
 gs.chars += npcs
 gs.chars.append(player)
 
-ui.make()
+make_all_ui()
 
 app.run()

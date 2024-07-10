@@ -223,7 +223,7 @@ class ItemIcon(Entity):
 
         player = gs.pc
         # Do the internal, non-graphical move
-        replace_slot(player, my_container, my_slot, other_container, other_slot)
+        replace_items_internal(player, my_container, my_slot, other_container, other_slot)
 
     def auto_equip(self):
         # Find the right slot

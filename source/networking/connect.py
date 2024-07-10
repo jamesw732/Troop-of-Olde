@@ -7,7 +7,7 @@ from ..npc_controller import NPC_Controller
 from ..gamestate import gs
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
-from ..ui.main import ui
+from ..ui.main import make_all_ui
 from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb_state, deserialize_complete_cb_state
 from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_ratings import RatingsState, serialize_ratings_state, deserialize_ratings_state
@@ -57,7 +57,7 @@ def input(key):
                 network.uuid_counter += 1
 
             network.peer.start("localhost", 8080, is_host=True)
-            ui.make()
+            make_all_ui()
         elif key == "c":
             print("Attempting to connect")
             network.peer.start("localhost", 8080, is_host=False)
@@ -123,7 +123,6 @@ def spawn_pc(connection, time_received, uuid: int):
             get_character_states_from_json(gs.pname)
         char = Character(pstate=pstate, base_state=basestate,
                          equipment=equipment, inventory=inventory)
-
         gs.pc = char
         gs.playercontroller = PlayerController(char, network.peer)
         char.controller = gs.playercontroller
@@ -149,4 +148,4 @@ def spawn_npc(connection, time_received, uuid: int,
 
 @rpc(network.peer)
 def make_ui(connection, time_received):
-    ui.make()
+    make_all_ui()

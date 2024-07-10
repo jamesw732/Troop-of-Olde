@@ -1,6 +1,14 @@
 from ursina import *
 import os
 
+class UI:
+    def __init__(self):
+        self.bars = None
+        self.playerwindow = None
+        self.gamewindow = None
+
+ui = UI()
+
 # COLORS:
 header_color = color.hex("8a6240")
 active_button_color = color.hex("68401e")

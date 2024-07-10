@@ -1,7 +1,7 @@
 """Defines and declares the network state. Also some universally helpful
 networking methods. Any file that uses networking will import this."""
 from ursina.networking import RPCPeer, rpc
-from ..ui.main import ui
+from ..ui.base import ui
 
 class Network:
     """Represent's client's view of the network state"""

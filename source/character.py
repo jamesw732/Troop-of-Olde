@@ -71,7 +71,7 @@ class Character(Entity):
             if equipment:
                 equip_many_items(self, equipment)
             # ... apply effects
-            self._update_max_ratings()
+            self.update_max_ratings()
             for attr in ["health", "mana", "stamina", "armor", "spellshield"]:
                 # if not hasattr(base_state, attr):
                 maxval = getattr(self, "max" + attr)
@@ -112,7 +112,7 @@ class Character(Entity):
             self.combat_timer = 0
             if self.target and not self.target.alive:
                 self.target = None
-        self._update_incremental_vals() # It might be nice to just do this exactly when needed, not incrementally...
+        # self._update_incremental_vals() # It might be nice to just do this exactly when needed, not incrementally...
         # Death Handling
         if self.health <= 0:
             # Wait for server to tell character to die
@@ -222,7 +222,7 @@ class Character(Entity):
             self.rem_jump_height = self.max_jump_height
             self.rem_jump_time = self.max_jump_time
 
-    def _update_max_ratings(self):
+    def update_max_ratings(self):
         """Adjust secondary combat attributes to state changes.
         These attrs are not adjusted directly by state changes,
         but still deserve to be updated by them."""
@@ -233,14 +233,14 @@ class Character(Entity):
         self.mana = min(self.maxmana, self.mana)
         self.stamina = min(self.maxstamina, self.stamina)
 
-    def _update_incremental_vals(self):
-        """Increment timer for and update values that need continuous update, but
-        don't want to do this every frame"""
-        self.sec_update_timer += time.dt
-        if self.sec_update_timer >= self.sec_update_rate:
-            self.sec_update_timer -= self.sec_update_rate
-            # self._update_sec_phys_attrs() # For now, this is unnecessary
-            self._update_max_ratings()
+    # def _update_incremental_vals(self):
+    #     """Increment timer for and update values that need continuous update, but
+    #     don't want to do this every frame"""
+    #     self.sec_update_timer += time.dt
+    #     if self.sec_update_timer >= self.sec_update_rate:
+    #         self.sec_update_timer -= self.sec_update_rate
+    #         # self._update_sec_phys_attrs() # For now, this is unnecessary
+    #         self.update_max_ratings()
 
     def start_jump(self):
         """Set self.jumping to be true if not grounded"""
