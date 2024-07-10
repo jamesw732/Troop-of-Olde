@@ -226,6 +226,9 @@ class ItemIcon(Entity):
         replace_items_internal(player, my_container, my_slot, other_container, other_slot)
 
     def auto_equip(self):
+        """Automatically find an equipment slot to equip this item, then equip it.
+        Looks in all possible slots for the item, if any of them are empty, equip there.
+        If none are empty, equip to the first slot."""
         # Find the right slot
         # First, just look for "slot"
         iteminfo = self.item.get("info")
@@ -247,6 +250,9 @@ class ItemIcon(Entity):
         self.swap_locs(other_box=self.window.equipped_boxes[slot])
 
     def auto_unequip(self):
+        """Automatically find an inventory slot to unequip this item to, then unequip it.
+        Looks in all possible slots in inventory for the item, if any are empty, unequip and
+        put the item there. If none are empty, then don't unequip."""
         inventory_icons = [s.itemicon for s in self.window.inventory_boxes]
         try:
             first_empty_idx = inventory_icons.index(None)
@@ -256,6 +262,7 @@ class ItemIcon(Entity):
         self.swap_locs(other_box=empty_slot)
 
     def get_item_slots(self):
+        """Unified way to get the available slots of an equippable item"""
         iteminfo = self.item.get("info")
         if not iteminfo:
             return

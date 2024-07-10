@@ -88,7 +88,12 @@ def _equip_item(char, slot, item):
 
 
 def replace_items_internal(char, container_name1, slot1, container_name2, slot2):
-    """Swap the locations of two items by containers"""
+    """Swap the internal locations of two items and update stats. Called by ItemSlot.swap_locs
+    char: Character
+    container_name1: list, internal container, likely inventory or equipment
+    slot1: int or str, index or key to container_name1
+    container_name2: list, internal container, likely inventory or equipment
+    slot2: int or str, index or key to container_name2"""
     container1 = getattr(char, container_name1)
     container2 = getattr(char, container_name2)
     item1 = container1[slot1]
@@ -109,9 +114,14 @@ def replace_items_internal(char, container_name1, slot1, container_name2, slot2)
         update_primary_option(item1, "equip")
 
 def swap_item_stats(char, item1, item2):
-    """Do the stat changes resulting from equipping item 1 and unequipping item 2."""
-    stats1 = StatChange() if item1 is None else item1["stats"]
-    stats2 = StatChange() if item2 is None else item2["stats"]
+    """Do the stat changes resulting from equipping item 1 and unequipping item 2.
+    If not the main client, ask the host to do the stat changes instead.
+    If either item is None or does not have stats, just use a blank StatChange object.
+    char: Character
+    item1: Item or None, item being equipped
+    item2: Item or None, item being unequipped"""
+    stats1 = StatChange() if item1 is None else item1.get("stats", StatChange())
+    stats2 = StatChange() if item2 is None else item2.get("stats", StatChange())
 
     if network.is_main_client():
         apply_stat_change(char, stats1)
@@ -125,6 +135,9 @@ def swap_item_stats(char, item1, item2):
             network.peer.remote_remove_stat_change(conn, stats2)
 
 def update_primary_option(item, funcname):
+    """Overwrite the top option of the item with funcname. Will likely be replaced eventually.
+    item: Item
+    funcname: str, name of function to replace the top option"""
     if item is None:
         return
     if "functions" not in item:
@@ -143,7 +156,7 @@ class Item(dict):
     }
 
     def __init__(self, id):
-        """An item is literally just a dict.
+        """An Item represents the internal state of an in-game item. It is mostly just a dict.
         id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs"""
         id = str(id)

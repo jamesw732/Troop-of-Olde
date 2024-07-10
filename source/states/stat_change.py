@@ -37,7 +37,8 @@ attrs = {
 class StatChange(dict):
     def __init__(self, **kwargs):
         """This class represents the stats of an auxilliary object, whether it be an Item or a 
-        persistent Effect. Meant to be applied to Characters additively. It's just a dict."""
+        persistent Effect. Meant to be applied to Characters additively. It's just a dict.
+        Keys have the same namnes as Character combat attributes."""
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -59,23 +60,31 @@ def deserialize_stat_change(reader):
         state[k] = v
 
 def apply_stat_change(char, stats):
+    """Apply stats to a character by adding all keys of stats to attributes of char
+    char: Character
+    stats: StatChange"""
     for attr, val in stats.items():
         original_val = getattr(char, attr)
         setattr(char, attr, original_val + val)
 
 def remove_stat_change(char, stats):
+    """Apply stats to a character by subtracting all keys of stats from attributes of char
+    char: Character
+    stats: StatChange"""
     for attr, val in stats.items():
         original_val = getattr(char, attr)
         setattr(char, attr, original_val - val)
 
 @rpc(network.peer)
 def remote_apply_stat_change(connection, time_received, stats: StatChange):
+    """Remotely call apply_stat_change"""
     char = network.connection_to_char[connection]
     apply_stat_change(char, stats)
     char.update_max_ratings()
 
 @rpc(network.peer)
 def remote_remove_stat_change(connection, time_received, stats: StatChange):
+    """Remotely call remove_stat_change"""
     char = network.connection_to_char[connection]
     remove_stat_change(char, stats)
     char.update_max_ratings()
