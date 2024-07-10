@@ -15,7 +15,7 @@ attrs = {
     # "maxarmor": int,
 }
 
-class RatingsState:
+class RatingsState(dict):
     def __init__(self, char=None, **kwargs):
         """This state is meant for host-authoritative overwrites of non-player-characters. Minimal possible information is sent."""
         # If a character was passed, take its attributes
@@ -25,38 +25,31 @@ class RatingsState:
                     val = getattr(char, attr)
                     # Only include attrs intentionally set
                     if val is not None:
-                        setattr(self, attr, val)
+                        self[attr] = val
         # Otherwise, read the attributes straight off
         else:
-            for attr in kwargs:
-                if attr in attrs:
-                    setattr(self, attr, kwargs[attr])
+            super().__init__(**kwargs)
 
     def __str__(self):
-        return str({attr: getattr(self, attr)
-                for attr in attrs if hasattr(self, attr)})
+        super().__str__()
+        # return str({key: val for key, val in self.items()})
 
 
 def serialize_ratings_state(writer, state):
-    for attr in attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            if val is not None:
-                writer.write(attr)
-                writer.write(val)
+    for k, v in state.items():
+        writer.write(k)
+        writer.write(v)
     writer.write("end")
 
 def deserialize_ratings_state(reader):
     state = RatingsState()
     while reader.iter.getRemainingSize() > 0:
-        attr = reader.read(str)
-        if attr == "end":
+        k = reader.read(str)
+        if k == "end":
             return state
-        val = reader.read(attrs[attr])
-        setattr(state, attr, val)
+        v = reader.read(attrs[k])
+        state[k] = v
 
 def apply_ratings_state(char, state):
-    for attr in attrs:
-        if hasattr(state, attr):
-            val = getattr(state, attr)
-            setattr(char, attr, val)
+    for k, v in state.items():
+        setattr(char, k, v)
