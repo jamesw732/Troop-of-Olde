@@ -42,7 +42,8 @@ class StatChange(dict):
         super().__init__(**kwargs)
 
     def __str__(self):
-        return str({key: val for key, val in self.items()})
+        super().__str__()
+        # return str({key: val for key, val in self.items()})
 
 def serialize_stat_change(writer, state):
     for k, v in state.items():
