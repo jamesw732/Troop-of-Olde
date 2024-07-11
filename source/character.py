@@ -3,7 +3,7 @@ logic."""
 from ursina import *
 import json
 
-from .base import sqdist
+from .base import sqdist, default_cb_attrs
 from .combat import progress_combat_timer
 from .networking.base import network
 from .physics import handle_movement
@@ -151,40 +151,8 @@ class Character(Entity):
 
     def _init_cb_attrs(self):
         """Initialize base default combat attributes."""
-        self.maxhealth = 0
-        self.health = 100
-        self.statichealth = 100
-        self.maxmana = 0
-        self.mana = 100
-        self.staticmana = 100
-        self.maxstamina = 0
-        self.stamina = 100
-        self.staticstamina = 100
-        self.maxspellshield = 0
-        self.spellshield = 0
-        self.maxarmor = 0
-        self.armor = 0
-
-        self.bdy = 0
-        self.str = 0
-        self.dex = 0
-        self.ref = 0
-        self.int = 0
-
-        self.haste = 0
-        self.speed = 20
-        self.casthaste = 0
-        self.healmod = 0
-
-        self.afire = 0
-        self.acold = 0
-        self.aelec = 0
-        self.apois = 0
-        self.adis = 0
-
-        self.max_combat_timer = 1
-        self.combat_timer = 0
-        self.attackrange = 10
+        for attr, val in default_cb_attrs.items():
+            setattr(self, attr, val)
 
     def _init_lerp_attrs(self):
         """Initialize lerp logic"""

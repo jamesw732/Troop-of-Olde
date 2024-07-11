@@ -92,7 +92,7 @@ class PlayerController(Entity):
             rotation_matrix = numpy.array([[numpy.cos(theta), -1 * numpy.sin(theta)], [numpy.sin(theta), numpy.cos(theta)]])
             move_direction = rotation_matrix @ numpy.array([movement_inputs[0], movement_inputs[2]])
             move_direction = Vec3(move_direction[0], 0, move_direction[1]).normalized()
-            self.character.velocity_components["keyboard"] = move_direction * self.character.speed
+            self.character.velocity_components["keyboard"] = move_direction * (12 * (1 + self.character.speed / 100))
 
     def handle_keyboard_rotation(self, updown_rotation, leftright_rotation):
         """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
