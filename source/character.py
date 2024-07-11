@@ -3,7 +3,7 @@ logic."""
 from ursina import *
 import json
 
-from .base import sqdist, default_cb_attrs, default_phys_attrs
+from .base import sqdist, default_cb_attrs, default_phys_attrs, default_equipment
 from .combat import progress_combat_timer
 from .networking.base import network
 from .physics import handle_movement
@@ -145,20 +145,7 @@ class Character(Entity):
 
     def _init_equipment(self):
         """Initialize equipment dict"""
-        self.equipment = {
-            "ear": None,
-            "head": None,
-            "neck": None,
-            "chest": None,
-            "back": None,
-            "legs": None,
-            "hands": None,
-            "feet": None,
-            "ring": None,
-            "mh": None,
-            "oh": None,
-            "ammo": None,
-        }
+        self.equipment = copy(default_equipment)
 
     def _init_inventory(self):
         self.inventory = [None] * 24

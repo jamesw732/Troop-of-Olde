@@ -80,3 +80,18 @@ default_phys_attrs = {
     "in_combat": False,
     "target": None
 }
+
+default_equipment = {
+    "ear": None,
+    "head": None,
+    "neck": None,
+    "chest": None,
+    "back": None,
+    "legs": None,
+    "hands": None,
+    "feet": None,
+    "ring": None,
+    "mh": None,
+    "oh": None,
+    "ammo": None,
+}
