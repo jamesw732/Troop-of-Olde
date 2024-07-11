@@ -17,20 +17,22 @@ from .ui.main import ui
 
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
-                 pstate=None, complete_cb_state=None,
-                 ratings_state=None, base_state=None,
+                 pstate=None, base_state=None,
+                 complete_cb_state=None, ratings_state=None,
                  equipment={}, inventory={}):
-        """Initializes a character using a PhysicalState and a CharacterState.
+        """Initializes a character using a PhysicalState and one type of combat state.
+        These options are explained below.
 
         cname: name of character, str
         uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
         type: "player" or "npc"
         pstate: PhysicalState; defines client-authoritative attrs
-        complete_cb_state: CompleteCombatState; If specified, skip all computation and copy all attrs from
-        complete state. Use only for receiving player character states.
-        ratings_state: RatingsState; If specified, only initializes the most minimal attrs that the player
-        needs to see from other characters. Use only for receiving character states besides the PC's
-        base_state: BaseCombatState; Use for common initialization if the main client.
+        base_state: BaseCombatState; Use for common initialization if the main client
+            to build the character's stats from the ground up
+        complete_cb_state: CompleteCombatState; If specified, skip any ground-up
+            computation and just overwrite the combat attrs
+        ratings_state: RatingsState; If specified, only initializes the most minimal
+            attrs that the player needs to see from other characters.
         equipment: dict of Items keyed by slot
         inventory: dict of Items keyed by index within inventory, 0-23
         """
@@ -96,22 +98,24 @@ class Character(Entity):
                 apply_physical_state(self, self.new_state)
             # Otherwise, LERP normally
             else:
-                self.position = lerp(self.prev_state.position,
-                                     self.new_state.position,
+                self.position = lerp(self.prev_state.get("position", self.position),
+                                     self.new_state.get("position", self.position),
                                      self.lerp_timer / self.lerp_rate)
-                self.rotation = lerp(self.prev_state.rotation,
-                                     self.new_state.rotation,
+                self.rotation = lerp(self.prev_state.get("rotation", self.rotation),
+                                     self.new_state.get("rotation", self.rotation),
                                      self.lerp_timer / self.lerp_rate)
         # Namelabel Handling
         self.namelabel.fix_position()
         self.namelabel.fix_rotation()
         # Combat Handling
-        if self.target and self.target.alive and self.in_combat:
-                progress_combat_timer(self)
-        else:
+        if self.target and not self.target.alive:
+            self.target = None
             self.combat_timer = 0
-            if self.target and not self.target.alive:
-                self.target = None
+        else:
+            if self.target and self.target.alive and self.in_combat:
+                    progress_combat_timer(self)
+            else:
+                self.combat_timer = 0
         # self._update_incremental_vals() # It might be nice to just do this exactly when needed, not incrementally...
         # Death Handling
         if self.health <= 0:
@@ -336,7 +340,7 @@ def get_character_states_from_json(pname):
     equipment_raw = d.get("equipment", {})
     inventory_raw = d.get("inventory", [])
     pstate = PhysicalState(**pstate_raw)
-    pstate.cname = pname
+    pstate["cname"] = pname
     basestate = BaseCombatState(**basestate_raw)
     equipment = {slot: Item(id) for slot, id in equipment_raw.items()}
     inventory = [Item(id) if id else None for id in inventory_raw]
