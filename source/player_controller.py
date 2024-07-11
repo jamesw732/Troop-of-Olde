@@ -58,10 +58,14 @@ class PlayerController(Entity):
         if key == "jump":
             self.character.start_jump()
         if key == "scroll up":
-            if mouse.hovered_entity and not mouse.hovered_entity.has_ancestor(camera.ui):
+            if not mouse.hovered_entity:
+                return
+            if not mouse.hovered_entity.has_ancestor(camera.ui):
                 self.camdistance = max(self.camdistance - 1, 0)
         if key == "scroll down":
-            if mouse.hovered_entity and not mouse.hovered_entity.has_ancestor(camera.ui):
+            if not mouse.hovered_entity:
+                return
+            if not mouse.hovered_entity.has_ancestor(camera.ui):
                 self.camdistance = min(self.camdistance + 1, 75)
         if key == "right mouse down":
             # mouse.visible = False
