@@ -1,3 +1,5 @@
+from ursina import *
+
 import math
 
 def sigmoid(x):
@@ -53,4 +55,28 @@ default_cb_attrs = {
     "max_combat_timer": 1,
     "combat_timer": 0,
     "attackrange": 3
+}
+
+default_phys_attrs = {
+    "model": "cube",
+    "scale": Vec3(1, 2, 1),
+    "origin": Vec3(0, -.5, 0),
+    "collider": "box",
+    "color": color.orange,
+
+    "jumping": False,
+    "grounded": False,
+    "grav": 0,
+    "velocity_components": {},
+    "height": 2,
+    "max_jump_height": 3,
+    "rem_jump_height": 3,
+    "max_jump_time": 0.3,
+    "rem_jump_time": 0.3,
+
+    "traverse_target": scene,
+
+    "alive": True,
+    "in_combat": False,
+    "target": None
 }

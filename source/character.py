@@ -3,7 +3,7 @@ logic."""
 from ursina import *
 import json
 
-from .base import sqdist, default_cb_attrs
+from .base import sqdist, default_cb_attrs, default_phys_attrs
 from .combat import progress_combat_timer
 from .networking.base import network
 from .physics import handle_movement
@@ -125,29 +125,9 @@ class Character(Entity):
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
-        self.model = "cube"
-        self.scale = Vec3(1, 2, 1)
-        self.origin = Vec3(0, -0.5, 0)
-        self.collider="box"
-        self.color = color.orange
-
-        self.jumping = False
-        self.grounded = False
-        self.grav = 0
-        self.velocity_components = {}
-
-        self.height = self.scale_y
-        self.max_jump_height = self.height * 1.5
-        self.rem_jump_height = self.max_jump_height
-        self.max_jump_time = 0.3
-        self.rem_jump_time = self.max_jump_time
-
-        self.traverse_target = scene
+        for attr, val in default_phys_attrs.items():
+            setattr(self, attr, copy(val))
         self.ignore_traverse = [self]
-
-        self.alive = True
-        self.in_combat = False
-        self.target = None
 
     def _init_cb_attrs(self):
         """Initialize base default combat attributes."""
