@@ -51,13 +51,6 @@ class GameWindow(Entity):
         if self.scrollbar.dragging:
             self.match_text_to_scrollbar()
 
-    def input(self, key):
-        if key == "scroll up" and mouse.hovered_entity \
-            and mouse.hovered_entity.has_ancestor(self.header):
-            self.scrollbar.scroll_up()
-        if key == "scroll down" and mouse.hovered_entity \
-            and mouse.hovered_entity.has_ancestor(self.header):
-            self.scrollbar.scroll_down()
     def match_text_to_scrollbar(self):
         min_scroll_y = -1 + self.scrollbar.scale_y
         max_scroll_y = 0

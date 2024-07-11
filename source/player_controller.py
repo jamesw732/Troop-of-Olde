@@ -62,11 +62,16 @@ class PlayerController(Entity):
                 return
             if not mouse.hovered_entity.has_ancestor(camera.ui):
                 self.camdistance = max(self.camdistance - 1, 0)
+            if mouse.hovered_entity.has_ancestor(ui.gamewindow.parent):
+                ui.gamewindow.scrollbar.scroll_up()
         if key == "scroll down":
             if not mouse.hovered_entity:
                 return
             if not mouse.hovered_entity.has_ancestor(camera.ui):
                 self.camdistance = min(self.camdistance + 1, 75)
+            if mouse.hovered_entity.has_ancestor(ui.gamewindow.parent):
+                ui.gamewindow.scrollbar.scroll_down()
+
         if key == "right mouse down":
             # mouse.visible = False
             self.prev_mouse_position = mouse.position
