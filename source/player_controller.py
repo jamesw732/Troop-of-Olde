@@ -8,6 +8,7 @@ from .character import Character
 from .ui.main import ui
 from .ui.items_window import ItemIcon
 from .ui.header import Header
+from .ui.game_window import ScrollBar
 
 
 class PlayerController(Entity):
@@ -35,7 +36,7 @@ class PlayerController(Entity):
 
         self.bind_keys()
 
-        self.dragging_header = None
+        self.dragging_entity = None
 
     def update(self):
         """Continuous client updates"""
@@ -58,21 +59,22 @@ class PlayerController(Entity):
 
     def input(self, key):
         """Singular client updates"""
+        tgt = mouse.hovered_entity
         if key == "jump":
             self.character.start_jump()
         elif key == "scroll up":
-            if not mouse.hovered_entity:
+            if tgt is None:
                 return
-            if not mouse.hovered_entity.has_ancestor(camera.ui):
+            if not tgt.has_ancestor(camera.ui):
                 self.camdistance = max(self.camdistance - 1, 0)
-            if mouse.hovered_entity.has_ancestor(ui.gamewindow.parent):
+            if tgt.has_ancestor(ui.gamewindow.parent):
                 ui.gamewindow.scrollbar.scroll_up()
         elif key == "scroll down":
-            if not mouse.hovered_entity:
+            if tgt is None:
                 return
-            if not mouse.hovered_entity.has_ancestor(camera.ui):
+            if not tgt.has_ancestor(camera.ui):
                 self.camdistance = min(self.camdistance + 1, 75)
-            if mouse.hovered_entity.has_ancestor(ui.gamewindow.parent):
+            if tgt.has_ancestor(ui.gamewindow.parent):
                 ui.gamewindow.scrollbar.scroll_down()
         elif key == "right mouse down":
             # mouse.visible = False
@@ -80,20 +82,24 @@ class PlayerController(Entity):
         # if key == "right mouse up":
             # mouse.visible = True
         elif key == "left mouse down":
-            tgt = mouse.hovered_entity
             if isinstance(tgt, Character):
                 self.set_target(tgt)
             elif isinstance(tgt, ItemIcon):
                 tgt.clicked = True
                 tgt.step = tgt.get_position(camera.ui) - mouse.position
-            elif isinstance(tgt, Header):
-                self.dragging_header = tgt
+            elif isinstance(tgt, (Header, ScrollBar)):
+                self.dragging_entity = tgt
                 tgt.dragging = True
                 tgt.set_step()
+            elif isinstance(tgt, ScrollBar):
+                self.dragging_entity = tgt
+                tgt.dragging = True
+                tgt.set_step()
+
         elif key == "left mouse up":
-            if self.dragging_header is not None:
-                self.dragging_header.dragging = False
-                self.dragging_header = None
+            if self.dragging_entity is not None:
+                self.dragging_entity.dragging = False
+                self.dragging_entity = None
         elif key == "toggle_combat":
             msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
             ui.gamewindow.add_message(msg)

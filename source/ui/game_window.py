@@ -84,13 +84,9 @@ class ScrollBar(Entity):
         self.dragging = False
         self.parents = get_ui_parents([self])
 
-    def input(self, key):
-        if self.hovered and key == "left mouse down":
-            self.dragging = True
-            self.step = self.getY(camera.ui) - mouse.y
-        elif self.dragging and key == "left mouse up":
-            self.dragging = False
-    
+    def set_step(self):
+        self.step = self.getY(camera.ui) - mouse.y
+
     def scroll_up(self):
         self.y = clamp(self.y + 0.05,
         self.min_y, self.max_y)
