@@ -7,12 +7,12 @@ from .networking.base import network
 from .ui.main import ui
 
 # PUBLIC
-def progress_combat_timer(char):
+def progress_mh_combat_timer(char):
     """Increment combat timer by dt. If past max, attempt a melee hit."""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
-    char.combat_timer += time.dt * get_haste_modifier(char.haste)
-    if char.combat_timer > char.max_combat_timer:
-        char.combat_timer -= char.max_combat_timer
+    char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
+    if char.mh_combat_timer > char.max_mh_combat_timer:
+        char.mh_combat_timer -= char.max_mh_combat_timer
         if get_target_hittable(char):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target)
@@ -21,6 +21,22 @@ def progress_combat_timer(char):
                 network.peer.remote_attempt_melee_hit(
                     network.peer.get_connections()[0],
                     char.uuid, char.target.uuid)
+
+def progress_oh_combat_timer(char):
+    """Increment combat timer by dt. If past max, attempt a melee hit."""
+    # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
+    char.oh_combat_timer += time.dt * get_haste_modifier(char.haste) # * dw_skill / rec_level if slot == oh else 1
+    if char.oh_combat_timer > char.max_oh_combat_timer:
+        char.oh_combat_timer -= char.max_oh_combat_timer
+        if get_target_hittable(char):
+            if network.is_main_client():
+                attempt_melee_hit(char, char.target)
+            else:
+                # Host-authoritative, so we need to ask the host to compute the hit
+                network.peer.remote_attempt_melee_hit(
+                    network.peer.get_connections()[0],
+                    char.uuid, char.target.uuid)
+
 
 def increase_health(char, amt):
     """Function to be used whenever increasing character's health"""

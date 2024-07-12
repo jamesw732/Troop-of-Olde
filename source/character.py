@@ -4,7 +4,7 @@ from ursina import *
 import json
 
 from .base import sqdist, default_cb_attrs, default_phys_attrs, default_equipment
-from .combat import progress_combat_timer
+from .combat import progress_mh_combat_timer, progress_oh_combat_timer
 from .networking.base import network
 from .physics import handle_movement
 from .gamestate import gs
@@ -113,9 +113,18 @@ class Character(Entity):
             self.combat_timer = 0
         else:
             if self.target and self.target.alive and self.in_combat:
-                    progress_combat_timer(self)
+                progress_mh_combat_timer(self)
+                # See if we should progress offhand timer too
+                # (if has skill dw):
+                mh_is_1h = self.equipment["mh"] is None \
+                    or self.equipment["mh"].get("info", {}).get("style").split()[0] == "1h"
+                offhand = self.equipment["oh"]
+                dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
+                if dual_wielding:
+                    progress_oh_combat_timer(self)
             else:
-                self.combat_timer = 0
+                self.mh_combat_timer = 0
+                self.oh_combat_timer = 0
         # self._update_incremental_vals() # It might be nice to just do this exactly when needed, not incrementally...
         # Death Handling
         if self.health <= 0:

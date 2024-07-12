@@ -52,8 +52,10 @@ default_cb_attrs = {
     "apois": 0,
     "adis": 0,
 
-    "max_combat_timer": 1,
-    "combat_timer": 0,
+    "max_mh_combat_timer": 1,
+    "mh_combat_timer": 0,
+    "max_oh_combat_timer": 1,
+    "oh_combat_timer": 0,
     "attackrange": 3
 }
 
