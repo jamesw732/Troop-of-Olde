@@ -95,7 +95,6 @@ class PlayerController(Entity):
                 self.dragging_entity = tgt
                 tgt.dragging = True
                 tgt.set_step()
-
         elif key == "left mouse up":
             if self.dragging_entity is not None:
                 self.dragging_entity.dragging = False
@@ -104,6 +103,8 @@ class PlayerController(Entity):
             msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
             ui.gamewindow.add_message(msg)
             self.character.in_combat = not self.character.in_combat
+        elif key in ui.playerwindow.input_to_interface:
+            ui.playerwindow.open_window(key)
 
     def handle_keyboard_movement(self, movement_inputs):
         """Sets keyboard component of character velocity.
