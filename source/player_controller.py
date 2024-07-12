@@ -60,27 +60,26 @@ class PlayerController(Entity):
         """Singular client updates"""
         if key == "jump":
             self.character.start_jump()
-        if key == "scroll up":
+        elif key == "scroll up":
             if not mouse.hovered_entity:
                 return
             if not mouse.hovered_entity.has_ancestor(camera.ui):
                 self.camdistance = max(self.camdistance - 1, 0)
             if mouse.hovered_entity.has_ancestor(ui.gamewindow.parent):
                 ui.gamewindow.scrollbar.scroll_up()
-        if key == "scroll down":
+        elif key == "scroll down":
             if not mouse.hovered_entity:
                 return
             if not mouse.hovered_entity.has_ancestor(camera.ui):
                 self.camdistance = min(self.camdistance + 1, 75)
             if mouse.hovered_entity.has_ancestor(ui.gamewindow.parent):
                 ui.gamewindow.scrollbar.scroll_down()
-
-        if key == "right mouse down":
+        elif key == "right mouse down":
             # mouse.visible = False
             self.prev_mouse_position = mouse.position
         # if key == "right mouse up":
             # mouse.visible = True
-        if key == "left mouse down":
+        elif key == "left mouse down":
             tgt = mouse.hovered_entity
             if isinstance(tgt, Character):
                 self.set_target(tgt)
@@ -91,11 +90,11 @@ class PlayerController(Entity):
                 self.dragging_header = tgt
                 tgt.dragging = True
                 tgt.set_step()
-        if key == "left mouse up":
+        elif key == "left mouse up":
             if self.dragging_header is not None:
                 self.dragging_header.dragging = False
                 self.dragging_header = None
-        if key == "toggle_combat":
+        elif key == "toggle_combat":
             msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
             ui.gamewindow.add_message(msg)
             self.character.in_combat = not self.character.in_combat
