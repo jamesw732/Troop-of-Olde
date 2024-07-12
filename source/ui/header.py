@@ -26,13 +26,6 @@ class Header(Entity):
 
         self.ui_scale = self.getScale(camera.ui)
 
-    def input(self, key):
-        if self.hovered and key == "left mouse down":
-            self.dragging = True
-            self.step = self.position - mouse.position
-        elif self.dragging and key == "left mouse up":
-            self.dragging = False
-
     def update(self):
         if self.dragging:
             if mouse.position:
@@ -51,6 +44,9 @@ class Header(Entity):
         elif not self.transparent and not hovered:
             set_transparency(self, 150 / 255, ignore_key=self.ignore_key)
             self.transparent = True
+
+    def set_step(self):
+        self.step = self.position - mouse.position
 
     def set_ui_scale(self, child):
         """Set the scale with respect to camera.ui"""

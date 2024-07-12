@@ -7,6 +7,7 @@ import json
 from .character import Character
 from .ui.main import ui
 from .ui.items_window import ItemIcon
+from .ui.header import Header
 
 
 class PlayerController(Entity):
@@ -33,6 +34,8 @@ class PlayerController(Entity):
         self.prev_mouse_position = mouse.position
 
         self.bind_keys()
+
+        self.dragging_header = None
 
     def update(self):
         """Continuous client updates"""
@@ -84,6 +87,14 @@ class PlayerController(Entity):
             elif isinstance(tgt, ItemIcon):
                 tgt.clicked = True
                 tgt.step = tgt.get_position(camera.ui) - mouse.position
+            elif isinstance(tgt, Header):
+                self.dragging_header = tgt
+                tgt.dragging = True
+                tgt.set_step()
+        if key == "left mouse up":
+            if self.dragging_header is not None:
+                self.dragging_header.dragging = False
+                self.dragging_header = None
         if key == "toggle_combat":
             msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
             ui.gamewindow.add_message(msg)
