@@ -72,19 +72,16 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
         gs.pname = "Demo Player"
-        pstate, basestate, equipment, inventory = \
+        pstate, base_state, equipment, inventory = \
             get_character_states_from_json(gs.pname)
-        # Create a temporary Character to grab the complete state, and immediately destroy
-        temp_char = Character(base_state=basestate, equipment=equipment)
-        cb_state = CompleteCombatState(temp_char)
-        destroy(temp_char)
-        network.peer.request_enter_world(connection, pstate, cb_state)
+        gs.pc = Character(pstate=pstate, base_state=base_state, equipment=equipment, inventory=inventory)
+        network.peer.request_enter_world(connection, pstate, base_state)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        cb_state: CompleteCombatState):
+                        base_state: BaseCombatState):
     if network.peer.is_hosting():
-        char = Character(pstate=new_pstate, complete_cb_state=cb_state)
+        char = Character(pstate=new_pstate, base_state=base_state)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
@@ -93,12 +90,12 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
         network.peer.generate_world(connection, "demo.json")
         new_ratings_state = RatingsState(char)
         for conn in network.peer.get_connections():
-            # New user needs all characters
+            # New user needs all characters except own
             if conn == connection:
                 for ch in gs.chars:
                     pstate = PhysicalState(ch)
                     if ch is char:
-                        network.peer.spawn_pc(conn, ch.uuid, pstate, cb_state)
+                        continue
                     # The player won't be able to see everything about other characters
                     else:
                         cstate = RatingsState(ch)
@@ -106,6 +103,7 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, char.uuid, new_pstate, new_ratings_state)
+        network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
 
 @rpc(network.peer)
@@ -114,24 +112,19 @@ def generate_world(connection, time_received, zone:str):
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_pc(connection, time_received, uuid: int):
-    """Remotely spawn the player character. Use their own data for this."""
+def bind_pc(connection, time_received, uuid: int):
+    """Remotely bind player character to uuid and player controller"""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        pstate, basestate, equipment, inventory = \
-            get_character_states_from_json(gs.pname)
-        char = Character(pstate=pstate, base_state=basestate,
-                         equipment=equipment, inventory=inventory)
-        gs.pc = char
-        gs.playercontroller = PlayerController(char, network.peer)
-        char.controller = gs.playercontroller
+        gs.playercontroller = PlayerController(gs.pc, network.peer)
+        gs.pc.controller = gs.playercontroller
 
-        gs.chars.append(char)
-        char.ignore_traverse = gs.chars
+        gs.chars.append(gs.pc)
+        gs.pc.ignore_traverse = gs.chars
 
-        network.uuid_to_char[uuid] = char
-        char.uuid = uuid
+        network.uuid_to_char[uuid] = gs.pc
+        gs.pc.uuid = uuid
         network.my_uuid = uuid
 
 @rpc(network.peer)
