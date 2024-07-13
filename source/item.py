@@ -74,65 +74,34 @@ def equip_many_items(char, itemsdict):
     char: Character
     itemsdict: dict mapping equipment slots to Items"""
     for slot, item in itemsdict.items():
-        _equip_item(char, slot, item)
-        item["functions"][0] = "unequip"
+        internal_move_item(char, item, "equipment", slot, old_container_n="nowhere")
 
-def _equip_item(char, slot, item):
-    """Equips an item assuming the desired slot is empty. Do not use this except for
-    initializing a character's equipment when entering world.
+
+def internal_move_item(char, item, new_container_n, new_slot, old_container_n="inventory"):
+    """Move an item internally from old_container_n to new_container_n
     char: Character
-    slot: str, equipment slot
-    item: Item, item to equip"""
-    char.equipment[slot] = item
-    apply_stat_change(char, item['stats'])
-
-
-def replace_items_internal(char, container_name1, slot1, container_name2, slot2):
-    """Swap the internal locations of two items and update stats. Called by ItemSlot.swap_locs
-    char: Character
-    container_name1: list, internal container, likely inventory or equipment
-    slot1: int or str, index or key to container_name1
-    container_name2: list, internal container, likely inventory or equipment
-    slot2: int or str, index or key to container_name2"""
-    container1 = getattr(char, container_name1)
-    container2 = getattr(char, container_name2)
-    item1 = container1[slot1]
-    item2 = container2[slot2]
-
-    container2[slot2] = item1
-    container1[slot1] = item2
-
-    if container_name1 == "equipment":
-        swap_item_stats(char, item2, item1)
-        update_primary_option(item2, "unequip")
+    item: Item
+    new_container_n: str, name of target container
+    new_slot: str or int, key or index of target container
+    old_container_n: str, name of source container
+    """
+    new_container = getattr(char, new_container_n)
+    new_container[new_slot] = item
+    # Don't attempt the stat changes or anything
+    if item is None:
+        return
+    if new_container_n == "equipment":
+        update_primary_option(item, "unequip")
+        # Skip stat change if staying within equipment
+        if old_container_n != "equipment":
+            apply_stat_change(char, item["stats"])
+    elif old_container_n == "equipment":
+        remove_stat_change(char, item["stats"])
+        update_primary_option(item, "equip")
     else:
-        update_primary_option(item2, "equip")
-    if container_name2 == "equipment":
-        swap_item_stats(char, item1, item2)
-        update_primary_option(item1, "unequip")
-    else:
-        update_primary_option(item1, "equip")
+        update_primary_option(item, "equip")
+    char.update_max_ratings()
 
-def swap_item_stats(char, item1, item2):
-    """Do the stat changes resulting from equipping item 1 and unequipping item 2.
-    If not the main client, ask the host to do the stat changes instead.
-    If either item is None or does not have stats, just use a blank StatChange object.
-    char: Character
-    item1: Item or None, item being equipped
-    item2: Item or None, item being unequipped"""
-    stats1 = StatChange() if item1 is None else item1.get("stats", StatChange())
-    stats2 = StatChange() if item2 is None else item2.get("stats", StatChange())
-
-    if network.is_main_client():
-        apply_stat_change(char, stats1)
-        remove_stat_change(char, stats2)
-        char.update_max_ratings()
-    else:
-        conn = network.peer.get_connections()[0]
-        if stats1:
-            network.peer.remote_apply_stat_change(conn, stats1)
-        if stats2:
-            network.peer.remote_remove_stat_change(conn, stats2)
 
 def update_primary_option(item, funcname):
     """Overwrite the top option of the item with funcname. Will likely be replaced eventually.

@@ -160,7 +160,7 @@ class ItemIcon(Entity):
                     if isinstance(drop_to, ItemBox):
                         self.swap_locs(other_box=drop_to)
                     elif isinstance(drop_to, ItemIcon):
-                        self.swap_locs(other_item=drop_to)
+                        self.swap_locs(other_icon=drop_to)
                     else:
                         self.position = Vec3(0, 0, -1)
                     self.collision = True
@@ -173,17 +173,17 @@ class ItemIcon(Entity):
                 if mouse.position:
                     self.set_position(mouse.position + self.step, camera.ui)
 
-    def swap_locs(self, other_item=None, other_box=None):
+    def swap_locs(self, other_icon=None, other_box=None):
         """Swaps the contents of two ItemBoxes. Main driving function of inventory movement.
-        Must specify one of other_item or other_box.
-        other_item: ItemIcon
+        Must specify one of other_icon or other_box.
+        other_icon: ItemIcon
         other_box: ItemSlot"""
-        if other_item is None and other_box is None:
+        if other_icon is None and other_box is None:
             return
         if other_box is None:
-            other_box = other_item.parent
-        elif other_item is None:
-            other_item = other_box.itemicon
+            other_box = other_icon.parent
+        elif other_icon is None:
+            other_icon = other_box.itemicon
         other_container = other_box.container_name
         other_slot = other_box.slot
         my_container = self.parent.container_name
@@ -193,8 +193,8 @@ class ItemIcon(Entity):
 
         # Make sure items can go to new locations
         # Equipment checks:
-        if equipping_other and other_item is not None:
-            other_item_slots = other_item.get_item_slots()
+        if equipping_other and other_icon is not None:
+            other_item_slots = other_icon.get_item_slots()
             if my_slot not in other_item_slots:
                 return
         if equipping_mine:
@@ -204,26 +204,33 @@ class ItemIcon(Entity):
                 return
 
         # Remove/add text if necessary:
-        if equipping_other and other_item is None:
+        if equipping_other and other_icon is None:
             self.parent.label.text = my_slot
         if equipping_mine:
             other_box.label.text = ""
 
         # Swap ItemSlots' ItemIcons
         other_box.itemicon = self
-        self.parent.itemicon = other_item
+        self.parent.itemicon = other_icon
 
         # Reparent and reposition icons
-        if other_item is not None:
-            other_item.parent = self.parent
-            other_item.position = Vec3(0, 0, -2)
+        if other_icon is not None:
+            other_icon.parent = self.parent
+            other_icon.position = Vec3(0, 0, -2)
 
         self.parent = other_box
         self.position = Vec3(0, 0, -2)
 
         player = gs.pc
-        # Do the internal, non-graphical move
-        replace_items_internal(player, my_container, my_slot, other_container, other_slot)
+        # Do the internal, non-graphical moves
+        internal_move_item(player, self.item, other_container, other_slot,
+                           old_container_n=my_container)
+        if not isinstance(other_icon, ItemIcon):
+            internal_move_item(player, None, my_container, my_slot,
+                               old_container_n=other_container)
+        else:
+            internal_move_item(player, other_icon.item, my_container,
+                               my_slot, old_container_n=other_container)
 
     def auto_equip(self):
         """Automatically find an equipment slot to equip this item, then equip it.

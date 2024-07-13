@@ -76,16 +76,16 @@ def remove_stat_change(char, stats):
         original_val = getattr(char, attr)
         setattr(char, attr, original_val - val)
 
-@rpc(network.peer)
-def remote_apply_stat_change(connection, time_received, stats: StatChange):
-    """Remotely call apply_stat_change"""
-    char = network.connection_to_char[connection]
-    apply_stat_change(char, stats)
-    char.update_max_ratings()
+# @rpc(network.peer)
+# def remote_apply_stat_change(connection, time_received, stats: StatChange):
+#     """Remotely call apply_stat_change"""
+#     char = network.connection_to_char[connection]
+#     apply_stat_change(char, stats)
+#     char.update_max_ratings()
 
-@rpc(network.peer)
-def remote_remove_stat_change(connection, time_received, stats: StatChange):
-    """Remotely call remove_stat_change"""
-    char = network.connection_to_char[connection]
-    remove_stat_change(char, stats)
-    char.update_max_ratings()
+# @rpc(network.peer)
+# def remote_remove_stat_change(connection, time_received, stats: StatChange):
+#     """Remotely call remove_stat_change"""
+#     char = network.connection_to_char[connection]
+#     remove_stat_change(char, stats)
+#     char.update_max_ratings()

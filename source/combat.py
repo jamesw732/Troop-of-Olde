@@ -20,7 +20,7 @@ def progress_mh_combat_timer(char):
                 # Host-authoritative, so we need to ask the host to compute the hit
                 network.peer.remote_attempt_melee_hit(
                     network.peer.get_connections()[0],
-                    char.uuid, char.target.uuid)
+                    char.uuid, char.target.uuid, "mh")
 
 def progress_oh_combat_timer(char):
     """Increment combat timer by dt. If past max, attempt a melee hit."""
@@ -36,7 +36,7 @@ def progress_oh_combat_timer(char):
                 # Host-authoritative, so we need to ask the host to compute the hit
                 network.peer.remote_attempt_melee_hit(
                     network.peer.get_connections()[0],
-                    char.uuid, char.target.uuid)
+                    char.uuid, char.target.uuid, "oh")
 
 
 def increase_health(char, amt):
@@ -82,12 +82,12 @@ def attempt_melee_hit(src, tgt, slot):
 
 
 @rpc(network.peer)
-def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int):
+def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int, slot: str):
     """Wrapper for calling attempt_melee_hit remotely"""
     src = network.uuid_to_char.get(src_uuid)
     tgt = network.uuid_to_char.get(tgt_uuid)
     if src and tgt:
-        attempt_melee_hit(src, tgt)
+        attempt_melee_hit(src, tgt, slot)
 
 def get_haste_modifier(haste):
     """Convert haste to a multiplicative time modifier"""
