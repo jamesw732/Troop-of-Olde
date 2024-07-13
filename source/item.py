@@ -1,4 +1,5 @@
 from ursina import *
+from ursina.networking import rpc
 import json
 
 from .networking.base import network
@@ -102,6 +103,22 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
         update_primary_option(item, "equip")
     char.update_max_ratings()
 
+
+@rpc(network.peer)
+def remote_equip(connection, time_received, uuid: int, item_id: str, slot: str, extra: StatChange=StatChange()):
+    """Create a new item based on an item id and any "extra" stuff.
+
+    Call this whenever an item is equipped by the client. Does not think about unequipping.
+    Right now, a new item is created each time, but it might be better to implement
+    an item instance id system eventually. It seems very possible to make the server lag
+    by equipping items constantly."""
+    if not network.peer.is_hosting():
+        return
+    char = network.uuid_to_char[uuid]
+    item = Item(item_id)
+    char.equipment[slot] = item
+    apply_stat_change(char, item["stats"])
+    char.update_max_ratings()
 
 def update_primary_option(item, funcname):
     """Overwrite the top option of the item with funcname. Will likely be replaced eventually.

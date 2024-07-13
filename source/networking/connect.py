@@ -105,6 +105,7 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
                 network.peer.spawn_npc(conn, char.uuid, new_pstate, new_ratings_state)
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
+        network.peer.request_equipment(connection)
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
@@ -141,4 +142,14 @@ def spawn_npc(connection, time_received, uuid: int,
 
 @rpc(network.peer)
 def make_ui(connection, time_received):
+    """Remotely tell a client to make the game UI"""
     make_all_ui()
+
+@rpc(network.peer)
+def request_equipment(connection, time_received):
+    """Remotely tell a client to send equipment data over to host"""
+    if network.peer.is_hosting():
+        return
+    for slot, item in gs.pc.equipment.items():
+        if item is not None:
+            network.peer.remote_equip(connection, gs.pc.uuid, item.id, slot)

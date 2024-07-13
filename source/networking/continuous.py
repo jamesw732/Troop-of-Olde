@@ -29,6 +29,8 @@ def update():
             for char in gs.chars:
                 ratings_state = RatingsState(char)
                 for connection in connections:
+                    if connection not in network.connection_to_char:
+                        continue
                     if network.connection_to_char[connection] is char:
                         network.peer.update_pc_cbstate(connection, char.uuid,
                                                        CompleteCombatState(char))
