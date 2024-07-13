@@ -3,7 +3,7 @@
         "name": "Bronze Shortsword",
         "type": "weapon",
         "info": {
-            "dmg": 1,
+            "dmg": 5,
             "delay": 1,
             "range": 3,
             "style": "1h slash",
@@ -18,7 +18,7 @@
         "name": "Iron Longsword",
         "type": "weapon",
         "info": {
-            "dmg": 1,
+            "dmg": 9,
             "delay": 1,
             "range": 5,
             "style": "1h slash",

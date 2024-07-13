@@ -2,20 +2,12 @@ from ursina import *
 
 import math
 
-def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
+fists_base_dmg = 2
 
-def sqnorm(v):
-    """Returns the squared norm of a vector.
-    v: Any vector"""
-    return sum(v ** 2)
-
-def sqdist(v1, v2):
-    """Returns the squared distance between two vectors
-    v1: Any vector
-    v2: Any vector, same shape as v1"""
-    return sum((v1 - v2) ** 2)
-
+style_to_method = {
+    "fists": "pummels",
+    "1h slash": "slashes",
+}
 
 default_cb_attrs = {
     "maxhealth": 0,
@@ -97,3 +89,18 @@ default_equipment = {
     "oh": None,
     "ammo": None,
 }
+
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+def sqnorm(v):
+    """Returns the squared norm of a vector.
+    v: Any vector"""
+    return sum(v ** 2)
+
+def sqdist(v1, v2):
+    """Returns the squared distance between two vectors
+    v1: Any vector
+    v2: Any vector, same shape as v1"""
+    return sum((v1 - v2) ** 2)

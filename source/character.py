@@ -117,7 +117,7 @@ class Character(Entity):
                 # See if we should progress offhand timer too
                 # (if has skill dw):
                 mh_is_1h = self.equipment["mh"] is None \
-                    or self.equipment["mh"].get("info", {}).get("style").split()[0] == "1h"
+                    or self.equipment["mh"]["info"]["style"][:2] == "1h"
                 offhand = self.equipment["oh"]
                 dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
                 if dual_wielding:
