@@ -5,7 +5,7 @@ class EquipmentState(dict):
 
     Somewhat incomplete, eventually will need to also allow for armor damage
     """
-    def __init__(self, equipment):
+    def __init__(self, equipment={}):
         """equipment: dict of items loaded from """
         for slot, itemid in equipment.items():
             self[slot] = str(itemid)

@@ -12,6 +12,7 @@ from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb
         deserialize_complete_cb_state
 from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_mini import MiniCombatState, serialize_mini_state, deserialize_mini_state
+from ..states.equipment import EquipmentState, serialize_equip_state, deserialize_equip_state
 from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
 from ..states.stat_change import StatChange, serialize_stat_change, deserialize_stat_change
 
@@ -22,6 +23,7 @@ network.peer.register_type(CompleteCombatState, serialize_complete_cb_state,
                            deserialize_complete_cb_state)
 network.peer.register_type(BaseCombatState, serialize_base_cb_state,
                            deserialize_base_cb_state)
+network.peer.register_type(EquipmentState, serialize_equip_state, deserialize_equip_state)
 network.peer.register_type(MiniCombatState, serialize_mini_state,
                            deserialize_mini_state)
 network.peer.register_type(StatChange, serialize_stat_change, deserialize_stat_change)
@@ -76,13 +78,13 @@ def on_connect(connection, time_connected):
         pstate, base_state, equipment, inventory = \
             get_character_states_from_json(gs.pname)
         gs.pc = Character(pstate=pstate, base_state=base_state, equipment=equipment, inventory=inventory)
-        network.peer.request_enter_world(connection, pstate, base_state)
+        network.peer.request_enter_world(connection, pstate, base_state, equipment)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        base_state: BaseCombatState):
+                        base_state: BaseCombatState, equipment: EquipmentState):
     if network.peer.is_hosting():
-        char = Character(pstate=new_pstate, base_state=base_state)
+        char = Character(pstate=new_pstate, base_state=base_state, equipment=equipment)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
@@ -106,7 +108,6 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
                 network.peer.spawn_npc(conn, char.uuid, new_pstate, new_mini_state)
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
-        network.peer.request_equipment(connection)
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
@@ -145,11 +146,3 @@ def spawn_npc(connection, time_received, uuid: int,
 def make_ui(connection, time_received):
     """Remotely tell a client to make the game UI"""
     make_all_ui()
-
-@rpc(network.peer)
-def request_equipment(connection, time_received):
-    if network.peer.is_hosting():
-        return
-    for slot, item in gs.pc.equipment.items():
-        if item is not None:
-            network.peer.remote_equip(connection, item.id, slot)
