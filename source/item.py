@@ -155,3 +155,6 @@ class Item(dict):
             self["stats"] = StatChange(**self.get("stats", {}))
         if "functions" not in self:
             self['functions'] = copy(self.type_to_options.get(self["type"], []))
+        if network.peer.is_hosting():
+            network.uiid_to_item[network.uiid_counter] = self
+            network.uiid_counter += 1
