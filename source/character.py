@@ -11,14 +11,15 @@ from .gamestate import gs
 from .item import Item, equip_many_items
 from .states.cbstate_complete import apply_complete_cb_state
 from .states.cbstate_base import BaseCombatState, apply_base_state
-from .states.cbstate_ratings import apply_ratings_state
+# from .states.cbstate_ratings import apply_ratings_state
+from .states.cbstate_mini import apply_mini_state
 from .states.physicalstate import PhysicalState, apply_physical_state
 from .ui.main import ui
 
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
                  pstate=None, base_state=None,
-                 complete_cb_state=None, ratings_state=None,
+                 complete_cb_state=None, mini_state=None,
                  equipment={}, inventory={}):
         """Initializes a character using a PhysicalState and one type of combat state.
         These options are explained below.
@@ -31,7 +32,7 @@ class Character(Entity):
             to build the character's stats from the ground up
         complete_cb_state: CompleteCombatState; If specified, skip any ground-up
             computation and just overwrite the combat attrs
-        ratings_state: RatingsState; If specified, only initializes the most minimal
+        mini_state: MiniCombatState; If specified, only initializes the most minimal
             attrs that the player needs to see from other characters.
         equipment: dict of Items keyed by slot
         inventory: dict of Items keyed by index within inventory, 0-23
@@ -82,8 +83,8 @@ class Character(Entity):
         elif complete_cb_state:
             apply_complete_cb_state(self, complete_cb_state)
         # Host created a character that isn't mine
-        elif ratings_state:
-            apply_ratings_state(self, ratings_state)
+        elif mini_state:
+            apply_mini_state(self, mini_state)
 
     def update(self):
         """Character updates which happen every frame"""

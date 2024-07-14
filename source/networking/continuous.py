@@ -5,7 +5,8 @@ from .base import network
 
 from ..gamestate import gs
 from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
-from ..states.cbstate_ratings import RatingsState, apply_ratings_state
+# from ..states.cbstate_ratings import RatingsState, apply_ratings_state
+from ..states.cbstate_mini import MiniCombatState, apply_mini_state
 from ..states.physicalstate import PhysicalState
 
 
@@ -27,7 +28,7 @@ def update():
             network.peer.update_char_pstate(connection, my_char.uuid, new_state)
         if network.peer.is_hosting():
             for char in gs.chars:
-                ratings_state = RatingsState(char)
+                mini_state = MiniCombatState(char)
                 for connection in connections:
                     if connection not in network.connection_to_char:
                         continue
@@ -36,7 +37,7 @@ def update():
                                                        CompleteCombatState(char))
                     else:
                         network.peer.update_npc_cbstate(connection, char.uuid,
-                                                        ratings_state)
+                                                        mini_state)
 
 
 @rpc(network.peer)
@@ -63,8 +64,8 @@ def update_pc_cbstate(connection, time_received, uuid: int, cbstate: CompleteCom
         apply_complete_cb_state(char, cbstate)
 
 @rpc(network.peer)
-def update_npc_cbstate(connection, time_received, uuid: int, cbstate: RatingsState):
+def update_npc_cbstate(connection, time_received, uuid: int, cbstate: MiniCombatState):
     """Update state for character that the client doesn't care about very much"""
     char = network.uuid_to_char.get(uuid)
     if char:
-        apply_ratings_state(char, cbstate)
+        apply_mini_state(char, cbstate)
