@@ -147,9 +147,8 @@ def make_ui(connection, time_received):
 
 @rpc(network.peer)
 def request_equipment(connection, time_received):
-    """Remotely tell a client to send equipment data over to host"""
     if network.peer.is_hosting():
         return
     for slot, item in gs.pc.equipment.items():
         if item is not None:
-            network.peer.remote_equip(connection, gs.pc.uuid, item.id, slot)
+            network.peer.remote_equip(connection, item.id, slot)

@@ -105,7 +105,7 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
 
 
 @rpc(network.peer)
-def remote_equip(connection, time_received, uuid: int, item_id: str, slot: str, extra: StatChange=StatChange()):
+def remote_equip(connection, time_received, item_id: str, slot: str, extra: StatChange=StatChange()):
     """Create a new item based on an item id and any "extra" stuff.
 
     Call this whenever an item is equipped by the client. Does not think about unequipping.
@@ -114,7 +114,7 @@ def remote_equip(connection, time_received, uuid: int, item_id: str, slot: str, 
     by equipping items constantly."""
     if not network.peer.is_hosting():
         return
-    char = network.uuid_to_char[uuid]
+    char = network.connection_to_char[connection]
     item = Item(item_id)
     char.equipment[slot] = item
     apply_stat_change(char, item["stats"])
