@@ -1,6 +1,4 @@
-from .stat_change import StatChange
-
-class EquipmentState(dict):
+class InitEquipmentState(dict):
     """Class used for sending equipment over network upon login.
 
     Somewhat incomplete, eventually will need to also allow for armor damage
@@ -14,14 +12,14 @@ class EquipmentState(dict):
         super().__str__()
 
 
-def serialize_equip_state(writer, state):
+def serialize_init_equip_state(writer, state):
     for k, v in state.items():
         writer.write(k)
         writer.write(v)
     writer.write("end")
 
-def deserialize_equip_state(reader):
-    state = EquipmentState()
+def deserialize_init_equip_state(reader):
+    state = InitEquipmentState()
     while reader.iter.getRemainingSize() > 0:
         k = reader.read(str)
         if k == "end":

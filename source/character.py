@@ -12,7 +12,7 @@ from .item import Item, equip_many_items
 from .states.cbstate_complete import apply_complete_cb_state
 from .states.cbstate_base import BaseCombatState, apply_base_state
 from .states.cbstate_mini import apply_mini_state
-from .states.equipment import EquipmentState
+from .states.init_equipment import InitEquipmentState
 from .states.physicalstate import PhysicalState, apply_physical_state
 from .ui.main import ui
 
@@ -34,7 +34,7 @@ class Character(Entity):
             computation and just overwrite the combat attrs
         mini_state: MiniCombatState; If specified, only initializes the most minimal
             attrs that the player needs to see from other characters.
-        equipment: dict of Items keyed by slot, or EquipmentState of item id's keyed by slot
+        equipment: dict of Items keyed by slot, or InitEquipmentState of item id's keyed by slot
         inventory: dict of Items keyed by index within inventory, 0-23
         """
         # Character-specific attrs
@@ -72,7 +72,7 @@ class Character(Entity):
         if base_state:
             apply_base_state(self, base_state)
             if equipment:
-                if isinstance(equipment, EquipmentState):
+                if isinstance(equipment, InitEquipmentState):
                     equipment = {slot: Item(itemid) for slot, itemid in equipment.items()}
                 equip_many_items(self, equipment)
             # ... apply effects
@@ -289,7 +289,7 @@ def get_character_states_from_json(pname):
     pstate = PhysicalState(**pstate_raw)
     pstate["cname"] = pname
     basestate = BaseCombatState(**basestate_raw)
-    equipment = EquipmentState(equipment_raw)
+    equipment = InitEquipmentState(equipment_raw)
     inventory = [Item(id) if id else None for id in inventory_raw]
     return pstate, basestate, equipment, inventory
 
