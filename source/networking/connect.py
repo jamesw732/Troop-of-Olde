@@ -12,8 +12,6 @@ from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb
         deserialize_complete_cb_state
 from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_mini import MiniCombatState, serialize_mini_state, deserialize_mini_state
-from ..states.ratings import RatingsState, serialize_ratings_state, deserialize_ratings_state, \
-        apply_ratings_state
 from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
 from ..states.stat_change import StatChange, serialize_stat_change, deserialize_stat_change
 
@@ -26,8 +24,6 @@ network.peer.register_type(BaseCombatState, serialize_base_cb_state,
                            deserialize_base_cb_state)
 network.peer.register_type(MiniCombatState, serialize_mini_state,
                            deserialize_mini_state)
-network.peer.register_type(RatingsState, serialize_ratings_state,
-                           deserialize_ratings_state)
 network.peer.register_type(StatChange, serialize_stat_change, deserialize_stat_change)
 
 
@@ -80,12 +76,11 @@ def on_connect(connection, time_connected):
         pstate, base_state, equipment, inventory = \
             get_character_states_from_json(gs.pname)
         gs.pc = Character(pstate=pstate, base_state=base_state, equipment=equipment, inventory=inventory)
-        ratings = RatingsState(gs.pc)
-        network.peer.request_enter_world(connection, pstate, base_state, ratings)
+        network.peer.request_enter_world(connection, pstate, base_state)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        base_state: BaseCombatState, ratings: RatingsState):
+                        base_state: BaseCombatState):
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state)
         char.uuid = network.uuid_counter
@@ -112,7 +107,6 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
         network.peer.request_equipment(connection)
-        apply_ratings_state(char, ratings)
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
