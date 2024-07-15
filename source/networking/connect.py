@@ -82,9 +82,11 @@ def on_connect(connection, time_connected):
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        base_state: BaseCombatState, equipment: InitContainer):
+                        base_state: BaseCombatState, equipment: InitContainer,
+                        inventory: InitContainer):
     if network.peer.is_hosting():
-        char = Character(pstate=new_pstate, base_state=base_state, equipment=equipment)
+        char = Character(pstate=new_pstate, base_state=base_state,
+                         equipment=equipment, inventory=inventory)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1

@@ -10,6 +10,8 @@
             "mh": 2,
             "oh": 1
         },
-        "inventory": [1]
+        "inventory": {
+            "0": 1
+        }
     }
 }

@@ -20,7 +20,7 @@ class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
                  pstate=None, base_state=None,
                  complete_cb_state=None, mini_state=None,
-                 equipment={}, inventory={}):
+                 equipment={}, inventory=[]):
         """Initializes a character using a PhysicalState and one type of combat state.
         These options are explained below.
 
@@ -35,7 +35,7 @@ class Character(Entity):
         mini_state: MiniCombatState; If specified, only initializes the most minimal
             attrs that the player needs to see from other characters.
         equipment: dict of Items keyed by slot, or InitContainer of item id's keyed by slot
-        inventory: dict of Items keyed by index within inventory, 0-23
+        inventory: dict of Items keyed by index within inventory, 0-23, or InitContainer of item id's keyed by slot
         """
         # Character-specific attrs
         self.type = type
@@ -65,9 +65,13 @@ class Character(Entity):
         # Combat attrs
         self._init_cb_attrs()
         if inventory and self.type == "player":
-            for i, item in enumerate(inventory):
-                # Assumes inventory is at most length 24 and gaps are filled with None
-                self.inventory[i] = item
+            if isinstance(inventory, InitContainer):
+               for i, itemid in inventory.items():
+                    self.inventory[int(i)] = Item(itemid)
+            elif isinstance(inventory, list):
+               for i, item in enumerate(inventory):
+                    # Assumes inventory is at most length 24 and gaps are filled with None
+                    self.inventory[i] = item
         # Full creation of character from the ground up
         if base_state:
             apply_base_state(self, base_state)
@@ -285,12 +289,12 @@ def get_character_states_from_json(pname):
             pstate_raw[k] = Vec3(*v)
     basestate_raw = d.get("basestate", {})
     equipment_raw = d.get("equipment", {})
-    inventory_raw = d.get("inventory", [])
+    inventory_raw = d.get("inventory", {})
     pstate = PhysicalState(**pstate_raw)
     pstate["cname"] = pname
     basestate = BaseCombatState(**basestate_raw)
     equipment = InitContainer(equipment_raw)
-    inventory = [Item(id) if id else None for id in inventory_raw]
+    inventory = InitContainer(inventory_raw)
     return pstate, basestate, equipment, inventory
 
 def load_character_from_json(pname):
