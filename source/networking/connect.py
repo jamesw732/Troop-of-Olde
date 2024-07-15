@@ -12,8 +12,7 @@ from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb
         deserialize_complete_cb_state
 from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state
 from ..states.cbstate_mini import MiniCombatState, serialize_mini_state, deserialize_mini_state
-from ..states.init_equipment import InitEquipmentState, serialize_init_equip_state, \
-        deserialize_init_equip_state
+from ..states.container import InitContainer, serialize_init_container, deserialize_init_container
 from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
 from ..states.stat_change import StatChange, serialize_stat_change, deserialize_stat_change
 
@@ -24,7 +23,7 @@ network.peer.register_type(CompleteCombatState, serialize_complete_cb_state,
                            deserialize_complete_cb_state)
 network.peer.register_type(BaseCombatState, serialize_base_cb_state,
                            deserialize_base_cb_state)
-network.peer.register_type(InitEquipmentState, serialize_init_equip_state, deserialize_init_equip_state)
+network.peer.register_type(InitContainer, serialize_init_container, deserialize_init_container)
 network.peer.register_type(MiniCombatState, serialize_mini_state,
                            deserialize_mini_state)
 network.peer.register_type(StatChange, serialize_stat_change, deserialize_stat_change)
@@ -83,7 +82,7 @@ def on_connect(connection, time_connected):
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        base_state: BaseCombatState, equipment: InitEquipmentState):
+                        base_state: BaseCombatState, equipment: InitContainer):
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state, equipment=equipment)
         char.uuid = network.uuid_counter
