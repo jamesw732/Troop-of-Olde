@@ -4,9 +4,10 @@ class InitContainer(dict):
     Structure may be misleading, use the JSON for types - keys are always
     strings and values are always ints."""
     def __init__(self, container={}):
-        for slot, itemid in container.items():
-            self[slot] = itemid
+        super().__init__(container)
 
+    def __str__(self):
+        return super().__str__()
 
 def serialize_init_container(writer, state):
     for k, v in state.items():

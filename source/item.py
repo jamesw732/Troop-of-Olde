@@ -156,5 +156,6 @@ class Item(dict):
         if "functions" not in self:
             self['functions'] = copy(self.type_to_options.get(self["type"], []))
         if network.peer.is_hosting():
+            self.uiid = network.uiid_counter
             network.uiid_to_item[network.uiid_counter] = self
             network.uiid_counter += 1

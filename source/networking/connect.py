@@ -110,6 +110,12 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
                 network.peer.spawn_npc(conn, char.uuid, new_pstate, new_mini_state)
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
+        # Send over instantiated item id's
+        inst_inventory = InitContainer({str(i): item.uiid for i, item
+                          in enumerate(char.inventory) if item is not None})
+        inst_equipment = InitContainer({k: item.uiid for k, item
+                          in char.equipment.items() if item is not None})
+        network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
 
 @rpc(network.peer)
 def generate_world(connection, time_received, zone:str):
@@ -131,6 +137,15 @@ def bind_pc(connection, time_received, uuid: int):
         network.uuid_to_char[uuid] = gs.pc
         gs.pc.uuid = uuid
         network.my_uuid = uuid
+
+@rpc(network.peer)
+def bind_pc_items(connection, time_received, inventory: InitContainer, equipment: InitContainer):
+    for i, uiid in inventory.items():
+        gs.pc.inventory[int(i)].uiid = uiid
+        network.uiid_to_item[uiid] = gs.pc.inventory[int(i)]
+    for k, uiid in equipment.items():
+        gs.pc.equipment[k].uiid = uiid
+        network.uiid_to_item[uiid] = gs.pc.equipment[k]
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
