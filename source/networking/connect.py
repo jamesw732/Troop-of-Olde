@@ -78,7 +78,7 @@ def on_connect(connection, time_connected):
         pstate, base_state, equipment, inventory = \
             get_character_states_from_json(gs.pname)
         gs.pc = Character(pstate=pstate, base_state=base_state, equipment=equipment, inventory=inventory)
-        network.peer.request_enter_world(connection, pstate, base_state, equipment)
+        network.peer.request_enter_world(connection, pstate, base_state, equipment, inventory)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
@@ -87,6 +87,7 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory)
+        print(char.inventory)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1

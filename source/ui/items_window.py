@@ -221,16 +221,24 @@ class ItemIcon(Entity):
         self.parent = other_box
         self.position = Vec3(0, 0, -2)
 
+
+        other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None 
+
+        opt1 = get_primary_option_from_container(self.item, other_container)
+        update_primary_option(self.item, opt1)
+        opt2 = get_primary_option_from_container(other_item, my_container)
+        update_primary_option(other_item, opt2)
+
         player = gs.pc
         # Do the internal, non-graphical moves
-        internal_move_item(player, self.item, other_container, other_slot,
-                           old_container_n=my_container)
-        if not isinstance(other_icon, ItemIcon):
-            internal_move_item(player, None, my_container, my_slot,
+        if network.is_main_client():
+            internal_move_item(player, self.item, other_container, other_slot,
+                               old_container_n=my_container)
+            internal_move_item(player, other_item, my_container, my_slot,
                                old_container_n=other_container)
         else:
-            internal_move_item(player, other_icon.item, my_container,
-                               my_slot, old_container_n=other_container)
+            conn = network.peer.get_connections()[0]
+            network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
 
     def auto_equip(self):
         """Automatically find an equipment slot to equip this item, then equip it.

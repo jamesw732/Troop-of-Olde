@@ -76,6 +76,7 @@ def equip_many_items(char, itemsdict):
     itemsdict: dict mapping equipment slots to Items"""
     for slot, item in itemsdict.items():
         internal_move_item(char, item, "equipment", slot, old_container_n="nowhere")
+        update_primary_option(item, "unequip")
 
 
 def internal_move_item(char, item, new_container_n, new_slot, old_container_n="inventory"):
@@ -92,33 +93,34 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
     if item is None:
         return
     if new_container_n == "equipment":
-        update_primary_option(item, "unequip")
         # Skip stat change if staying within equipment
         if old_container_n != "equipment":
             apply_stat_change(char, item["stats"])
     elif old_container_n == "equipment":
         remove_stat_change(char, item["stats"])
-        update_primary_option(item, "equip")
-    else:
-        update_primary_option(item, "equip")
     char.update_max_ratings()
-
 
 @rpc(network.peer)
-def remote_equip(connection, time_received, item_id: str, slot: str, extra: StatChange=StatChange()):
-    """Create a new item based on an item id and any "extra" stuff.
-
-    Call this whenever an item is equipped by the client. Does not think about unequipping.
-    Right now, a new item is created each time, but it might be better to implement
-    an item instance id system eventually. It seems very possible to make the server lag
-    by equipping items constantly."""
-    if not network.peer.is_hosting():
-        return
+def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
     char = network.connection_to_char[connection]
-    item = Item(item_id)
-    char.equipment[slot] = item
-    apply_stat_change(char, item["stats"])
-    char.update_max_ratings()
+    if container1 == "inventory":
+        slot1 = int(slot1)
+    if container2 == "inventory":
+        slot2 = int(slot2)
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+    internal_move_item(char, item1, container2, slot2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
+
+
+def get_primary_option_from_container(item, container):
+    if item is None or container is None:
+        return ""
+    if container == "equipment":
+        return "unequip"
+    elif container == "inventory":
+        if item["type"] in ["weapon", "equipment"]:
+            return "equip"
 
 def update_primary_option(item, funcname):
     """Overwrite the top option of the item with funcname. Will likely be replaced eventually.
