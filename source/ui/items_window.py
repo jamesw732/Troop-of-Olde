@@ -1,4 +1,5 @@
 from ursina import *
+import copy
 
 from .base import *
 from ..base import default_equipment
@@ -302,25 +303,31 @@ def remote_update_container(connection, time_received, name: str, container: Ini
     this will only be done by non-hosts"""
     if network.peer.is_hosting():
         return
-    print(container)
     internal_container = init_to_container(container)
     itemwindow = ui.playerwindow.items
     if name == "equipment":
         ui_container = itemwindow.equipped_boxes
-        loop = internal_container.items()
-        gs.pc.equipment = default_equipment
+        gs.pc.equipment = copy.deepcopy(default_equipment)
+        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.equipment.items())
     elif name == "inventory":
         ui_container = itemwindow.inventory_boxes
-        loop = ((int(i), item) for i, item in internal_container.items())
         gs.pc.inventory = [None] * 24
+        loop = ((i, internal_container.get(str(i), None)) for i, item in enumerate(gs.pc.inventory))
     for slot, item in loop:
         box = ui_container[slot]
+        if item is None:
+            box.itemicon = None
+            if name == "equipment":
+                box.label.text = slot
+            continue
         icon = item.icon
-        box.icon = icon
+        box.itemicon = icon
         icon.parent = box
         icon.position = Vec3(0, 0, -1)
         new_primary_option = get_primary_option_from_container(item, name)
         update_primary_option(item, new_primary_option)
+        if name == "equipment":
+            box.label.text = ''
         getattr(gs.pc, name)[slot] = item
 
 
