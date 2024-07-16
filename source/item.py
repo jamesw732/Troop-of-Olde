@@ -122,6 +122,26 @@ def update_primary_option(item, funcname):
         return
     item["functions"][0] = funcname
 
+def find_first_empty_equip(item, char):
+    iteminfo = item.get("info")
+    if not iteminfo:
+        return
+    slot = iteminfo.get("slot")
+    if not slot:
+        # Might not have found, that's okay, just check for first empty in slots
+        slots = iteminfo.get("slots", [])
+        if not slots:
+            return
+        for s in slots:
+            if char.equipment[s] is None:
+                slot = s
+                break
+        # None empty, so just take the first
+        else:
+            slot = slots[0]
+    return slot
+
+
 class Item(dict):
     type_to_options = {
         "weapon": ["equip", "expunge"],

@@ -255,22 +255,7 @@ class ItemIcon(Entity):
         If none are empty, equip to the first slot."""
         # Find the right slot
         # First, just look for "slot"
-        iteminfo = self.item.get("info")
-        if not iteminfo:
-            return
-        slot = iteminfo.get("slot")
-        if not slot:
-            # Might not have found, that's okay, just check for first empty in slots
-            slots = iteminfo.get("slots", [])
-            if not slots:
-                return
-            for s in slots:
-                if self.window.equipped_boxes[s].itemicon is None:
-                    slot = s
-                    break
-            # None empty, so just take the first
-            else:
-                slot = slots[0]
+        slot = find_first_empty_equip(self.item, gs.pc)
         self.swap_locs(other_box=self.window.equipped_boxes[slot])
 
     def auto_unequip(self):
