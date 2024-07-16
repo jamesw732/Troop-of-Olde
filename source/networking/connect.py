@@ -36,6 +36,7 @@ def input(key):
     """
     if not network.peer.is_running():
         if key == "h":
+            network.peer.start("localhost", 8080, is_host=True)
             pname = "Demo Player"
             pstate, basestate, equipment, inventory = \
                 get_character_states_from_json(pname)
@@ -59,7 +60,6 @@ def input(key):
                 network.uuid_to_char[npc.uuid] = npc
                 network.uuid_counter += 1
 
-            network.peer.start("localhost", 8080, is_host=True)
             make_all_ui()
         elif key == "c":
             print("Attempting to connect")
