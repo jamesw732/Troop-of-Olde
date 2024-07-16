@@ -87,7 +87,6 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory)
-        print(char.inventory)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1

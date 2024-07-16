@@ -1,6 +1,7 @@
 from ursina import *
 from ursina.networking import rpc
 import json
+import copy
 
 from .networking.base import network
 from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
@@ -100,18 +101,6 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
         remove_stat_change(char, item["stats"])
     char.update_max_ratings()
 
-@rpc(network.peer)
-def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
-    char = network.connection_to_char[connection]
-    if container1 == "inventory":
-        slot1 = int(slot1)
-    if container2 == "inventory":
-        slot2 = int(slot2)
-    item1 = getattr(char, container1)[slot1]
-    item2 = getattr(char, container2)[slot2]
-    internal_move_item(char, item1, container2, slot2, container1)
-    internal_move_item(char, item2, container1, slot1, container2)
-
 
 def get_primary_option_from_container(item, container):
     if item is None or container is None:
@@ -149,6 +138,7 @@ class Item(dict):
         See JSON structure for valid kwargs"""
         id = str(id)
         self.id = id
+        self.icon = None
         data = items_dict[id]
 
         super().__init__(**data)
@@ -156,7 +146,7 @@ class Item(dict):
         if self["type"] in ["weapon", "equipment"]:
             self["stats"] = StatChange(**self.get("stats", {}))
         if "functions" not in self:
-            self['functions'] = copy(self.type_to_options.get(self["type"], []))
+            self['functions'] = copy.deepcopy(self.type_to_options.get(self["type"], []))
         if network.peer.is_hosting():
             self.uiid = network.uiid_counter
             network.uiid_to_item[network.uiid_counter] = self

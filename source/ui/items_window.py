@@ -1,8 +1,11 @@
 from ursina import *
 
 from .base import *
+from ..base import default_equipment
 from ..gamestate import gs
 from ..item import *
+from ..networking.base import network
+from ..states.container import InitContainer, container_to_init, init_to_container
 
 """Explanation of terminology used in this file:
 Item, named items, represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
@@ -69,8 +72,6 @@ class ItemsWindow(Entity):
 
     def make_char_items(self):
         """Reads player inventory and equipment and outputs to UI"""
-        for icon in self.item_icons:
-            destroy(icon)
         for i, item in enumerate(self.player.inventory):
             self.make_item_icon(item, self.inventory_boxes[i])
         for k, item in self.player.equipment.items():
@@ -131,6 +132,7 @@ class ItemIcon(Entity):
     def __init__(self, item, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         self.item = item
+        self.item.icon = self
         self.window = self.parent.parent.parent
 
         self.previous_parent = None
@@ -175,7 +177,15 @@ class ItemIcon(Entity):
 
     def swap_locs(self, other_icon=None, other_box=None):
         """Swaps the contents of two ItemBoxes. Main driving function of inventory movement.
-        Must specify one of other_icon or other_box.
+
+        Must specify one of other_icon or other_box. General process after determining the
+        relevant inputs is this (only by main client):
+        1. Check if the items can go to the new locations
+        2. Remove/add text to equipment slots, if applicable
+        3. Swap box contents
+        4. Swap icon parents, and reposition to (0, 0, 0)
+        5. Update primary options (if moved between inventory and equipment, for example)
+        6. Do function call for the internal move
         other_icon: ItemIcon
         other_box: ItemSlot"""
         if other_icon is None and other_box is None:
@@ -186,52 +196,50 @@ class ItemIcon(Entity):
             other_icon = other_box.itemicon
         other_container = other_box.container_name
         other_slot = other_box.slot
+        other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None
         my_container = self.parent.container_name
         my_slot = self.parent.slot
-        equipping_mine = other_container == "equipment"
-        equipping_other = my_container == "equipment"
-
-        # Make sure items can go to new locations
-        # Equipment checks:
-        if equipping_other and other_icon is not None:
-            other_item_slots = other_icon.get_item_slots()
-            if my_slot not in other_item_slots:
-                return
-        if equipping_mine:
-            my_item_slots = self.get_item_slots()
-            if other_slot not in my_item_slots:
-                self.position = Vec3(0, 0, -1)
-                return
-
-        # Remove/add text if necessary:
-        if equipping_other and other_icon is None:
-            self.parent.label.text = my_slot
-        if equipping_mine:
-            other_box.label.text = ""
-
-        # Swap ItemSlots' ItemIcons
-        other_box.itemicon = self
-        self.parent.itemicon = other_icon
-
-        # Reparent and reposition icons
-        if other_icon is not None:
-            other_icon.parent = self.parent
-            other_icon.position = Vec3(0, 0, -2)
-
-        self.parent = other_box
-        self.position = Vec3(0, 0, -2)
-
-
-        other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None 
-
-        opt1 = get_primary_option_from_container(self.item, other_container)
-        update_primary_option(self.item, opt1)
-        opt2 = get_primary_option_from_container(other_item, my_container)
-        update_primary_option(other_item, opt2)
-
-        player = gs.pc
-        # Do the internal, non-graphical moves
         if network.is_main_client():
+            equipping_mine = other_container == "equipment"
+            equipping_other = my_container == "equipment"
+
+            # Make sure items can go to new locations if being equipped
+            if equipping_other and other_icon is not None:
+                other_item_slots = other_icon.get_item_slots()
+                if my_slot not in other_item_slots:
+                    return
+            if equipping_mine:
+                my_item_slots = self.get_item_slots()
+                if other_slot not in my_item_slots:
+                    self.position = Vec3(0, 0, -1)
+                    return
+
+            # Remove/add text if necessary:
+            if equipping_other and other_icon is None:
+                self.parent.label.text = my_slot
+            if equipping_mine:
+                other_box.label.text = ""
+
+            # Swap ItemSlots' ItemIcons
+            other_box.itemicon = self
+            self.parent.itemicon = other_icon
+
+            # Reparent and reposition icons
+            if other_icon is not None:
+                other_icon.parent = self.parent
+                other_icon.position = Vec3(0, 0, -2)
+
+            self.parent = other_box
+            self.position = Vec3(0, 0, -2)
+
+            # Set new top (left-click) functions
+            opt1 = get_primary_option_from_container(self.item, other_container)
+            update_primary_option(self.item, opt1)
+            opt2 = get_primary_option_from_container(other_item, my_container)
+            update_primary_option(other_item, opt2)
+
+            player = gs.pc
+            # Do the internal, non-graphical moves
             internal_move_item(player, self.item, other_container, other_slot,
                                old_container_n=my_container)
             internal_move_item(player, other_item, my_container, my_slot,
@@ -285,3 +293,51 @@ class ItemIcon(Entity):
         if slot is not None:
             return [slot]
         return iteminfo.get("slots", [])
+
+@rpc(network.peer)
+def remote_update_container(connection, time_received, name: str, container: InitContainer):
+    """Update internal containers and visual containers
+
+    Mimic most of the process in ItemIcon.swap_locs for hosts, but
+    this will only be done by non-hosts"""
+    if network.peer.is_hosting():
+        return
+    print(container)
+    internal_container = init_to_container(container)
+    itemwindow = ui.playerwindow.items
+    if name == "equipment":
+        ui_container = itemwindow.equipped_boxes
+        loop = internal_container.items()
+        gs.pc.equipment = default_equipment
+    elif name == "inventory":
+        ui_container = itemwindow.inventory_boxes
+        loop = ((int(i), item) for i, item in internal_container.items())
+        gs.pc.inventory = [None] * 24
+    for slot, item in loop:
+        box = ui_container[slot]
+        icon = item.icon
+        box.icon = icon
+        icon.parent = box
+        icon.position = Vec3(0, 0, -1)
+        new_primary_option = get_primary_option_from_container(item, name)
+        update_primary_option(item, new_primary_option)
+        getattr(gs.pc, name)[slot] = item
+
+
+@rpc(network.peer)
+def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
+    """Request host to swap items internally, host will send back updated container states"""
+    if not network.peer.is_hosting():
+        return
+    char = network.connection_to_char[connection]
+    if container1 == "inventory":
+        slot1 = int(slot1)
+    if container2 == "inventory":
+        slot2 = int(slot2)
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+    internal_move_item(char, item1, container2, slot2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
+    for name in set([container1, container2]):
+        container = container_to_init(getattr(char, name))
+        network.peer.remote_update_container(connection, name, container)
