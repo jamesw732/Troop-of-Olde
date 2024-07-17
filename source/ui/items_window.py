@@ -2,7 +2,7 @@ from ursina import *
 import copy
 
 from .base import *
-from ..base import default_equipment
+from ..base import default_equipment, default_inventory
 from ..gamestate import gs
 from ..item import *
 from ..networking.base import network
@@ -56,15 +56,15 @@ class ItemsWindow(Entity):
                                         scale=(sq_size * 4, sq_size * 7 * square_ratio))
 
         self.inventory_positions = [(i / 4, -j / 7, -1) for j in range(6) for i in range(4)]
-        self.inventory_boxes = [ItemBox(slot=i, container_name="inventory",
+        self.inventory_boxes = {str(i): ItemBox(slot=str(i), container_name="inventory",
                                         parent=self.inventory_subframe,
                                         position=pos, scale=(1/4, 1/7), color=slot_color)
-                                for i, pos in enumerate(self.inventory_positions)]
+                                for i, pos in enumerate(self.inventory_positions)}
 
         # Eventually, don't grid whole equipped, just do a 1x1 grid on each slot
         for slot in self.equipped_boxes.values():
             grid(slot, num_rows=1, num_cols=1, color=color.black)
-        for slot in self.inventory_boxes:
+        for slot in self.inventory_boxes.values():
             grid(slot, num_rows=1, num_cols=1, color=color.black)
 
         self.item_icons = []
@@ -73,7 +73,7 @@ class ItemsWindow(Entity):
 
     def make_char_items(self):
         """Reads player inventory and equipment and outputs to UI"""
-        for i, item in enumerate(self.player.inventory):
+        for i, item in self.player.inventory.items():
             self.make_item_icon(item, self.inventory_boxes[i])
         for k, item in self.player.equipment.items():
             if item is not None:
@@ -103,7 +103,7 @@ class ItemsWindow(Entity):
     def enable_colliders(self):
         for box in self.equipped_boxes.values():
             box.collision = True
-        for box in self.inventory_boxes:
+        for box in self.inventory_boxes.values():
             box.collision = True
         for icon in self.item_icons:
             icon.collision = True
@@ -111,7 +111,7 @@ class ItemsWindow(Entity):
     def disable_colliders(self):
         for box in self.equipped_boxes.values():
             box.collision = False
-        for box in self.inventory_boxes:
+        for box in self.inventory_boxes.values():
             box.collision = False
         for icon in self.item_icons:
             icon.collision = False
@@ -266,13 +266,21 @@ class ItemIcon(Entity):
         """Automatically find an inventory slot to unequip this item to, then unequip it.
         Looks in all possible slots in inventory for the item, if any are empty, unequip and
         put the item there. If none are empty, then don't unequip."""
-        inventory_icons = [s.itemicon for s in self.window.inventory_boxes]
+        # inventory_icons = [s.itemicon for s in self.window.inventory_boxes.values()]
+        # try:
+        #     first_empty_idx = inventory_icons.index(None)
+        # except ValueError:
+        #     return
+        boxes = self.window.inventory_boxes
+        empty_slots = (str(slot) for slot in range(24) if boxes[str(slot)].itemicon is None)
+        # icon_gen = ((slot, box) for slot, box in self.window.inventory_boxes.items()
+        #             if box.itemicon is None)
         try:
-            first_empty_idx = inventory_icons.index(None)
-        except ValueError:
+            first_empty_slot = next(empty_slots)
+        except StopIteration:
             return
-        empty_slot = self.window.inventory_boxes[first_empty_idx]
-        self.swap_locs(other_box=empty_slot)
+        empty_box = self.window.inventory_boxes[first_empty_slot]
+        self.swap_locs(other_box=empty_box)
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""
@@ -296,12 +304,12 @@ def remote_update_container(connection, time_received, name: str, container: Ini
     itemwindow = ui.playerwindow.items
     if name == "equipment":
         ui_container = itemwindow.equipped_boxes
-        gs.pc.equipment = copy.deepcopy(default_equipment)
+        gs.pc.equipment = copy.copy(default_equipment)
         loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.equipment.items())
     elif name == "inventory":
         ui_container = itemwindow.inventory_boxes
-        gs.pc.inventory = [None] * 24
-        loop = ((i, internal_container.get(str(i), None)) for i, item in enumerate(gs.pc.inventory))
+        gs.pc.inventory = copy.copy(default_inventory)
+        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.inventory.items())
     for slot, item in loop:
         box = ui_container[slot]
         if item is None:
@@ -326,10 +334,6 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
     if not network.peer.is_hosting():
         return
     char = network.connection_to_char[connection]
-    if container1 == "inventory":
-        slot1 = int(slot1)
-    if container2 == "inventory":
-        slot2 = int(slot2)
     item1 = getattr(char, container1)[slot1]
     item2 = getattr(char, container2)[slot2]
     internal_move_item(char, item1, container2, slot2, container1)
@@ -342,8 +346,6 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
 @rpc(network.peer)
 def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
     """Request host to automatically equip a given item."""
-    if old_container == "inventory":
-        old_slot = int(old_slot)
     char = network.connection_to_char[connection]
     item = network.uiid_to_item[itemid]
     new_slot = find_first_empty_equip(item, char)

@@ -90,6 +90,7 @@ default_equipment = {
     "ammo": None,
 }
 
+default_inventory = {f'{i}': None for i in range(24)}
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))

@@ -111,8 +111,8 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
         # Send over instantiated item id's
-        inst_inventory = InitContainer({str(i): item.uiid for i, item
-                          in enumerate(char.inventory) if item is not None})
+        inst_inventory = InitContainer({k: item.uiid for k, item
+                          in char.inventory.items() if item is not None})
         inst_equipment = InitContainer({k: item.uiid for k, item
                           in char.equipment.items() if item is not None})
         network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
@@ -140,9 +140,9 @@ def bind_pc(connection, time_received, uuid: int):
 
 @rpc(network.peer)
 def bind_pc_items(connection, time_received, inventory: InitContainer, equipment: InitContainer):
-    for i, uiid in inventory.items():
-        gs.pc.inventory[int(i)].uiid = uiid
-        network.uiid_to_item[uiid] = gs.pc.inventory[int(i)]
+    for k, uiid in inventory.items():
+        gs.pc.inventory[k].uiid = uiid
+        network.uiid_to_item[uiid] = gs.pc.inventory[k]
     for k, uiid in equipment.items():
         gs.pc.equipment[k].uiid = uiid
         network.uiid_to_item[uiid] = gs.pc.equipment[k]

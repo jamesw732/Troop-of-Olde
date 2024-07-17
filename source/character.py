@@ -3,7 +3,7 @@ logic."""
 from ursina import *
 import json
 
-from .base import sqdist, default_cb_attrs, default_phys_attrs, default_equipment
+from .base import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
 from .combat import progress_mh_combat_timer, progress_oh_combat_timer
 from .networking.base import network
 from .physics import handle_movement
@@ -20,7 +20,7 @@ class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
                  pstate=None, base_state=None,
                  complete_cb_state=None, mini_state=None,
-                 equipment={}, inventory=[]):
+                 equipment={}, inventory={}):
         """Initializes a character using a PhysicalState and one type of combat state.
         These options are explained below.
 
@@ -65,13 +65,12 @@ class Character(Entity):
         # Combat attrs
         self._init_cb_attrs()
         if inventory and self.type == "player":
-            if isinstance(inventory, InitContainer):
-               for i, itemid in inventory.items():
-                    self.inventory[int(i)] = Item(itemid)
-            elif isinstance(inventory, list):
-               for i, item in enumerate(inventory):
-                    # Assumes inventory is at most length 24 and gaps are filled with None
-                    self.inventory[i] = item
+            for slot, item in inventory.items():
+                if isinstance(item, (int, str)):
+                    # handle it as an id
+                    self.inventory[slot] = Item(str(item))
+                else:
+                    self.inventory[slot] = item
         # Full creation of character from the ground up
         if base_state:
             apply_base_state(self, base_state)
@@ -164,7 +163,7 @@ class Character(Entity):
         self.equipment = copy(default_equipment)
 
     def _init_inventory(self):
-        self.inventory = [None] * 24
+        self.inventory = copy(default_inventory)
 
     def _update_sec_phys_attrs(self):
         """Adjust secondary physical attributes to state changes.
