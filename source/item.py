@@ -103,6 +103,7 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
 
 
 def get_primary_option_from_container(item, container):
+    """Get intended primary option of an item based on where it is"""
     if item is None or container is None:
         return ""
     if container == "equipment":
