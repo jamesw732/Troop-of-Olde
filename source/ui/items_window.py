@@ -255,7 +255,7 @@ class ItemIcon(Entity):
         If none are empty, equip to the first slot."""
         # Find the right slot
         # First, just look for "slot"
-        if network.peer.is_hosting():
+        if network.is_main_client():
             slot = find_first_empty_equip(self.item, gs.pc)
             self.swap_locs(other_box=self.window.equipped_boxes[slot])
         else:
@@ -353,4 +353,3 @@ def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old
     for name in set(["equipment", old_container]):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
-                                    
