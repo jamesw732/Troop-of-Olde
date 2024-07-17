@@ -255,8 +255,12 @@ class ItemIcon(Entity):
         If none are empty, equip to the first slot."""
         # Find the right slot
         # First, just look for "slot"
-        slot = find_first_empty_equip(self.item, gs.pc)
-        self.swap_locs(other_box=self.window.equipped_boxes[slot])
+        if network.peer.is_hosting():
+            slot = find_first_empty_equip(self.item, gs.pc)
+            self.swap_locs(other_box=self.window.equipped_boxes[slot])
+        else:
+            conn = network.peer.get_connections()[0]
+            network.peer.remote_auto_equip(conn, self.item.uiid, str(self.parent.slot), self.parent.container_name)
 
     def auto_unequip(self):
         """Automatically find an inventory slot to unequip this item to, then unequip it.
@@ -333,3 +337,20 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
     for name in set([container1, container2]):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
+
+
+@rpc(network.peer)
+def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
+    """Request host to automatically equip a given item."""
+    if old_container == "inventory":
+        old_slot = int(old_slot)
+    char = network.connection_to_char[connection]
+    item = network.uiid_to_item[itemid]
+    new_slot = find_first_empty_equip(item, char)
+    other_item = char.equipment[new_slot]
+    internal_move_item(char, item, "equipment", new_slot, old_container)
+    internal_move_item(char, other_item, old_container, old_slot, "equipment")
+    for name in set(["equipment", old_container]):
+        container = container_to_init(getattr(char, name))
+        network.peer.remote_update_container(connection, name, container)
+                                    
