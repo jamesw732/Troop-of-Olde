@@ -4,6 +4,8 @@ import json
 import copy
 
 from .networking.base import network
+# This import might be a problem eventually
+from .states.container import container_to_init
 from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
 
 """
@@ -71,6 +73,37 @@ with open(items_file) as items:
     items_dict = json.load(items)
 
 
+class Item(dict):
+    type_to_options = {
+        "weapon": ["equip", "expunge"],
+        "equipment": ["equip", "expunge"]
+    }
+    option_to_meth = {
+        "equip": "auto_equip",
+        "unequip": "auto_unequip"
+    }
+
+    def __init__(self, id):
+        """An Item represents the internal state of an in-game item. It is mostly just a dict.
+        id: items_dict key, int or str (gets casted to a str)
+        See JSON structure for valid kwargs"""
+        id = str(id)
+        self.id = id
+        self.icon = None
+        data = items_dict[id]
+
+        super().__init__(**data)
+        # Need to be careful with assigning mutable objects
+        if self["type"] in ["weapon", "equipment"]:
+            self["stats"] = StatChange(**self.get("stats", {}))
+        if "functions" not in self:
+            self['functions'] = copy.copy(self.type_to_options.get(self["type"], []))
+        if network.peer.is_hosting():
+            self.uiid = network.uiid_counter
+            network.uiid_to_item[network.uiid_counter] = self
+            network.uiid_counter += 1
+
+
 def equip_many_items(char, itemsdict):
     """Magically equips all items in itemsdict. Use this only when characters enter world.
     char: Character
@@ -78,7 +111,6 @@ def equip_many_items(char, itemsdict):
     for slot, item in itemsdict.items():
         internal_move_item(char, item, "equipment", slot, old_container_n="nowhere")
         update_primary_option(item, "unequip")
-
 
 def internal_move_item(char, item, new_container_n, new_slot, old_container_n="inventory"):
     """Move an item internally from old_container_n to new_container_n
@@ -142,33 +174,48 @@ def find_first_empty_equip(item, char):
             slot = slots[0]
     return slot
 
+def find_first_empty_inventory(char):
+    invent = char.inventory
+    empty_slots = (str(slot) for slot in range(24) if invent[str(slot)] is None)
+    try:
+        return next(empty_slots)
+    except StopIteration:
+        return ""
 
-class Item(dict):
-    type_to_options = {
-        "weapon": ["equip", "expunge"],
-        "equipment": ["equip", "expunge"]
-    }
-    option_to_meth = {
-        "equip": "auto_equip",
-        "unequip": "auto_unequip"
-    }
+def host_swap(char, container1, slot1, container2, slot2):
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+    internal_move_item(char, item1, container2, slot2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
 
-    def __init__(self, id):
-        """An Item represents the internal state of an in-game item. It is mostly just a dict.
-        id: items_dict key, int or str (gets casted to a str)
-        See JSON structure for valid kwargs"""
-        id = str(id)
-        self.id = id
-        self.icon = None
-        data = items_dict[id]
+@rpc(network.peer)
+def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
+    """Request host to swap items internally, host will send back updated container states"""
+    if not network.peer.is_hosting():
+        return
+    char = network.connection_to_char[connection]
+    host_swap(char, container1, slot1, container2, slot2)
+    for name in set([container1, container2]):
+        container = container_to_init(getattr(char, name))
+        network.peer.remote_update_container(connection, name, container)
 
-        super().__init__(**data)
-        # Need to be careful with assigning mutable objects
-        if self["type"] in ["weapon", "equipment"]:
-            self["stats"] = StatChange(**self.get("stats", {}))
-        if "functions" not in self:
-            self['functions'] = copy.deepcopy(self.type_to_options.get(self["type"], []))
-        if network.peer.is_hosting():
-            self.uiid = network.uiid_counter
-            network.uiid_to_item[network.uiid_counter] = self
-            network.uiid_counter += 1
+@rpc(network.peer)
+def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
+    """Request host to automatically equip a given item."""
+    char = network.connection_to_char[connection]
+    item = network.uiid_to_item[itemid]
+    new_slot = find_first_empty_equip(item, char)
+    host_swap(char, old_container, old_slot, "equipment", new_slot)
+    for name in set([old_container, "equipment"]):
+        container = container_to_init(getattr(char, name))
+        network.peer.remote_update_container(connection, name, container)
+
+@rpc(network.peer)
+def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
+    """Request host to automatically unequip a given item."""
+    char = network.connection_to_char[connection]
+    new_slot = find_first_empty_inventory(char)
+    host_swap(char, "equipment", old_slot, "inventory", new_slot)
+    for name in ["equipment", "inventory"]:
+        container = container_to_init(getattr(char, name))
+        network.peer.remote_update_container(connection, name, container)
