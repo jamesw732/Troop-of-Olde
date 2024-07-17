@@ -200,21 +200,21 @@ class ItemIcon(Entity):
         other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None
         my_container = self.parent.container_name
         my_slot = self.parent.slot
+        equipping_mine = other_container == "equipment"
+        equipping_other = my_container == "equipment"
+
+        # Make sure items can go to new locations if being equipped
+        if equipping_other and other_icon is not None:
+            other_item_slots = other_icon.get_item_slots()
+            if my_slot not in other_item_slots:
+                return
+        if equipping_mine:
+            my_item_slots = self.get_item_slots()
+            if other_slot not in my_item_slots:
+                self.position = Vec3(0, 0, -1)
+                return
+
         if network.is_main_client():
-            equipping_mine = other_container == "equipment"
-            equipping_other = my_container == "equipment"
-
-            # Make sure items can go to new locations if being equipped
-            if equipping_other and other_icon is not None:
-                other_item_slots = other_icon.get_item_slots()
-                if my_slot not in other_item_slots:
-                    return
-            if equipping_mine:
-                my_item_slots = self.get_item_slots()
-                if other_slot not in my_item_slots:
-                    self.position = Vec3(0, 0, -1)
-                    return
-
             # Remove/add text if necessary:
             if equipping_other and other_icon is None:
                 self.parent.label.text = my_slot
