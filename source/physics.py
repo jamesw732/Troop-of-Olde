@@ -26,7 +26,7 @@ def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
     if not char.grounded and not char.jumping:
-        grav -= Vec3(0, 0.75, 0)
+        grav -= Vec3(0, 75 * time.dt, 0)
     elif char.grounded:
         grav = Vec3(0, 0, 0)
     char.velocity_components["gravity"] = grav
