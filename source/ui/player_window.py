@@ -143,8 +143,10 @@ class PlayerWindow(Entity):
             # Will likely need to add colliders for lexicon and inventory eventually
 
     def disable_colliders(self):
-        self.parent.collision = False
         self.collision = False
+        for child in [self.items, self.stats]:
+            child.disable_colliders()
+        self.parent.collision = False
         self.itemsbutton.collision = False
         self.lexbutton.collision = False
         self.skillsbutton.collision = False
