@@ -2,10 +2,14 @@ from ..networking.base import network
 from ..base import default_equipment
 
 class InitContainer(dict):
-    """Use this class to initialize containers upon login
+    """This class represents any container encoded with item id's or item uiid's.
 
-    Structure may be misleading, use the JSON for types - keys are always
-    strings and values are always ints."""
+    The meaning of the values is ambiguous - they are always ints, but can reference
+    stored item ids (from items.json) or instantiated item ids (Item.uiid). Conversion
+    of ids to Items is left up to the programmer, but init_to_container and
+    container_to_init are intended for use with uiid's (renaming might be appropriate)
+    Every container is assumed to be a dict or a list of 2-typles keyed by strings and
+    valued by ints."""
     def __init__(self, container={}):
         """Initialize InitContainer.
 
