@@ -14,13 +14,14 @@ from .states.cbstate_base import BaseCombatState, apply_base_state
 from .states.cbstate_mini import apply_mini_state
 from .states.container import InitContainer
 from .states.physicalstate import PhysicalState, apply_physical_state
+from .states.skills import SkillState
 from .ui.main import ui
 
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
                  pstate=None, base_state=None,
                  complete_cb_state=None, mini_state=None,
-                 equipment={}, inventory={}):
+                 equipment={}, inventory={}, skills={}):
         """Initializes a character using a PhysicalState and one type of combat state.
         These options are explained below.
 
@@ -90,6 +91,8 @@ class Character(Entity):
         # Host created a character that isn't mine
         elif mini_state:
             apply_mini_state(self, mini_state)
+
+        self.skills = skills
 
     def update(self):
         """Character updates which happen every frame"""
@@ -279,6 +282,7 @@ class NameLabel(Text):
 
 
 def get_character_states_from_json(pname):
+    """Does all the work needed to get inputs to Character from a player in players.json"""
     players_path = os.path.join(os.path.dirname(__file__), "..", "data", "players.json")
     with open(players_path) as players:
         d = json.load(players)[pname]
@@ -289,14 +293,16 @@ def get_character_states_from_json(pname):
     basestate_raw = d.get("basestate", {})
     equipment_raw = d.get("equipment", {})
     inventory_raw = d.get("inventory", {})
+    skills_raw = d.get("skills", {})
     pstate = PhysicalState(**pstate_raw)
     pstate["cname"] = pname
     basestate = BaseCombatState(**basestate_raw)
     equipment = InitContainer(equipment_raw)
     inventory = InitContainer(inventory_raw)
-    return pstate, basestate, equipment, inventory
+    skills = SkillState(skills_raw)
+    return pstate, basestate, equipment, inventory, skills
 
 def load_character_from_json(pname):
-    pstate, basestate, equipment, inventory = get_character_states_from_json(pname)
+    pstate, basestate, equipment, inventory, skills = get_character_states_from_json(pname)
     return Character(cname=pname, pstate=pstate, base_state=basestate,
-                        equipment=equipment, inventory=inventory)
+                        equipment=equipment, inventory=inventory, skills=skills)

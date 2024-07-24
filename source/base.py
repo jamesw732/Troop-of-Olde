@@ -92,6 +92,38 @@ default_equipment = {
 
 default_inventory = {f'{i}': None for i in range(24)}
 
+all_skills = {
+    # Melee styles
+    "1h slash",
+    "1h pierce",
+    "1h blunt",
+    "1h cleave",
+    "2h slash",
+    "2h pierce",
+    "2h blunt",
+    "2h cleave",
+    "fists",
+    # Defensive
+    "parry",
+    "dodge",
+    "shields",
+    # Melee "extra"
+    "critical hit",
+    "double attack",
+    "triple attack",
+
+}
+
+"""
+Eventual Skills:
+riposte
+maul,
+enchantment,
+curse,
+necromancy,
+transformation,
+"""
+
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
