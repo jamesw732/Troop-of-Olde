@@ -110,6 +110,7 @@ all_skills = [    # Melee styles
     "critical hit",
     "double attack",
     "triple attack",
+    "dual wield"
 ]
 
 """

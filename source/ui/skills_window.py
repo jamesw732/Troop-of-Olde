@@ -13,13 +13,16 @@ class SkillsWindow(Entity):
         tw_abs = self.text_size[0] * Text.size * .61
         th_abs = self.text_size[1] * Text.size
         # Text height relative to frame
-        self.tw_rel = tw_abs / self.world_scale_x / 0.46
-        self.th_rel = th_abs / self.world_scale_y
+        tw_rel = tw_abs / self.world_scale_x / 0.46
+        th_rel = th_abs / self.world_scale_y
+
         self.subheader_size = Vec2(18, 18)
         # subheader height relative to frame
-        self.subheader_h = 1.5 * self.th_rel
+        self.subheader_h = 1.5 * th_rel
         # Max number of characters
-        self.max_chars = int(1 / self.tw_rel)
+        self.max_chars = int(1 / tw_rel)
+        # Amount to separate each line of text
+        self.step = 1.1 * th_rel
 
         self.labels = {}
 
@@ -38,6 +41,7 @@ class SkillsWindow(Entity):
             "critical hit",
             "double attack",
             "triple attack",
+            "dual wield"
         ]
         self.def_skills = [
             "parry",
@@ -46,6 +50,7 @@ class SkillsWindow(Entity):
         ]
 
         self.write_wep_styles()
+        self.write_off_skills()
 
     def format_text(self, fmt, *args):
         first_part = fmt[0]
@@ -66,9 +71,16 @@ class SkillsWindow(Entity):
         Text(text='Wpn Styles', parent=self, origin=(0, 0), world_scale=self.subheader_size,
              position=(0.25, -self.subheader_h, -1))
         offset = -0.02 - self.subheader_h * 1.5
-        step = 1.1 * self.th_rel
         for i, skill in enumerate(self.wep_style_skills):
-            position=(0.02, offset - step * i, -1)
+            position = (0.02, offset - self.step * i, -1)
+            self.create_label(skill, position)
+
+    def write_off_skills(self):
+        Text(text='Offensive Skills', parent=self, origin=(0, 0), world_scale=self.subheader_size,
+             position=(0.75, -self.subheader_h, -1))
+        offset = -0.02 - self.subheader_h * 1.5
+        for i, skill in enumerate(self.off_skills):
+            position = (0.52, offset - self.step * i, -1)
             self.create_label(skill, position)
 
     def set_label_text(self, skill):
