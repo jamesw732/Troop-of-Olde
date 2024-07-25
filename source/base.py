@@ -92,8 +92,7 @@ default_equipment = {
 
 default_inventory = {f'{i}': None for i in range(24)}
 
-all_skills = {
-    # Melee styles
+all_skills = [    # Melee styles
     "1h slash",
     "1h pierce",
     "1h blunt",
@@ -111,8 +110,7 @@ all_skills = {
     "critical hit",
     "double attack",
     "triple attack",
-
-}
+]
 
 """
 Eventual Skills:
