@@ -47,10 +47,18 @@ class SkillsWindow(Entity):
             "parry",
             "dodge",
             "shields",
+            "riposte",
+        ]
+        self.cast_skills = [
+            "enchantment",
+            "curse",
+            "necromancy",
+            "transformation",
         ]
 
         self.write_wep_styles()
         self.write_off_skills()
+        self.write_def_skills()
 
     def format_text(self, fmt, *args):
         first_part = fmt[0]
@@ -80,6 +88,15 @@ class SkillsWindow(Entity):
              position=(0.75, -self.subheader_h, -1))
         offset = -0.02 - self.subheader_h * 1.5
         for i, skill in enumerate(self.off_skills):
+            position = (0.52, offset - self.step * i, -1)
+            self.create_label(skill, position)
+
+    def write_def_skills(self):
+        header_h = -0.02 - 2.5 * self.subheader_h - self.step * len(self.off_skills)
+        Text(text='Defensive Skills', parent=self, origin=(0, 0), world_scale=self.subheader_size,
+             position=(0.75, header_h, -1))
+        offset = -0.02 + header_h - self.subheader_h * 0.5
+        for i, skill in enumerate(self.def_skills):
             position = (0.52, offset - self.step * i, -1)
             self.create_label(skill, position)
 
