@@ -102,26 +102,24 @@ all_skills = [    # Melee styles
     "2h blunt",
     "2h cleave",
     "fists",
+    "maul",
     # Defensive
     "parry",
     "dodge",
     "shields",
+    "riposte",
     # Melee "extra"
     "critical hit",
     "double attack",
     "triple attack",
-    "dual wield"
+    "dual wield",
+    # Casting styles
+    "enchantment",
+    "curse",
+    "necromancy",
+    "transformation",
 ]
 
-"""
-Eventual Skills:
-riposte
-maul,
-enchantment,
-curse,
-necromancy,
-transformation,
-"""
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
