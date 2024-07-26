@@ -59,6 +59,7 @@ class SkillsWindow(Entity):
         self.write_wep_styles()
         self.write_off_skills()
         self.write_def_skills()
+        self.write_cast_skills()
 
     def format_text(self, fmt, *args):
         first_part = fmt[0]
@@ -76,10 +77,19 @@ class SkillsWindow(Entity):
         self.labels[skill].fmt = fmt
 
     def write_wep_styles(self):
-        Text(text='Wpn Styles', parent=self, origin=(0, 0), world_scale=self.subheader_size,
+        Text(text='Weapon Styles', parent=self, origin=(0, 0), world_scale=self.subheader_size,
              position=(0.25, -self.subheader_h, -1))
         offset = -0.02 - self.subheader_h * 1.5
         for i, skill in enumerate(self.wep_style_skills):
+            position = (0.02, offset - self.step * i, -1)
+            self.create_label(skill, position)
+
+    def write_cast_skills(self):
+        header_h = -0.02 - 2.5 * self.subheader_h - self.step * len(self.wep_style_skills)
+        Text(text='Casting Skills', parent=self, origin=(0, 0), world_scale=self.subheader_size,
+             position=(0.25, header_h, -1))
+        offset = -0.02 + header_h - self.subheader_h * 0.5
+        for i, skill in enumerate(self.cast_skills):
             position = (0.02, offset - self.step * i, -1)
             self.create_label(skill, position)
 
