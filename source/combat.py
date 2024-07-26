@@ -4,6 +4,7 @@ import random
 
 from .base import sigmoid, sqdist, fists_base_dmg, style_to_method
 from .networking.base import network
+from .states.skills import attempt_raise_skill
 from .ui.main import ui
 
 # PUBLIC
@@ -76,6 +77,7 @@ def attempt_melee_hit(src, tgt, slot):
         dmg = random.randint(min_hit, max_hit)
         hitstring = get_melee_hit_string(src, tgt, style=style, dmg=dmg)
         reduce_health(tgt, dmg)
+        attempt_raise_skill(src, style, prob=0.5)
     ui.gamewindow.add_message(hitstring)
     # Broadcast the hit info to all peers, if host
     network.broadcast(network.peer.remote_print, hitstring)

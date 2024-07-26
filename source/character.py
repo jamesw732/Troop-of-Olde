@@ -62,7 +62,8 @@ class Character(Entity):
         self._init_lerp_attrs()
 
         self._init_equipment()
-        self._init_inventory()
+        if type == 'player':
+            self._init_inventory()
         # Combat attrs
         self._init_cb_attrs()
         if inventory and self.type == "player":
