@@ -111,7 +111,10 @@ class SkillsWindow(Entity):
             self.create_label(skill, position)
 
     def set_label_text(self, skill):
-        pass
+        label = self.labels[skill]
+        fmt = label.fmt
+        txt = self.format_text(fmt, gs.pc.skills[skill])
+        label.text = txt
 
     def enable_colliders(self):
         pass
