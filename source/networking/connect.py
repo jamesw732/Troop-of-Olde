@@ -15,6 +15,7 @@ from ..states.cbstate_mini import MiniCombatState, serialize_mini_state, deseria
 from ..states.container import InitContainer, serialize_init_container, deserialize_init_container
 from ..states.physicalstate import PhysicalState, serialize_physical_state, deserialize_physical_state
 from ..states.stat_change import StatChange, serialize_stat_change, deserialize_stat_change
+from ..states.skills import SkillState, serialize_skill_state, deserialize_skill_state
 
 # Actually register the states as types sendable over the network
 network.peer.register_type(PhysicalState, serialize_physical_state,
@@ -27,6 +28,7 @@ network.peer.register_type(InitContainer, serialize_init_container, deserialize_
 network.peer.register_type(MiniCombatState, serialize_mini_state,
                            deserialize_mini_state)
 network.peer.register_type(StatChange, serialize_stat_change, deserialize_stat_change)
+network.peer.register_type(SkillState, serialize_skill_state, deserialize_skill_state)
 
 
 def input(key):
@@ -38,10 +40,10 @@ def input(key):
         if key == "h":
             network.peer.start("localhost", 8080, is_host=True)
             pname = "Demo Player"
-            pstate, basestate, equipment, inventory = \
+            pstate, basestate, equipment, inventory, skills = \
                 get_character_states_from_json(pname)
             char = Character(pstate=pstate, base_state=basestate, equipment=equipment,
-                             inventory=inventory)
+                             inventory=inventory, skills=skills)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
             char.uuid = network.my_uuid
@@ -75,18 +77,19 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
         gs.pname = "Demo Player"
-        pstate, base_state, equipment, inventory = \
+        pstate, base_state, equipment, inventory, skills = \
             get_character_states_from_json(gs.pname)
-        gs.pc = Character(pstate=pstate, base_state=base_state, equipment=equipment, inventory=inventory)
-        network.peer.request_enter_world(connection, pstate, base_state, equipment, inventory)
+        gs.pc = Character(pstate=pstate, base_state=base_state,
+                          equipment=equipment, inventory=inventory, skills=skills)
+        network.peer.request_enter_world(connection, pstate, base_state, equipment, inventory, skills)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: InitContainer,
-                        inventory: InitContainer):
+                        inventory: InitContainer, skills: SkillState):
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state,
-                         equipment=equipment, inventory=inventory)
+                         equipment=equipment, inventory=inventory, skills=skills)
         char.uuid = network.uuid_counter
         network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
