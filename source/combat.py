@@ -1,4 +1,4 @@
-from ursina import time, ceil
+from ursina import *
 from ursina.networking import rpc
 import random
 
@@ -14,7 +14,7 @@ def progress_mh_combat_timer(char):
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
     if char.mh_combat_timer > char.max_mh_combat_timer:
         char.mh_combat_timer -= char.max_mh_combat_timer
-        if get_target_hittable(char):
+        if get_target_hittable(char, 'mh'):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target, "mh")
             else:
@@ -30,7 +30,7 @@ def progress_oh_combat_timer(char):
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
     if char.oh_combat_timer > char.max_oh_combat_timer:
         char.oh_combat_timer -= char.max_oh_combat_timer
-        if get_target_hittable(char):
+        if get_target_hittable(char, 'oh'):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target, "oh")
             else:
@@ -109,7 +109,40 @@ def remote_death(connection, time_received, char_uuid: int):
     if char:
         char.die()
 
-def get_target_hittable(char):
+def get_target_hittable(char, wpn_slot):
     """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
-    in_range = sqdist(char.position, char.target.position) < char.attackrange ** 2
-    return in_range and char.get_tgt_los(char.target)
+    if not char.get_tgt_los(char.target):
+        ui.gamewindow.add_message(f"You can't see {char.target.cname}.")
+        return False
+    atk_range = get_attack_range(char, wpn_slot)
+    # use center rather than center of feet
+    pos_src = char.position + Vec3(0, char.scale_y / 2, 0)
+    pos_tgt = char.target.position + Vec3(0, char.target.scale_y / 2, 0)
+    ray_dir = pos_tgt - pos_src
+    ray_dist = distance(pos_tgt, pos_src)
+    # Draw a line between the two
+    line1 = raycast(pos_src, direction=ray_dir, distance=ray_dist,
+                   traverse_target=char)
+    line2 = raycast(pos_tgt, direction=-ray_dir, distance=ray_dist,
+                    traverse_target=char.target)
+    if not line1.hit or not line2.hit:
+        return True
+    point1 = line1.world_point
+    point2 = line2.world_point
+
+    inner_distance = distance(point1, point2)
+    in_range = inner_distance <= atk_range
+    if in_range:
+        return True
+    else:
+        ui.gamewindow.add_message(f"{char.target.cname} is out of range!")
+        return False
+
+
+def get_attack_range(char, wpn_slot):
+    """Equivalent to char.equipment[wpn_slot]['info']['range'] with some precautions"""
+    wpn = char.equipment[wpn_slot]
+    if wpn is None:
+        return 1
+    info = wpn.get('info', {})
+    return info.get('range', 1)

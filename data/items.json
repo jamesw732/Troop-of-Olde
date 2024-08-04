@@ -5,7 +5,7 @@
         "info": {
             "dmg": 5,
             "delay": 1,
-            "range": 3,
+            "range": 2,
             "style": "1h slash",
             "slots": ["mh", "oh"]
         },
@@ -19,8 +19,8 @@
         "type": "weapon",
         "info": {
             "dmg": 9,
-            "delay": 1,
-            "range": 5,
+            "delay": 2,
+            "range": 3,
             "style": "1h slash",
             "slots": ["mh", "oh"]
         },

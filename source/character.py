@@ -129,6 +129,7 @@ class Character(Entity):
                 mh_is_1h = self.equipment["mh"] is None \
                     or self.equipment["mh"]["info"]["style"][:2] == "1h"
                 offhand = self.equipment["oh"]
+                # basically just check if not wearing a shield
                 dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
                 if dual_wielding:
                     progress_oh_combat_timer(self)
