@@ -27,6 +27,11 @@ def raise_skill(char, skill):
         connection = network.uuid_to_connection[char.uuid]
         network.peer.remote_raise_skill(connection, skill)
 
+@rpc(network.peer)
+def remote_raise_skill(connection, time_received, skill: str):
+    raise_skill(gs.pc, skill)
+    ui.playerwindow.skills.set_label_text(skill)
+
 def serialize_skill_state(writer, state):
     for k, v in state.items():
         writer.write(k)
@@ -42,8 +47,3 @@ def deserialize_skill_state(reader):
         v = reader.read(int)
         state[k] = v
     return state
-
-@rpc(network.peer)
-def remote_raise_skill(connection, time_received, skill: str):
-    char = network.connection_to_char[connection]
-    raise_skill(char, skill)
