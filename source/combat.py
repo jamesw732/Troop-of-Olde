@@ -12,8 +12,9 @@ def progress_mh_combat_timer(char):
     """Increment combat timer by dt. If past max, attempt a melee hit."""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
-    if char.mh_combat_timer > char.max_mh_combat_timer:
-        char.mh_combat_timer -= char.max_mh_combat_timer
+    delay = get_wpn_delay(char, 'mh')
+    if char.mh_combat_timer > delay:
+        char.mh_combat_timer -= delay
         if get_target_hittable(char, 'mh'):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target, "mh")
@@ -28,8 +29,9 @@ def progress_oh_combat_timer(char):
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     # * dw_skill / rec_level if slot == oh else 1
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
-    if char.oh_combat_timer > char.max_oh_combat_timer:
-        char.oh_combat_timer -= char.max_oh_combat_timer
+    delay = get_wpn_delay(char, 'oh')
+    if char.oh_combat_timer > delay:
+        char.oh_combat_timer -= delay
         if get_target_hittable(char, 'oh'):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target, "oh")
@@ -138,7 +140,6 @@ def get_target_hittable(char, wpn_slot):
         ui.gamewindow.add_message(f"{char.target.cname} is out of range!")
         return False
 
-
 def get_attack_range(char, wpn_slot):
     """Equivalent to char.equipment[wpn_slot]['info']['range'] with some precautions"""
     wpn = char.equipment[wpn_slot]
@@ -146,3 +147,11 @@ def get_attack_range(char, wpn_slot):
         return 1
     info = wpn.get('info', {})
     return info.get('range', 1)
+
+def get_wpn_delay(char, wpn_slot):
+    """Equivalent to char.equipment[wpn_slot]['info']['delay'] with some precautions"""
+    wpn = char.equipment[wpn_slot]
+    if wpn is None:
+        return 1
+    info = wpn.get('info', {})
+    return info.get('delay', 1)
