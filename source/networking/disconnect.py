@@ -20,6 +20,8 @@ def on_disconnect(connection, time_received):
             destroy(char)
             # Character.on_destroy handles most of the rest
             del network.connection_to_char[connection]
+            del network.uuid_to_char[uuid]
+            del network.uuid_to_connection[uuid]
             network.broadcast(network.peer.remote_remove_char, uuid)
     # The host disconnected
     else:

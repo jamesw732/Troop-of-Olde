@@ -10,6 +10,7 @@ class Network:
 
         self.uuid_to_char = dict()
         self.connection_to_char = dict()
+        self.uuid_to_connection = dict()
         self.uiid_to_item = dict()
 
         # uuid is more like a unique character id, npc's get them too

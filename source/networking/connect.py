@@ -71,8 +71,9 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
         char = Character(pstate=new_pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory, skills=skills)
         char.uuid = network.uuid_counter
-        network.uuid_to_char[char.uuid] = char
         network.uuid_counter += 1
+        network.uuid_to_char[char.uuid] = char
+        network.uuid_to_connection[char.uuid] = connection
         gs.chars.append(char)
         network.connection_to_char[connection] = char
         network.peer.generate_world(connection, "demo.json")
