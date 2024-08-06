@@ -227,6 +227,8 @@ class Character(Entity):
 
     def on_destroy(self):
         """Upon being destroyed, remove all references to objects attached to this character"""
+        if network.peer.is_running() and self.uuid is not None:
+            del network.uuid_to_char[uuid]
         try:
             gs.chars.remove(self)
         except:
