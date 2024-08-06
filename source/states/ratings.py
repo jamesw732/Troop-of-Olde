@@ -9,7 +9,8 @@ attrs = {
 }
 
 class RatingsState(dict):
-    """This state is meant to represent the fundamental stats of a character, as if nothing else was affecting them. Meant to be assigned to a character once and only once - when it's created."""
+    """This state is currently unused, but will eventually be used to overwrite
+    ratings upon login"""
     def __init__(self, char=None, **kwargs):
         # If a character was passed, take its attributes
         if char is not None:
