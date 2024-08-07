@@ -38,6 +38,8 @@ default_cb_attrs = {
     "speed": 0,
     "casthaste": 0,
 
+    "amagic": 0,
+    "aphys": 0,
     "afire": 0,
     "acold": 0,
     "aelec": 0,

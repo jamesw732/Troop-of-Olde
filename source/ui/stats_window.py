@@ -37,6 +37,8 @@ class StatsWindow(Entity):
             ('int', 'Intelligence')
         ]
         self.affinity_labels = [
+            ('amagic', 'Magic'),
+            ('aphys', 'Physical'),
             ('afire', 'Fire'),
             ('acold', 'Cold'),
             ('aelec', 'Electric'),

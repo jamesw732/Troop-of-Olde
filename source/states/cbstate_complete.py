@@ -22,6 +22,8 @@ attrs = {
     "ref": int,
     "int": int,
 
+    "amagic": int,
+    "aphys": int,
     "afire": int,
     "acold": int,
     "aelec": int,
