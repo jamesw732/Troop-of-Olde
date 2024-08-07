@@ -42,14 +42,6 @@ def progress_oh_combat_timer(char):
                     char.uuid, char.target.uuid, "oh")
 
 
-def increase_health(char, amt):
-    """Function to be used whenever increasing character's health"""
-    char.health = min(char.maxhealth, char.health + amt)
-
-def reduce_health(char, amt):
-    """Function to be used whenever decreasing character's health"""
-    char.health -= amt
-
 # PRIVATE
 def attempt_melee_hit(src, tgt, slot):
     """Main driver method for melee combat called by progress_mh/oh_melee_timer.
@@ -84,7 +76,6 @@ def attempt_melee_hit(src, tgt, slot):
     # Broadcast the hit info to all peers, if host
     network.broadcast(network.peer.remote_print, hitstring)
 
-
 @rpc(network.peer)
 def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int, slot: str):
     """Wrapper for calling attempt_melee_hit remotely"""
@@ -93,9 +84,14 @@ def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid:
     if src and tgt:
         attempt_melee_hit(src, tgt, slot)
 
-def get_haste_modifier(haste):
-    """Convert haste to a multiplicative time modifier"""
-    return max(0, 1 + haste / 100)
+# HELPER FUNCTIONS
+def increase_health(char, amt):
+    """Function to be used whenever increasing character's health"""
+    char.health = min(char.maxhealth, char.health + amt)
+
+def reduce_health(char, amt):
+    """Function to be used whenever decreasing character's health"""
+    char.health -= amt
 
 def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
     """Produce a string with information about the melee hit."""
@@ -104,12 +100,9 @@ def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
     method = style_to_method[style]
     return f"{src.cname} {method} {tgt.cname} for {dmg} damage!"
 
-@rpc(network.peer)
-def remote_death(connection, time_received, char_uuid: int):
-    """Tell other peers that a character died. Only to be called by host."""
-    char = network.uuid_to_char.get(char_uuid)
-    if char:
-        char.die()
+def get_haste_modifier(haste):
+    """Convert haste to a multiplicative time modifier"""
+    return max(0, 1 + haste / 100)
 
 def get_target_hittable(char, wpn_slot):
     """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
@@ -155,3 +148,10 @@ def get_wpn_delay(char, wpn_slot):
         return 1
     info = wpn.get('info', {})
     return info.get('delay', 1)
+
+@rpc(network.peer)
+def remote_death(connection, time_received, char_uuid: int):
+    """Tell other peers that a character died. Only to be called by host."""
+    char = network.uuid_to_char.get(char_uuid)
+    if char:
+        char.die()
