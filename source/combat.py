@@ -12,10 +12,11 @@ def progress_mh_combat_timer(char):
     """Increment combat timer by dt. If past max, attempt a melee hit."""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
-    delay = get_wpn_delay(char, 'mh')
+    wep = char.equipment['mh']
+    delay = get_wpn_delay(char, wep)
     if char.mh_combat_timer > delay:
         char.mh_combat_timer -= delay
-        if get_target_hittable(char, 'mh'):
+        if get_target_hittable(char, wep):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target, "mh")
             else:
@@ -29,10 +30,11 @@ def progress_oh_combat_timer(char):
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     # * dw_skill / rec_level if slot == oh else 1
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
-    delay = get_wpn_delay(char, 'oh')
+    wep = char.equipment['oh']
+    delay = get_wpn_delay(char, wep)
     if char.oh_combat_timer > delay:
         char.oh_combat_timer -= delay
-        if get_target_hittable(char, 'oh'):
+        if get_target_hittable(char, wep):
             if network.is_main_client():
                 attempt_melee_hit(char, char.target, "oh")
             else:
@@ -54,17 +56,12 @@ def attempt_melee_hit(src, tgt, slot):
     else:
         # If hit goes through, do some more fancy calculations to get damage
         wep = src.equipment[slot]
-        if wep is None:
-            # Use fists
-            base_dmg = fists_base_dmg
-            style = "fists"
-        else:
-            if "info" not in wep:
-                ui.gamewindow.add_message(f"Try hitting {target.cname} with something else.")
-                return
-            # Assume from now on that the weapon has everything needed
-            base_dmg = wep["info"]["dmg"]
-            style = wep["info"]["style"]
+        if wep is not None and "info" not in wep:
+            ui.gamewindow.add_message(f"Try hitting {target.cname} with something else.")
+            return
+        base_dmg = get_wpn_dmg(src, wep)
+        style = get_wpn_style(src, wep)
+
         base_dmg *= 2 * sigmoid(src.str - tgt.armor)
         base_dmg -= tgt.aphys
         min_hit = max(0, ceil(base_dmg * 0.5))
@@ -105,12 +102,12 @@ def get_haste_modifier(haste):
     """Convert haste to a multiplicative time modifier"""
     return max(0, 1 + haste / 100)
 
-def get_target_hittable(char, wpn_slot):
+def get_target_hittable(char, wpn):
     """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
     if not char.get_tgt_los(char.target):
         ui.gamewindow.add_message(f"You can't see {char.target.cname}.")
         return False
-    atk_range = get_attack_range(char, wpn_slot)
+    atk_range = get_attack_range(char, wpn)
     # use center rather than center of feet
     pos_src = char.position + Vec3(0, char.scale_y / 2, 0)
     pos_tgt = char.target.position + Vec3(0, char.target.scale_y / 2, 0)
@@ -134,17 +131,27 @@ def get_target_hittable(char, wpn_slot):
         ui.gamewindow.add_message(f"{char.target.cname} is out of range!")
         return False
 
-def get_attack_range(char, wpn_slot):
-    """Equivalent to char.equipment[wpn_slot]['info']['range'] with some precautions"""
-    wpn = char.equipment[wpn_slot]
+def get_wpn_dmg(char, wpn):
+    if wpn is None:
+        return 1
+    info = wpn.get('info', {})
+    return info.get('dmg', 1)
+
+def get_wpn_style(char, wpn):
+    if wpn is None:
+        return 'fists'
+    info = wpn.get('info', {})
+    return info.get('style', 'fists')
+
+def get_attack_range(char, wpn):
+    """Equivalent to wpn['info']['range'] with some precautions"""
     if wpn is None:
         return 1
     info = wpn.get('info', {})
     return info.get('range', 1)
 
-def get_wpn_delay(char, wpn_slot):
-    """Equivalent to char.equipment[wpn_slot]['info']['delay'] with some precautions"""
-    wpn = char.equipment[wpn_slot]
+def get_wpn_delay(char, wpn):
+    """Equivalent to wpn['info']['delay'] with some precautions"""
     if wpn is None:
         return 1
     info = wpn.get('info', {})
