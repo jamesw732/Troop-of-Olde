@@ -28,5 +28,17 @@
             "str": 10
         },
         "icon": "iron_longsword.png"
+    },
+    "3": {
+        "name": "Iron Broadsword",
+        "type": "weapon",
+        "info": {
+            "dmg": 18,
+            "delay": 3,
+            "range": 5,
+            "style": "2h slash",
+            "slot": "mh"
+        },
+        "icon": "2h_sword.png"
     }
 }

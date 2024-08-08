@@ -110,8 +110,7 @@ all_skills = [    # Melee styles
     "riposte",
     # Melee "extra"
     "critical hit",
-    "double attack",
-    "triple attack",
+    "flurry",
     "dual wield",
     # Casting styles
     "enchantment",

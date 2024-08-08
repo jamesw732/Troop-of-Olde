@@ -39,8 +39,7 @@ class SkillsWindow(Entity):
         ]
         self.off_skills = [
             "critical hit",
-            "double attack",
-            "triple attack",
+            "flurry",
             "dual wield"
         ]
         self.def_skills = [

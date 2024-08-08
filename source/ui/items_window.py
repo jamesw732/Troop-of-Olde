@@ -207,14 +207,19 @@ class ItemIcon(Entity):
         if equipping_other and other_icon is not None:
             other_item_slots = other_icon.get_item_slots()
             if my_slot not in other_item_slots:
-                return
+                return False
         if equipping_mine:
             my_item_slots = self.get_item_slots()
             if other_slot not in my_item_slots:
                 self.position = Vec3(0, 0, -1)
-                return
+                return False
 
         if network.is_main_client():
+            if self.item["type"] == "weapon" and self.item["info"]["style"][:2] == "2h":
+                # Try to auto-unequip the offhand
+                offhand = ui.playerwindow.items.equipped_boxes["oh"].itemicon
+                if isinstance(offhand, ItemIcon) and not offhand.auto_unequip():
+                    return False
             # Remove/add text if necessary:
             if equipping_other and other_icon is None:
                 self.parent.label.text = my_slot
@@ -245,6 +250,7 @@ class ItemIcon(Entity):
                                old_container_n=my_container)
             internal_move_item(player, other_item, my_container, my_slot,
                                old_container_n=other_container)
+            return True
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
@@ -257,7 +263,9 @@ class ItemIcon(Entity):
         # First, just look for "slot"
         if network.is_main_client():
             slot = find_first_empty_equip(self.item, gs.pc)
-            self.swap_locs(other_box=self.window.equipped_boxes[slot])
+            if slot == "":
+                return False
+            return self.swap_locs(other_box=self.window.equipped_boxes[slot])
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_auto_equip(conn, self.item.uiid, str(self.parent.slot), self.parent.container_name)
@@ -268,16 +276,16 @@ class ItemIcon(Entity):
         put the item there. If none are empty, then don't unequip."""
         if network.is_main_client():
             slot = find_first_empty_inventory(gs.pc)
-            self.swap_locs(other_box=self.window.inventory_boxes[slot])
+            if slot == "":
+                return False
+            return self.swap_locs(other_box=self.window.inventory_boxes[slot])
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_auto_unequip(conn, self.item.uiid, self.parent.slot)
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""
-        iteminfo = self.item.get("info")
-        if not iteminfo:
-            return
+        iteminfo = self.item.get("info", {})
         slot = iteminfo.get("slot")
         if slot is not None:
             return [slot]

@@ -164,7 +164,7 @@ def find_first_empty_equip(item, char):
         # Might not have found, that's okay, just check for first empty in slots
         slots = iteminfo.get("slots", [])
         if not slots:
-            return
+            return ""
         for s in slots:
             if char.equipment[s] is None:
                 slot = s
