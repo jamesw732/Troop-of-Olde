@@ -202,6 +202,8 @@ class ItemIcon(Entity):
         my_slot = self.parent.slot
         equipping_mine = other_container == "equipment"
         equipping_other = my_container == "equipment"
+        # Boolean check for whether we need to unequip a 2h weapon
+        unequip_2h = False
 
         # Make sure items can go to new locations if being equipped
         if equipping_other and other_icon is not None:
@@ -215,11 +217,26 @@ class ItemIcon(Entity):
                 return False
 
         if network.is_main_client():
-            if self.item["type"] == "weapon" and self.item["info"]["style"][:2] == "2h":
-                # Try to auto-unequip the offhand
-                offhand = ui.playerwindow.items.equipped_boxes["oh"].itemicon
-                if isinstance(offhand, ItemIcon) and not offhand.auto_unequip():
-                    return False
+            # 2h weapon handling - should this be done a priori?
+            if self.item["type"] == "weapon" and equipping_mine:
+                # This item is a 2h weapon
+                if self.item["info"]["style"][:2] == "2h":
+                    # Try to auto-unequip the offhand
+                    offhand = ui.playerwindow.items.equipped_boxes["oh"].itemicon
+                    if isinstance(offhand, ItemIcon) and not offhand.auto_unequip():
+                        return False
+                # A 2h weapon is already equipped
+                elif other_slot == "oh":
+                    mainhand = ui.playerwindow.items.equipped_boxes["mh"].itemicon.item
+                    if mainhand is not None and mainhand["info"]["style"][:2] == "2h":
+                        if "mh" in my_item_slots:
+                            # Pretend it's the mainhand
+                            other_box = ui.playerwindow.items.equipped_boxes["mh"]
+                            other_icon = other_box.itemicon
+                            other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None
+                            other_slot = "mh"
+                        else:
+                            unequip_2h = True
             # Remove/add text if necessary:
             if equipping_other and other_icon is None:
                 self.parent.label.text = my_slot
@@ -250,6 +267,9 @@ class ItemIcon(Entity):
                                old_container_n=my_container)
             internal_move_item(player, other_item, my_container, my_slot,
                                old_container_n=other_container)
+            if unequip_2h:
+                # Don't need to take precautions because we already got this
+                ui.playerwindow.items.equipped_boxes["mh"].itemicon.auto_unequip()
             return True
         else:
             conn = network.peer.get_connections()[0]
