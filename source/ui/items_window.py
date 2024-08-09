@@ -2,11 +2,9 @@ from ursina import *
 import copy
 
 from .base import *
-from ..base import default_equipment, default_inventory
 from ..gamestate import gs
 from ..item import *
 from ..networking.base import network
-from ..states.container import InitContainer, container_to_init, init_to_container
 
 """Explanation of terminology used in this file:
 Item, named items, represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
@@ -310,41 +308,3 @@ class ItemIcon(Entity):
         if slot is not None:
             return [slot]
         return iteminfo.get("slots", [])
-
-@rpc(network.peer)
-def remote_update_container(connection, time_received, name: str, container: InitContainer):
-    """Update internal containers and visual containers
-
-    Mimic most of the process in ItemIcon.swap_locs for hosts, but
-    this will only be done by non-hosts"""
-    if network.peer.is_hosting():
-        return
-    internal_container = init_to_container(container)
-    itemwindow = ui.playerwindow.items
-    if name == "equipment":
-        ui_container = itemwindow.equipped_boxes
-        gs.pc.equipment = copy.copy(default_equipment)
-        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.equipment.items())
-    elif name == "inventory":
-        ui_container = itemwindow.inventory_boxes
-        gs.pc.inventory = copy.copy(default_inventory)
-        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.inventory.items())
-    for slot, item in loop:
-        box = ui_container[slot]
-        if item is None:
-            box.itemicon = None
-            if name == "equipment":
-                box.label.text = slot
-            continue
-        icon = item.icon
-        box.itemicon = icon
-        icon.parent = box
-        icon.position = Vec3(0, 0, -1)
-        new_primary_option = get_primary_option_from_container(item, name)
-        update_primary_option(item, new_primary_option)
-        if name == "equipment":
-            box.label.text = ''
-        getattr(gs.pc, name)[slot] = item
-
-
-

@@ -3,9 +3,12 @@ from ursina.networking import rpc
 import json
 import copy
 
+from .base import default_equipment, default_inventory
+from .gamestate import gs
 from .networking.base import network
+from .ui.base import ui
 # This import might be a problem eventually
-from .states.container import container_to_init
+from .states.container import InitContainer, container_to_init, init_to_container
 from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
 
 """
@@ -199,8 +202,9 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
-def iauto_equip(char, item, old_container, old_slot):
+def iauto_equip(char, old_container, old_slot):
     """Auto equips an item internally, as opposed to ItemIcon.auto_equip"""
+    item = getattr(char, old_container)[old_slot]
     new_slot = find_first_empty_equip(item, char)
     host_swap(char, old_container, old_slot, "equipment", new_slot)
 
@@ -208,13 +212,11 @@ def iauto_unequip(char, old_slot):
     new_slot = find_first_empty_inventory(char)
     host_swap(char, "equipment", old_slot, "inventory", new_slot)
 
-
 @rpc(network.peer)
 def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
     """Request host to automatically equip a given item."""
     char = network.connection_to_char[connection]
-    item = network.uiid_to_item[itemid]
-    iauto_equip(char, item, old_container, old_slot)
+    iauto_equip(char, old_container, old_slot)
     for name in set([old_container, "equipment"]):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
@@ -227,3 +229,38 @@ def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
     for name in ["equipment", "inventory"]:
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
+
+@rpc(network.peer)
+def remote_update_container(connection, time_received, name: str, container: InitContainer):
+    """Update internal containers and visual containers
+
+    Mimic most of the process in ItemIcon.swap_locs for hosts, but
+    this will only be done by non-hosts"""
+    if network.peer.is_hosting():
+        return
+    internal_container = init_to_container(container)
+    itemwindow = ui.playerwindow.items
+    if name == "equipment":
+        ui_container = itemwindow.equipped_boxes
+        gs.pc.equipment = copy.copy(default_equipment)
+        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.equipment.items())
+    elif name == "inventory":
+        ui_container = itemwindow.inventory_boxes
+        gs.pc.inventory = copy.copy(default_inventory)
+        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.inventory.items())
+    for slot, item in loop:
+        box = ui_container[slot]
+        if item is None:
+            box.itemicon = None
+            if name == "equipment":
+                box.label.text = slot
+            continue
+        icon = item.icon
+        box.itemicon = icon
+        icon.parent = box
+        icon.position = Vec3(0, 0, -1)
+        new_primary_option = get_primary_option_from_container(item, name)
+        update_primary_option(item, new_primary_option)
+        if name == "equipment":
+            box.label.text = ''
+        getattr(gs.pc, name)[slot] = item
