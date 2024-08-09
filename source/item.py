@@ -249,18 +249,26 @@ def remote_update_container(connection, time_received, name: str, container: Ini
         gs.pc.inventory = copy.copy(default_inventory)
         loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.inventory.items())
     for slot, item in loop:
-        box = ui_container[slot]
-        if item is None:
-            box.itemicon = None
-            if name == "equipment":
-                box.label.text = slot
+        if not reset_itemicon(name, ui_container, slot, item):
+            # probably because the item is None
             continue
-        icon = item.icon
-        box.itemicon = icon
-        icon.parent = box
-        icon.position = Vec3(0, 0, -1)
         new_primary_option = get_primary_option_from_container(item, name)
         update_primary_option(item, new_primary_option)
-        if name == "equipment":
-            box.label.text = ''
+        # Internally assign item to slot
         getattr(gs.pc, name)[slot] = item
+
+def reset_itemicon(container_name, ui_container, slot, item):
+    """Updates a single item icon to match item in the same location"""
+    box = ui_container[slot]
+    if item is None:
+        box.itemicon = None
+        if container_name == "equipment":
+            box.label.text = slot
+        return False
+    icon = item.icon
+    box.itemicon = icon
+    icon.parent = box
+    icon.position = Vec3(0, 0, -1)
+    if container_name == "equipment":
+        box.label.text = ''
+    return True
