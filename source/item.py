@@ -199,13 +199,22 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
+def iauto_equip(char, item, old_container, old_slot):
+    """Auto equips an item internally, as opposed to ItemIcon.auto_equip"""
+    new_slot = find_first_empty_equip(item, char)
+    host_swap(char, old_container, old_slot, "equipment", new_slot)
+
+def iauto_unequip(char, old_slot):
+    new_slot = find_first_empty_inventory(char)
+    host_swap(char, "equipment", old_slot, "inventory", new_slot)
+
+
 @rpc(network.peer)
 def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
     """Request host to automatically equip a given item."""
     char = network.connection_to_char[connection]
     item = network.uiid_to_item[itemid]
-    new_slot = find_first_empty_equip(item, char)
-    host_swap(char, old_container, old_slot, "equipment", new_slot)
+    iauto_equip(char, item, old_container, old_slot)
     for name in set([old_container, "equipment"]):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
@@ -214,8 +223,7 @@ def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old
 def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
     """Request host to automatically unequip a given item."""
     char = network.connection_to_char[connection]
-    new_slot = find_first_empty_inventory(char)
-    host_swap(char, "equipment", old_slot, "inventory", new_slot)
+    iauto_unequip(char, old_slot)
     for name in ["equipment", "inventory"]:
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
