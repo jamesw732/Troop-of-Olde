@@ -288,21 +288,22 @@ def remote_update_container(connection, time_received, container_name: str, cont
     if network.peer.is_hosting():
         return
     internal_container = init_to_container(container)
-    loop = list(internal_container.items())
+    update_container(container_name, internal_container)
+    # loop = internal_container.items()
+    # container = getattr(gs.pc, container_name)
+    # for slot, item in loop:
+    #     container[slot] = item
+    #     new_primary_option = get_primary_option_from_container(item, container_name)
+    #     update_primary_option(item, new_primary_option)
+
+    # ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
+
+def update_container(container_name, internal_container):
+    loop = internal_container.items()
     container = getattr(gs.pc, container_name)
     for slot, item in loop:
         container[slot] = item
         new_primary_option = get_primary_option_from_container(item, container_name)
         update_primary_option(item, new_primary_option)
 
-    update_ui_icons(container_name, loop)
-
-def update_ui_icons(container_name, loop):
-    """Updates ui.playerwindow.items.container_name with internal_container.
-
-    Essentially the endpoint of item swapping"""
-    itemwindow = ui.playerwindow.items
-    container = getattr(itemwindow, container_name + "_boxes")
-    for slot, item in loop:
-        box = container[slot]
-        box.refresh_icon()
+    ui.playerwindow.items.update_ui_icons(container_name, loop=loop)

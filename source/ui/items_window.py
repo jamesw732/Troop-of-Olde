@@ -114,6 +114,13 @@ class ItemsWindow(Entity):
         for icon in self.item_icons:
             icon.collision = False
 
+    def update_ui_icons(self, container_name, loop=None):
+        if loop is None:
+            loop = getattr(gs.pc, container_name).items()
+        ui_container = getattr(self, container_name + "_boxes")
+        for slot, item in loop:
+            box = ui_container[slot]
+            box.refresh_icon()
 
 
 class ItemBox(Entity):
@@ -217,8 +224,6 @@ class ItemIcon(Entity):
         my_slot = self.parent.slot
         equipping_mine = other_container == "equipment"
         equipping_other = my_container == "equipment"
-        # Boolean check for whether we need to unequip a 2h weapon
-        unequip_2h = False
 
         # Make sure items can go to new locations if being equipped
         if equipping_other and other_icon is not None:
@@ -232,60 +237,8 @@ class ItemIcon(Entity):
                 return False
 
         if network.is_main_client():
-            # 2h weapon handling - should this be done a priori?
-            if self.item["type"] == "weapon" and equipping_mine:
-                # This item is a 2h weapon
-                if self.item["info"]["style"][:2] == "2h":
-                    # Try to auto-unequip the offhand
-                    offhand = ui.playerwindow.items.equipment_boxes["oh"].itemicon
-                    if isinstance(offhand, ItemIcon) and not offhand.auto_unequip():
-                        return False
-                # A 2h weapon is already equipped
-                elif other_slot == "oh":
-                    mainhand = ui.playerwindow.items.equipment_boxes["mh"].itemicon.item
-                    if mainhand is not None and mainhand["info"]["style"][:2] == "2h":
-                        if "mh" in my_item_slots:
-                            # Pretend it's the mainhand
-                            other_box = ui.playerwindow.items.equipment_boxes["mh"]
-                            other_icon = other_box.itemicon
-                            other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None
-                            other_slot = "mh"
-                        else:
-                            unequip_2h = True
-            # Remove/add text if necessary:
-            if equipping_other and other_icon is None:
-                self.parent.label.text = my_slot
-            if equipping_mine:
-                other_box.label.text = ""
-
-            # Swap ItemSlots' ItemIcons
-            other_box.itemicon = self
-            self.parent.itemicon = other_icon
-
-            # Reparent and reposition icons
-            if other_icon is not None:
-                other_icon.parent = self.parent
-                other_icon.position = Vec3(0, 0, -2)
-
-            self.parent = other_box
-            self.position = Vec3(0, 0, -2)
-
-            # Set new top (left-click) functions
-            opt1 = get_primary_option_from_container(self.item, other_container)
-            update_primary_option(self.item, opt1)
-            opt2 = get_primary_option_from_container(other_item, my_container)
-            update_primary_option(other_item, opt2)
-
-            player = gs.pc
-            # Do the internal, non-graphical moves
-            internal_move_item(player, self.item, other_container, other_slot,
-                               old_container_n=my_container)
-            internal_move_item(player, other_item, my_container, my_slot,
-                               old_container_n=other_container)
-            if unequip_2h:
-                # Don't need to take precautions because we already got this
-                ui.playerwindow.items.equipment_boxes["mh"].itemicon.auto_unequip()
-            return True
+            internal_swap(gs.pc, my_container, my_slot, other_container, other_slot)
+            ui.playerwindow.items.update_ui_icons(my_container)
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
@@ -294,8 +247,8 @@ class ItemIcon(Entity):
         """UI wrapper for Item.iauto_equip"""
         if network.is_main_client():
             iauto_equip(gs.pc, self.parent.container_name, self.parent.slot)
-            update_ui_icons("equipment", gs.pc.equipment)
-            update_ui_icons("inventory", gs.pc.inventory)
+            update_container("equipment", gs.pc.equipment)
+            update_container("inventory", gs.pc.inventory)
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_auto_equip(conn, self.item.uiid, str(self.parent.slot), self.parent.container_name)
@@ -304,8 +257,8 @@ class ItemIcon(Entity):
         """UI wrapper for Item.iauto_unequip"""
         if network.is_main_client():
             iauto_unequip(gs.pc, self.parent.slot)
-            update_ui_icons("equipment", gs.pc.equipment)
-            update_ui_icons("inventory", gs.pc.inventory)
+            update_container("equipment", gs.pc.equipment)
+            update_container("inventory", gs.pc.inventory)
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_auto_unequip(conn, self.item.uiid, self.parent.slot)
