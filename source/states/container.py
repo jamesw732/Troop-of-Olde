@@ -37,9 +37,9 @@ def deserialize_init_container(reader):
 
 def container_to_init(container):
     """Convert a container (Character attribute) to one sendable over the network"""
-    return InitContainer({slot: item.uiid for slot, item in container.items()
-                          if item is not None})
+    return InitContainer({slot: item.uiid if item is not None else -1
+                          for slot, item in container.items()})
 
 def init_to_container(init_container):
     """Convert an InitContainer (dict mapping slots to uiids) to a dict of Items"""
-    return {slot: network.uiid_to_item[itemid] for slot, itemid in init_container.items()}
+    return {slot: network.uiid_to_item.get(itemid, None) for slot, itemid in init_container.items()}

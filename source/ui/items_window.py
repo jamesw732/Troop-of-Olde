@@ -42,7 +42,7 @@ class ItemsWindow(Entity):
             "oh": Vec3(2/3, -2/7, -1),
             "ammo": Vec3(2/3, 0, -1)
         }
-        self.equipped_boxes = {
+        self.equipment_boxes = {
             slot: ItemBox(text=slot, slot=slot, container_name="equipment",
                            parent=self.equipped_subframe, position=pos * Vec2(1.2, 1.66),
                            scale=(1/3, 1/7), color=slot_color)
@@ -60,7 +60,7 @@ class ItemsWindow(Entity):
                                 for i, pos in enumerate(self.inventory_positions)}
 
         # Eventually, don't grid whole equipped, just do a 1x1 grid on each slot
-        for slot in self.equipped_boxes.values():
+        for slot in self.equipment_boxes.values():
             grid(slot, num_rows=1, num_cols=1, color=color.black)
         for slot in self.inventory_boxes.values():
             grid(slot, num_rows=1, num_cols=1, color=color.black)
@@ -75,8 +75,8 @@ class ItemsWindow(Entity):
             self.make_item_icon(item, self.inventory_boxes[i])
         for k, item in self.player.equipment.items():
             if item is not None:
-                self.equipped_boxes[k].label.text = ""
-            self.make_item_icon(item, self.equipped_boxes[k])
+                self.equipment_boxes[k].label.text = ""
+            self.make_item_icon(item, self.equipment_boxes[k])
 
     def make_item_icon(self, item, parent):
         """Creates an item icon and puts it in the UI.
@@ -99,7 +99,7 @@ class ItemsWindow(Entity):
         self.item_icons.append(icon)
 
     def enable_colliders(self):
-        for box in self.equipped_boxes.values():
+        for box in self.equipment_boxes.values():
             box.collision = True
         for box in self.inventory_boxes.values():
             box.collision = True
@@ -107,7 +107,7 @@ class ItemsWindow(Entity):
             icon.collision = True
 
     def disable_colliders(self):
-        for box in self.equipped_boxes.values():
+        for box in self.equipment_boxes.values():
             box.collision = False
         for box in self.inventory_boxes.values():
             box.collision = False
@@ -123,8 +123,23 @@ class ItemBox(Entity):
             self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
                              world_scale=(11, 11), color=window_fg_color)
         self.container_name = container_name
+        self.container = getattr(gs.pc, container_name)
         self.slot = slot
         self.itemicon = None
+
+    def refresh_icon(self):
+        item = self.container[self.slot]
+        if item is None:
+            self.itemicon = None
+            if self.container_name == "equipment":
+                self.label.text = self.slot
+            return
+        icon = item.icon
+        self.itemicon = icon
+        icon.parent = self
+        icon.position = Vec3(0, 0, -1)
+        if self.container_name == "equipment":
+            self.label.text = ""
 
 class ItemIcon(Entity):
     """UI Representation of an Item. Logically, above Item. The reason for this is that
@@ -222,16 +237,16 @@ class ItemIcon(Entity):
                 # This item is a 2h weapon
                 if self.item["info"]["style"][:2] == "2h":
                     # Try to auto-unequip the offhand
-                    offhand = ui.playerwindow.items.equipped_boxes["oh"].itemicon
+                    offhand = ui.playerwindow.items.equipment_boxes["oh"].itemicon
                     if isinstance(offhand, ItemIcon) and not offhand.auto_unequip():
                         return False
                 # A 2h weapon is already equipped
                 elif other_slot == "oh":
-                    mainhand = ui.playerwindow.items.equipped_boxes["mh"].itemicon.item
+                    mainhand = ui.playerwindow.items.equipment_boxes["mh"].itemicon.item
                     if mainhand is not None and mainhand["info"]["style"][:2] == "2h":
                         if "mh" in my_item_slots:
                             # Pretend it's the mainhand
-                            other_box = ui.playerwindow.items.equipped_boxes["mh"]
+                            other_box = ui.playerwindow.items.equipment_boxes["mh"]
                             other_icon = other_box.itemicon
                             other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None
                             other_slot = "mh"
@@ -269,7 +284,7 @@ class ItemIcon(Entity):
                                old_container_n=other_container)
             if unequip_2h:
                 # Don't need to take precautions because we already got this
-                ui.playerwindow.items.equipped_boxes["mh"].itemicon.auto_unequip()
+                ui.playerwindow.items.equipment_boxes["mh"].itemicon.auto_unequip()
             return True
         else:
             conn = network.peer.get_connections()[0]

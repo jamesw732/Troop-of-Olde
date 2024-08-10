@@ -116,7 +116,9 @@ def equip_many_items(char, itemsdict):
         update_primary_option(item, "unequip")
 
 def internal_move_item(char, item, new_container_n, new_slot, old_container_n="inventory"):
-    """Move an item internally from old_container_n to new_container_n
+    """Move an item internally from old_container_n to new_container_n.
+
+    Updates stats for items being equipped.
     char: Character
     item: Item
     new_container_n: str, name of target container
@@ -125,7 +127,6 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
     """
     new_container = getattr(char, new_container_n)
     new_container[new_slot] = item
-    # Don't attempt the stat changes or anything
     if item is None:
         return
     if new_container_n == "equipment":
@@ -156,20 +157,24 @@ def update_primary_option(item, funcname):
     if "functions" not in item:
         item["functions"] = [funcname]
         return
+    # This seems really bad. Definitely want to work something better out once
+    # item tooltips are a thing
     item["functions"][0] = funcname
 
 def find_first_empty_equip(item, char):
-    iteminfo = item.get("info")
+    """Find the correct spot to equip this item to"""
+    iteminfo = item.get("info", {})
     if not iteminfo:
         return
-    slot = iteminfo.get("slot")
+    slot = iteminfo.get("slot", "")
     if not slot:
         # Might not have found, that's okay, just check for first empty in slots
         slots = iteminfo.get("slots", [])
         if not slots:
             return ""
         for s in slots:
-            if char.equipment[s] is None:
+            i_in_s = char.equipment[s]
+            if i_in_s is None or s == "mh" and item_is_2h(i_in_s):
                 slot = s
                 break
         # None empty, so just take the first
@@ -178,12 +183,72 @@ def find_first_empty_equip(item, char):
     return slot
 
 def find_first_empty_inventory(char):
+    """Find the first empty inventory slot"""
     invent = char.inventory
     empty_slots = (str(slot) for slot in range(24) if invent[str(slot)] is None)
     try:
         return next(empty_slots)
     except StopIteration:
         return ""
+
+def internal_swap(char, container1, slot1, container2, slot2):
+    """Combines all functions necessary to be a wrapper for ItemIcon.swap_locs
+
+    It is important to treat container1 and slot1 as the source, as the
+    corresponding Item cannot be None"""
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+
+    # If we're intentionally equipping offhand, unequip 2h if wearing
+    man_unequip_2h = equipping_oh_wearing_2h(char, item1, slot2)
+    # If equipping 2h, also unequip offhand if wearing
+    if equipping_2h(item1, container2):
+        unequip_offhand(char, item1)
+
+    internal_move_item(char, item1, container2, slot2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
+    # Save auto unequipping 2h for last, otherwise position gets screwed up
+    if man_unequip_2h:
+        iauto_unequip(char, "mh")
+
+
+def iauto_equip(char, old_container, old_slot):
+    """Auto equips an item internally"""
+    item = getattr(char, old_container)[old_slot]
+    new_slot = find_first_empty_equip(item, char)
+    internal_swap(char, old_container, old_slot, "equipment", new_slot)
+
+def iauto_unequip(char, old_slot):
+    new_slot = find_first_empty_inventory(char)
+    if new_slot == "":
+        return
+    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
+
+def equipping_2h(item, tgt_container):
+    return tgt_container == "equipment" and item_is_2h(item)
+
+def unequip_offhand(char, item):
+    """Unequips the offhand, if there is one"""
+    # Unequip the offhand too
+    offhand = char.equipment["oh"]
+    if offhand is not None:
+        unequipped = iauto_unequip(char, "oh")
+        if not unequipped:
+            return False
+    return True
+
+def equipping_oh_wearing_2h(char, item, tgt_slot):
+    """Equipping an offhand while wearing a 2h weapon. Note that based on how
+    auto slot finding is written, this case is only possible if the slot was
+    intentionally selected for this item."""
+    mh = char.equipment["mh"]
+    if mh is None:
+        return False
+    mh_is_2h = item_is_2h(mh)
+    return mh_is_2h and tgt_slot == "oh"
+
+def item_is_2h(item):
+    return item.get("type") == "weapon" and item.get("info", {}).get("style", "")[:2] == "2h"
 
 @rpc(network.peer)
 def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
@@ -195,25 +260,6 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
     for name in set([container1, container2]):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
-
-def internal_swap(char, container1, slot1, container2, slot2):
-    item1 = getattr(char, container1)[slot1]
-    item2 = getattr(char, container2)[slot2]
-    internal_move_item(char, item1, container2, slot2, container1)
-    internal_move_item(char, item2, container1, slot1, container2)
-
-def iauto_equip(char, old_container, old_slot):
-    """Auto equips an item internally"""
-    item = getattr(char, old_container)[old_slot]
-    new_slot = find_first_empty_equip(item, char)
-    internal_swap(char, old_container, old_slot, "equipment", new_slot)
-
-def iauto_unequip(char, old_slot):
-    new_slot = find_first_empty_inventory(char)
-    if new_slot == "":
-        return False
-    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
-    return True
 
 @rpc(network.peer)
 def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
@@ -242,42 +288,21 @@ def remote_update_container(connection, time_received, container_name: str, cont
     if network.peer.is_hosting():
         return
     internal_container = init_to_container(container)
-    update_ui_icons(container_name, internal_container)
-
-def update_ui_icons(container_name, internal_container):
-    """Updates ui.playerwindow.items.container_name with internal_container
-
-    This should definitely be in items_window.py, and it will be, but for now it's fine in here."""
-    itemwindow = ui.playerwindow.items
-    if container_name == "equipment":
-        ui_container = itemwindow.equipped_boxes
-        gs.pc.equipment = copy.copy(default_equipment)
-        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.equipment.items())
-    elif container_name == "inventory":
-        ui_container = itemwindow.inventory_boxes
-        gs.pc.inventory = copy.copy(default_inventory)
-        loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.inventory.items())
+    loop = list(internal_container.items())
+    container = getattr(gs.pc, container_name)
     for slot, item in loop:
-        if not reset_itemicon(container_name, ui_container, slot, item):
-            # probably because the item is None
-            continue
+        container[slot] = item
         new_primary_option = get_primary_option_from_container(item, container_name)
         update_primary_option(item, new_primary_option)
-        # Internally assign item to slot
-        getattr(gs.pc, container_name)[slot] = item
 
-def reset_itemicon(container_name, ui_container, slot, item):
-    """Updates a single item icon to match item in the same location"""
-    box = ui_container[slot]
-    if item is None:
-        box.itemicon = None
-        if container_name == "equipment":
-            box.label.text = slot
-        return False
-    icon = item.icon
-    box.itemicon = icon
-    icon.parent = box
-    icon.position = Vec3(0, 0, -1)
-    if container_name == "equipment":
-        box.label.text = ''
-    return True
+    update_ui_icons(container_name, loop)
+
+def update_ui_icons(container_name, loop):
+    """Updates ui.playerwindow.items.container_name with internal_container.
+
+    Essentially the endpoint of item swapping"""
+    itemwindow = ui.playerwindow.items
+    container = getattr(itemwindow, container_name + "_boxes")
+    for slot, item in loop:
+        box = container[slot]
+        box.refresh_icon()
