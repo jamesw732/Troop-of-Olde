@@ -229,6 +229,7 @@ class ItemIcon(Entity):
         if equipping_other and other_icon is not None:
             other_item_slots = other_icon.get_item_slots()
             if my_slot not in other_item_slots:
+                self.position = Vec3(0, 0, -1)
                 return False
         if equipping_mine:
             my_item_slots = self.get_item_slots()
