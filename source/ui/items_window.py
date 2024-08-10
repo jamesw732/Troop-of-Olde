@@ -114,6 +114,8 @@ class ItemsWindow(Entity):
         for icon in self.item_icons:
             icon.collision = False
 
+
+
 class ItemBox(Entity):
     def __init__(self, *args, text="", container=None, slot=None, container_name="", **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
@@ -274,29 +276,21 @@ class ItemIcon(Entity):
             network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
 
     def auto_equip(self):
-        """Automatically find an equipment slot to equip this item, then equip it.
-        Looks in all possible slots for the item, if any of them are empty, equip there.
-        If none are empty, equip to the first slot."""
-        # Find the right slot
-        # First, just look for "slot"
+        """UI wrapper for Item.iauto_equip"""
         if network.is_main_client():
-            slot = find_first_empty_equip(self.item, gs.pc)
-            if slot == "":
-                return False
-            return self.swap_locs(other_box=self.window.equipped_boxes[slot])
+            iauto_equip(gs.pc, self.parent.container_name, self.parent.slot)
+            update_ui_icons("equipment", gs.pc.equipment)
+            update_ui_icons("inventory", gs.pc.inventory)
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_auto_equip(conn, self.item.uiid, str(self.parent.slot), self.parent.container_name)
 
     def auto_unequip(self):
-        """Automatically find an inventory slot to unequip this item to, then unequip it.
-        Looks in all possible slots in inventory for the item, if any are empty, unequip and
-        put the item there. If none are empty, then don't unequip."""
+        """UI wrapper for Item.iauto_unequip"""
         if network.is_main_client():
-            slot = find_first_empty_inventory(gs.pc)
-            if slot == "":
-                return False
-            return self.swap_locs(other_box=self.window.inventory_boxes[slot])
+            iauto_unequip(gs.pc, self.parent.slot)
+            update_ui_icons("equipment", gs.pc.equipment)
+            update_ui_icons("inventory", gs.pc.inventory)
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_auto_unequip(conn, self.item.uiid, self.parent.slot)

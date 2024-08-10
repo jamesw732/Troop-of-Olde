@@ -185,32 +185,35 @@ def find_first_empty_inventory(char):
     except StopIteration:
         return ""
 
-def host_swap(char, container1, slot1, container2, slot2):
-    item1 = getattr(char, container1)[slot1]
-    item2 = getattr(char, container2)[slot2]
-    internal_move_item(char, item1, container2, slot2, container1)
-    internal_move_item(char, item2, container1, slot1, container2)
-
 @rpc(network.peer)
 def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
     """Request host to swap items internally, host will send back updated container states"""
     if not network.peer.is_hosting():
         return
     char = network.connection_to_char[connection]
-    host_swap(char, container1, slot1, container2, slot2)
+    internal_swap(char, container1, slot1, container2, slot2)
     for name in set([container1, container2]):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
+def internal_swap(char, container1, slot1, container2, slot2):
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+    internal_move_item(char, item1, container2, slot2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
+
 def iauto_equip(char, old_container, old_slot):
-    """Auto equips an item internally, as opposed to ItemIcon.auto_equip"""
+    """Auto equips an item internally"""
     item = getattr(char, old_container)[old_slot]
     new_slot = find_first_empty_equip(item, char)
-    host_swap(char, old_container, old_slot, "equipment", new_slot)
+    internal_swap(char, old_container, old_slot, "equipment", new_slot)
 
 def iauto_unequip(char, old_slot):
     new_slot = find_first_empty_inventory(char)
-    host_swap(char, "equipment", old_slot, "inventory", new_slot)
+    if new_slot == "":
+        return False
+    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
+    return True
 
 @rpc(network.peer)
 def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
@@ -231,7 +234,7 @@ def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
         network.peer.remote_update_container(connection, name, container)
 
 @rpc(network.peer)
-def remote_update_container(connection, time_received, name: str, container: InitContainer):
+def remote_update_container(connection, time_received, container_name: str, container: InitContainer):
     """Update internal containers and visual containers
 
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
@@ -239,23 +242,29 @@ def remote_update_container(connection, time_received, name: str, container: Ini
     if network.peer.is_hosting():
         return
     internal_container = init_to_container(container)
+    update_ui_icons(container_name, internal_container)
+
+def update_ui_icons(container_name, internal_container):
+    """Updates ui.playerwindow.items.container_name with internal_container
+
+    This should definitely be in items_window.py, and it will be, but for now it's fine in here."""
     itemwindow = ui.playerwindow.items
-    if name == "equipment":
+    if container_name == "equipment":
         ui_container = itemwindow.equipped_boxes
         gs.pc.equipment = copy.copy(default_equipment)
         loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.equipment.items())
-    elif name == "inventory":
+    elif container_name == "inventory":
         ui_container = itemwindow.inventory_boxes
         gs.pc.inventory = copy.copy(default_inventory)
         loop = ((slot, internal_container.get(slot, None)) for slot, item in gs.pc.inventory.items())
     for slot, item in loop:
-        if not reset_itemicon(name, ui_container, slot, item):
+        if not reset_itemicon(container_name, ui_container, slot, item):
             # probably because the item is None
             continue
-        new_primary_option = get_primary_option_from_container(item, name)
+        new_primary_option = get_primary_option_from_container(item, container_name)
         update_primary_option(item, new_primary_option)
         # Internally assign item to slot
-        getattr(gs.pc, name)[slot] = item
+        getattr(gs.pc, container_name)[slot] = item
 
 def reset_itemicon(container_name, ui_container, slot, item):
     """Updates a single item icon to match item in the same location"""
