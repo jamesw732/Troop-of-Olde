@@ -136,7 +136,13 @@ def internal_move_item(char, item, new_container_n, new_slot, old_container_n="i
     elif old_container_n == "equipment":
         remove_stat_change(char, item["stats"])
     char.update_max_ratings()
+    auto_primary_option(item, new_container_n)
 
+
+# Update item functions
+def auto_primary_option(item, container_name):
+    new_primary_option = get_primary_option_from_container(item, container_name)
+    update_primary_option(item, new_primary_option)
 
 def get_primary_option_from_container(item, container):
     """Get intended primary option of an item based on where it is"""
@@ -160,6 +166,73 @@ def update_primary_option(item, funcname):
     # This seems really bad. Definitely want to work something better out once
     # item tooltips are a thing
     item["functions"][0] = funcname
+
+
+# Internal item swap code
+def internal_swap(char, container1, slot1, container2, slot2):
+    """Combines all functions necessary to be a wrapper for ItemIcon.swap_locs
+
+    It is important to treat container1 and slot1 as the source, as the
+    corresponding Item cannot be None"""
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+
+    # If we're intentionally equipping offhand, unequip 2h if wearing
+    man_unequip_2h = equipping_oh_wearing_2h(char, item1, slot2) \
+                     or equipping_oh_wearing_2h(char, item2, slot1)
+    # If equipping 2h, also unequip offhand if wearing
+    if equipping_2h(item1, container2):
+        unequip_offhand(char)
+    if equipping_2h(item2, container1):
+        unequip_offhand(char)
+
+    internal_move_item(char, item1, container2, slot2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
+    # Save auto unequipping 2h for last, otherwise position gets screwed up
+    if man_unequip_2h:
+        iauto_unequip(char, "mh")
+
+def equipping_2h(item, tgt_container):
+    return tgt_container == "equipment" and item_is_2h(item)
+
+def unequip_offhand(char):
+    """Unequips the offhand, if there is one"""
+    # Unequip the offhand too
+    offhand = char.equipment["oh"]
+    if offhand is not None:
+        unequipped = iauto_unequip(char, "oh")
+        if not unequipped:
+            return False
+    return True
+
+def equipping_oh_wearing_2h(char, item, tgt_slot):
+    """Equipping an offhand while wearing a 2h weapon. Note that based on how
+    auto slot finding is written, this case is only possible if the slot was
+    intentionally selected for this item."""
+    mh = char.equipment["mh"]
+    if mh is None:
+        return False
+    mh_is_2h = item_is_2h(mh)
+    return mh_is_2h and tgt_slot == "oh"
+
+def item_is_2h(item):
+    if item is None:
+        return False
+    return item.get("type") == "weapon" and item.get("info", {}).get("style", "")[:2] == "2h"
+
+
+# Auto equipping/unequipping
+def iauto_equip(char, old_container, old_slot):
+    """Auto equips an item internally"""
+    item = getattr(char, old_container)[old_slot]
+    new_slot = find_first_empty_equip(item, char)
+    internal_swap(char, old_container, old_slot, "equipment", new_slot)
+
+def iauto_unequip(char, old_slot):
+    new_slot = find_first_empty_inventory(char)
+    if new_slot == "":
+        return
+    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
 
 def find_first_empty_equip(item, char):
     """Find the correct spot to equip this item to"""
@@ -191,65 +264,8 @@ def find_first_empty_inventory(char):
     except StopIteration:
         return ""
 
-def internal_swap(char, container1, slot1, container2, slot2):
-    """Combines all functions necessary to be a wrapper for ItemIcon.swap_locs
 
-    It is important to treat container1 and slot1 as the source, as the
-    corresponding Item cannot be None"""
-    item1 = getattr(char, container1)[slot1]
-    item2 = getattr(char, container2)[slot2]
-
-    # If we're intentionally equipping offhand, unequip 2h if wearing
-    man_unequip_2h = equipping_oh_wearing_2h(char, item1, slot2)
-    # If equipping 2h, also unequip offhand if wearing
-    if equipping_2h(item1, container2):
-        unequip_offhand(char, item1)
-
-    internal_move_item(char, item1, container2, slot2, container1)
-    internal_move_item(char, item2, container1, slot1, container2)
-    # Save auto unequipping 2h for last, otherwise position gets screwed up
-    if man_unequip_2h:
-        iauto_unequip(char, "mh")
-
-
-def iauto_equip(char, old_container, old_slot):
-    """Auto equips an item internally"""
-    item = getattr(char, old_container)[old_slot]
-    new_slot = find_first_empty_equip(item, char)
-    internal_swap(char, old_container, old_slot, "equipment", new_slot)
-
-def iauto_unequip(char, old_slot):
-    new_slot = find_first_empty_inventory(char)
-    if new_slot == "":
-        return
-    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
-
-def equipping_2h(item, tgt_container):
-    return tgt_container == "equipment" and item_is_2h(item)
-
-def unequip_offhand(char, item):
-    """Unequips the offhand, if there is one"""
-    # Unequip the offhand too
-    offhand = char.equipment["oh"]
-    if offhand is not None:
-        unequipped = iauto_unequip(char, "oh")
-        if not unequipped:
-            return False
-    return True
-
-def equipping_oh_wearing_2h(char, item, tgt_slot):
-    """Equipping an offhand while wearing a 2h weapon. Note that based on how
-    auto slot finding is written, this case is only possible if the slot was
-    intentionally selected for this item."""
-    mh = char.equipment["mh"]
-    if mh is None:
-        return False
-    mh_is_2h = item_is_2h(mh)
-    return mh_is_2h and tgt_slot == "oh"
-
-def item_is_2h(item):
-    return item.get("type") == "weapon" and item.get("info", {}).get("style", "")[:2] == "2h"
-
+# NETWORKING
 @rpc(network.peer)
 def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
     """Request host to swap items internally, host will send back updated container states"""
@@ -279,6 +295,7 @@ def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
         container = container_to_init(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
+# Final container updates
 @rpc(network.peer)
 def remote_update_container(connection, time_received, container_name: str, container: InitContainer):
     """Update internal containers and visual containers
@@ -289,21 +306,13 @@ def remote_update_container(connection, time_received, container_name: str, cont
         return
     internal_container = init_to_container(container)
     update_container(container_name, internal_container)
-    # loop = internal_container.items()
-    # container = getattr(gs.pc, container_name)
-    # for slot, item in loop:
-    #     container[slot] = item
-    #     new_primary_option = get_primary_option_from_container(item, container_name)
-    #     update_primary_option(item, new_primary_option)
-
-    # ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
 
 def update_container(container_name, internal_container):
+    """Updates character's internal container and UI container from network"""
     loop = internal_container.items()
     container = getattr(gs.pc, container_name)
     for slot, item in loop:
         container[slot] = item
-        new_primary_option = get_primary_option_from_container(item, container_name)
-        update_primary_option(item, new_primary_option)
+        auto_primary_option(item, container_name)
 
     ui.playerwindow.items.update_ui_icons(container_name, loop=loop)

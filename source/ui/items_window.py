@@ -239,6 +239,7 @@ class ItemIcon(Entity):
         if network.is_main_client():
             internal_swap(gs.pc, my_container, my_slot, other_container, other_slot)
             ui.playerwindow.items.update_ui_icons(my_container)
+            ui.playerwindow.items.update_ui_icons(other_container)
         else:
             conn = network.peer.get_connections()[0]
             network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
