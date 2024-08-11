@@ -12,7 +12,7 @@ from .item import Item, equip_many_items
 from .states.cbstate_complete import apply_complete_cb_state
 from .states.cbstate_base import BaseCombatState, apply_base_state
 from .states.cbstate_mini import apply_mini_state
-from .states.container import InitContainer
+from .states.container import IdContainer
 from .states.physicalstate import PhysicalState, apply_physical_state
 from .states.skills import SkillState
 from .ui.main import ui
@@ -35,8 +35,8 @@ class Character(Entity):
             computation and just overwrite the combat attrs
         mini_state: MiniCombatState; If specified, only initializes the most minimal
             attrs that the player needs to see from other characters.
-        equipment: dict of Items keyed by slot, or InitContainer of item id's keyed by slot
-        inventory: dict of Items keyed by index within inventory, 0-23, or InitContainer of item id's keyed by slot
+        equipment: dict of Items keyed by slot, or IdContainer of item id's keyed by slot
+        inventory: dict of Items keyed by index within inventory, 0-23, or IdContainer of item id's keyed by slot
         """
         # Character-specific attrs
         self.type = type
@@ -77,7 +77,7 @@ class Character(Entity):
         if base_state:
             apply_base_state(self, base_state)
             if equipment:
-                if isinstance(equipment, InitContainer):
+                if isinstance(equipment, IdContainer):
                     equipment = {slot: Item(itemid) for slot, itemid in equipment.items()}
                 equip_many_items(self, equipment)
             # ... apply effects
@@ -299,8 +299,8 @@ def get_character_states_from_json(pname):
     pstate = PhysicalState(**pstate_raw)
     pstate["cname"] = pname
     basestate = BaseCombatState(**basestate_raw)
-    equipment = InitContainer(equipment_raw)
-    inventory = InitContainer(inventory_raw)
+    equipment = IdContainer(equipment_raw)
+    inventory = IdContainer(inventory_raw)
     skills = SkillState(skills_raw)
     return pstate, basestate, equipment, inventory, skills
 

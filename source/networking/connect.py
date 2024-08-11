@@ -3,7 +3,7 @@ from ursina.networking import rpc
 
 from .base import network
 from .register import CompleteCombatState, BaseCombatState, MiniCombatState, \
-    InitContainer, PhysicalState, StatChange, SkillState
+    IdContainer, PhysicalState, StatChange, SkillState
 from ..character import Character, get_character_states_from_json
 from ..npc_controller import NPC_Controller
 from ..gamestate import gs
@@ -65,8 +65,8 @@ def on_connect(connection, time_connected):
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
-                        base_state: BaseCombatState, equipment: InitContainer,
-                        inventory: InitContainer, skills: SkillState):
+                        base_state: BaseCombatState, equipment: IdContainer,
+                        inventory: IdContainer, skills: SkillState):
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory, skills=skills)
@@ -95,9 +95,9 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
         # Send over instantiated item id's
-        inst_inventory = InitContainer({k: item.uiid for k, item
+        inst_inventory = IdContainer({k: item.uiid for k, item
                           in char.inventory.items() if item is not None})
-        inst_equipment = InitContainer({k: item.uiid for k, item
+        inst_equipment = IdContainer({k: item.uiid for k, item
                           in char.equipment.items() if item is not None})
         network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
 
@@ -123,7 +123,7 @@ def bind_pc(connection, time_received, uuid: int):
         network.my_uuid = uuid
 
 @rpc(network.peer)
-def bind_pc_items(connection, time_received, inventory: InitContainer, equipment: InitContainer):
+def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: IdContainer):
     for k, uiid in inventory.items():
         gs.pc.inventory[k].uiid = uiid
         network.uiid_to_item[uiid] = gs.pc.inventory[k]

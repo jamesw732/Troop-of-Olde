@@ -7,7 +7,7 @@ from source.world_gen import GenerateWorld
 from source.character import Character
 from source.states.physicalstate import PhysicalState
 from source.states.cbstate_base import BaseCombatState
-from source.states.container import InitContainer
+from source.states.container import IdContainer
 
 app = Ursina()
 testzone_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_zones")
@@ -17,8 +17,8 @@ physical_state = PhysicalState(position=Vec3(0, 10, 0), model="cube",
                                color="orange", scale=(1, 2, 1),
                                cname="Demo Player", type="player")
 combat_state = BaseCombatState(statichealth=100)
-inventory_state = InitContainer({"0": 1})
-equipment_state = InitContainer({"mh": 2})
+inventory_state = IdContainer({"0": 1})
+equipment_state = IdContainer({"mh": 2})
 player = Character(pstate=physical_state, base_state=combat_state,
                    inventory=inventory_state, equipment=equipment_state)
 

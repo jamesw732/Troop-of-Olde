@@ -8,7 +8,7 @@ from .gamestate import gs
 from .networking.base import network
 from .ui.base import ui
 # This import might be a problem eventually
-from .states.container import InitContainer, container_to_init, init_to_container
+from .states.container import IdContainer, container_to_ids, ids_to_container
 from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
 
 """
@@ -274,7 +274,7 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
     char = network.connection_to_char[connection]
     internal_swap(char, container1, slot1, container2, slot2)
     for name in set([container1, container2]):
-        container = container_to_init(getattr(char, name))
+        container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
 @rpc(network.peer)
@@ -283,7 +283,7 @@ def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old
     char = network.connection_to_char[connection]
     iauto_equip(char, old_container, old_slot)
     for name in set([old_container, "equipment"]):
-        container = container_to_init(getattr(char, name))
+        container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
 @rpc(network.peer)
@@ -292,19 +292,19 @@ def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
     char = network.connection_to_char[connection]
     iauto_unequip(char, old_slot)
     for name in ["equipment", "inventory"]:
-        container = container_to_init(getattr(char, name))
+        container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
 # Final container updates
 @rpc(network.peer)
-def remote_update_container(connection, time_received, container_name: str, container: InitContainer):
+def remote_update_container(connection, time_received, container_name: str, container: IdContainer):
     """Update internal containers and visual containers
 
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
     this will only be done by non-hosts"""
     if network.peer.is_hosting():
         return
-    internal_container = init_to_container(container)
+    internal_container = ids_to_container(container)
     update_container(container_name, internal_container)
 
 def update_container(container_name, internal_container):
