@@ -27,14 +27,8 @@ class SkillsWindow(Entity):
         self.labels = {}
 
         self.wep_style_skills = [
-            "1h slash",
-            "1h pierce",
-            "1h blunt",
-            "1h cleave",
-            "2h slash",
-            "2h pierce",
-            "2h blunt",
-            "2h cleave",
+            "1h melee",
+            "2h melee",
             "fists",
         ]
         self.off_skills = [
