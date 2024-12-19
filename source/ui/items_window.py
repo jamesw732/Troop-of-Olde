@@ -29,18 +29,10 @@ class ItemsWindow(Entity):
                                         scale=(sq_size * 3, sq_size * 7 * square_ratio))
 
         self.equipped_positions = {
-            "ear": Vec3(0, 0, -1),
-            "head": Vec3(1/3, 0, -1),
-            "neck": Vec3(0, -1/7, -1),
-            "chest": Vec3(1/3, -1/7, -1),
-            "back": Vec3(2/3, -1/7, -1),
-            "legs": Vec3(1/3, -2/7, -1),
-            "hands": Vec3(0, -3/7, -1),
-            "feet": Vec3(1/3, -3/7, -1),
-            "ring": Vec3(2/3, -3/7, -1),
-            "mh": Vec3(0, -2/7, -1),
-            "oh": Vec3(2/3, -2/7, -1),
-            "ammo": Vec3(2/3, 0, -1)
+            "armor": Vec3(0, 0, -1),
+            "ring": Vec3(1/3, 0, -1),
+            "mh": Vec3(0, -1/7, -1),
+            "oh": Vec3(1/3, -1/7, -1),
         }
         self.equipment_boxes = {
             slot: ItemBox(text=slot, slot=slot, container_name="equipment",
