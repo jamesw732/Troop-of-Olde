@@ -34,18 +34,15 @@ default_cb_attrs = {
     "dex": 0,
     "ref": 0,
     "int": 0,
+    "hardy": 0,
 
     "haste": 0,
     "speed": 0,
     "casthaste": 0,
+    "castdmg": 0,
+    "critdmg": 0,
+    "critrate": 0,
 
-    "amagic": 0,
-    "aphys": 0,
-    "afire": 0,
-    "acold": 0,
-    "aelec": 0,
-    "apois": 0,
-    "adis": 0,
 
     "mh_combat_timer": 0,
     "oh_combat_timer": 0,

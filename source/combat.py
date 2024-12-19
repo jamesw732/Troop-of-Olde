@@ -63,7 +63,6 @@ def attempt_melee_hit(src, tgt, slot):
         style = get_wpn_style(src, wep)
 
         base_dmg *= 2 * sigmoid(src.str - tgt.armor)
-        base_dmg -= tgt.aphys
         min_hit = max(0, ceil(base_dmg * 0.5))
         max_hit = max(0, ceil(base_dmg * 1.5))
         dmg = random.randint(min_hit, max_hit)

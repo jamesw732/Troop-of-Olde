@@ -34,28 +34,22 @@ class StatsWindow(Entity):
             ('str', 'Strength'),
             ('dex', 'Dexterity'),
             ('ref', 'Reflexes'),
-            ('int', 'Intelligence')
-        ]
-        self.affinity_labels = [
-            ('amagic', 'Magic'),
-            ('aphys', 'Physical'),
-            ('afire', 'Fire'),
-            ('acold', 'Cold'),
-            ('aelec', 'Electric'),
-            ('apois', 'Poison'),
-            ('adis', 'Disease')
+            ('int', 'Intelligence'),
+            ('hardy', 'Hardiness')
         ]
         self.mod_labels = [
             ('speed', 'Speed'),
             ('haste', 'Haste'),
             ('casthaste', 'Casting Haste'),
+            ('castdmg', 'Casting Damage'),
+            ('critdmg', 'Crit Damage'),
+            ('critrate', 'Crit Rate')
         ]
 
         self.labels_out_of_max = [tup[0] for tup in self.rating_labels]
 
         self.write_ratings()
         self.write_innate()
-        self.write_affinities()
         self.write_mods()
 
         self.update_rate = 1.0
@@ -111,29 +105,11 @@ class StatsWindow(Entity):
                  world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
             self.entries[attr].fmt = fmt
 
-    def write_affinities(self):
-        Text(text="Affinities", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.75, -1.5 * self.row_width, -2))
-        start_row = 2
-        end_row = start_row + len(self.affinity_labels)
-        # Rows then columns
-        locations = [(0.52, (-0.5 -  i) * self.row_width, -2)
-            for i in range(start_row, end_row)]
-        for i, loc in enumerate(locations):
-            label = self.affinity_labels[i][1]
-            attr = self.affinity_labels[i][0]
-            cur = getattr(self.player, attr)
-            fmt = (f"{label}:", "{}")
-            txt = self.format_string(fmt, cur)
-            self.entries[attr] = Text(text=txt, parent=self, position=loc, origin=(-0.5, 0.5),
-                 world_scale=self.entry_font_size, color=color.white, font='VeraMono.ttf')
-            self.entries[attr].fmt = fmt
-
     def write_mods(self):
-        y_offset = len(self.affinity_labels)
+        label_y = -1.5 * self.row_width
         Text(text="Modifiers", parent=self, origin=(0, 0), world_scale=(18, 18),
-             position=(0.75, (-3.5 - y_offset) * self.row_width, -2))
-        start_row = 4 + y_offset
+             position=(0.75, label_y, -2))
+        start_row = 2
         end_row = start_row + len(self.mod_labels)
         locations = [(0.52, (-0.5 - i) * self.row_width, -2)
                      for i in range(start_row, end_row)]
