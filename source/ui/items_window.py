@@ -19,28 +19,40 @@ class ItemsWindow(Entity):
         super().__init__(*args, **kwargs)
         self.player = gs.pc
 
+        # (1, square_ratio) gives a square relative to the window
         square_ratio = self.world_scale_x / self.world_scale_y
+        # how far away from the edge to put the subcontainers
         edge_margin = 0.05
 
+        # square width... 0.9 is total width minus margin, 7 is the number of boxes
         sq_size = 0.9 / 7 / square_ratio
 
+        # number of boxes
+        equip_dims = Vec3(3, 7, 1)
+        # size of each box relative to eqiupped_subframe, should just be 1/equip_dims
+        equip_scale = Vec2(1/3, 1/7)
+        # spacing between each box relative to box size
+        equip_box_spacing = 1.2
         self.equipped_subframe = Entity(parent=self, origin=(-.5, .5),
                                         position=(edge_margin, -edge_margin, -1),
-                                        scale=(sq_size * 3, sq_size * 7 * square_ratio))
+                                        scale=(sq_size * equip_dims[0],
+                                               sq_size * equip_dims[1] * square_ratio))
 
         self.equipped_positions = {
             "armor": Vec3(0, 0, -1),
-            "ring": Vec3(1/3, 0, -1),
-            "mh": Vec3(0, -1/7, -1),
-            "oh": Vec3(1/3, -1/7, -1),
+            "ring": Vec3(1, 0, -1),
+            "mh": Vec3(0, -1, -1),
+            "oh": Vec3(1, -1, -1),
         }
         self.equipment_boxes = {
             slot: ItemBox(text=slot, slot=slot, container_name="equipment",
-                           parent=self.equipped_subframe, position=pos * Vec2(1.2, 1.66),
-                           scale=(1/3, 1/7), color=slot_color)
+                           parent=self.equipped_subframe,
+                          position= (pos / equip_dims) * equip_box_spacing,
+                           scale=equip_scale, color=slot_color)
             for slot, pos in self.equipped_positions.items()
         }
 
+        inventory_dims = Vec3(4, 7, 1)
         self.inventory_subframe = Entity(parent=self, origin=(-.5, .5),
                                         position=(edge_margin + 0.45, -edge_margin, -1),
                                         scale=(sq_size * 4, sq_size * 7 * square_ratio))
@@ -51,7 +63,6 @@ class ItemsWindow(Entity):
                                         position=pos, scale=(1/4, 1/7), color=slot_color)
                                 for i, pos in enumerate(self.inventory_positions)}
 
-        # Eventually, don't grid whole equipped, just do a 1x1 grid on each slot
         for slot in self.equipment_boxes.values():
             grid(slot, num_rows=1, num_cols=1, color=color.black)
         for slot in self.inventory_boxes.values():
