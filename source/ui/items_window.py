@@ -19,13 +19,15 @@ class ItemsWindow(Entity):
         super().__init__(*args, **kwargs)
         self.player = gs.pc
 
+        window_wh_ratio = self.world_scale_x / self.world_scale_y
         # Make equipment subframe
         # ============PARAMETERS==================
         # For minor changes, these are the numbers to tweak
         # How far away from the edge to put the subcontainers
         edge_margin = 0.05
         # How much of the window should the equipped subframe take up
-        equipped_scale = Vec2(0.4, 0.5)
+        # The second dimension is only used for spacing
+        equipped_frame_scale = Vec2(0.4, 0.5)
         # Number of boxes in the grid
         equip_grid_size = Vec3(3, 3, 1)
         # % of width of box used as spacing between boxes
@@ -40,7 +42,7 @@ class ItemsWindow(Entity):
         # ============CODE=================
         self.equipped_subframe = Entity(parent=self, origin=(-.5, .5),
                                         position=(edge_margin, -edge_margin, -1),
-                                        scale=equipped_scale)
+                                        scale=equipped_frame_scale)
         # (1, square_ratio) gives a square relative to the subframe
         wh_ratio = self.equipped_subframe.world_scale_x / self.equipped_subframe.world_scale_y
 
@@ -56,16 +58,33 @@ class ItemsWindow(Entity):
                            scale=equip_scale, color=slot_color)
             for slot, pos in equipped_positions.items()
         }
+        # Make inventory subframe
+        # ===========PARAMETERS=============
+        # Width of the inventory frame relative to the window
+        inventory_frame_width = 0.4
+        # Dimensions of the inventory slots
+        inventory_grid_size = (4, 7)
+        # Position of the subframe
+        inventory_position = (3 * edge_margin + equipped_frame_scale[0], -edge_margin, -1)
+        # ===========CODE==============
+        xy_ratio = inventory_grid_size[0] / inventory_grid_size[1]
+        inventory_frame_height = inventory_frame_width / xy_ratio * window_wh_ratio
+        inventory_frame_scale = Vec2(inventory_frame_width, inventory_frame_height)
 
-        inventory_dims = Vec3(4, 7, 1)
+        self.inventory_positions = [Vec3(i, -j, -1)
+                                    for j in range(inventory_grid_size[1])
+                                    for i in range(inventory_grid_size[0])]
+
         self.inventory_subframe = Entity(parent=self, origin=(-.5, .5),
-                                        position=(edge_margin + 0.45, -edge_margin, -1),
-                                        scale=(sq_width * 4, sq_width * 7 * wh_ratio))
+                                        position=inventory_position,
+                                        scale=inventory_frame_scale)
 
-        self.inventory_positions = [(i / 4, -j / 7, -1) for j in range(6) for i in range(4)]
+        inventory_box_scale = Vec3(1 / inventory_grid_size[0], 1 / inventory_grid_size[1], 1)
+
         self.inventory_boxes = {str(i): ItemBox(slot=str(i), container_name="inventory",
-                                        parent=self.inventory_subframe,
-                                        position=pos, scale=(1/4, 1/7), color=slot_color)
+                                                parent=self.inventory_subframe,
+                                                position=pos * inventory_box_scale,
+                                                scale=inventory_box_scale, color=slot_color)
                                 for i, pos in enumerate(self.inventory_positions)}
 
         for slot in self.equipment_boxes.values():
