@@ -82,7 +82,7 @@ class Character(Entity):
                 equip_many_items(self, equipment)
             # ... apply effects
             self.update_max_ratings()
-            for attr in ["health", "mana", "stamina", "armor", "spellshield"]:
+            for attr in ["health", "energy", "armor"]:
                 # if not hasattr(base_state, attr):
                 maxval = getattr(self, "max" + attr)
                 setattr(self, attr, maxval)
@@ -185,12 +185,10 @@ class Character(Entity):
         """Adjust secondary combat attributes to state changes.
         These attrs are not adjusted directly by state changes,
         but still deserve to be updated by them."""
-        self.maxhealth = self.statichealth + self.bdy * 10
-        self.maxmana = self.staticmana + self.int * 10
-        self.maxstamina = self.staticstamina + self.bdy * 5 + self.str * 5
+        self.maxhealth = self.statichealth
+        self.maxenergy = self.staticenergy
         self.health = min(self.maxhealth, self.health)
-        self.mana = min(self.maxmana, self.mana)
-        self.stamina = min(self.maxstamina, self.stamina)
+        self.energy = min(self.energy, self.energy)
 
     # def _update_incremental_vals(self):
     #     """Increment timer for and update values that need continuous update, but

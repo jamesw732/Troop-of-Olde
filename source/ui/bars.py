@@ -10,7 +10,7 @@ class BarWindow(Entity):
         self.player = gs.pc
         header = Header(
             position=window.top_left,
-            scale=(.2, .033),
+            scale=(.2, .02),
             color=header_color,
             ignore_key=lambda c: True
         )
@@ -27,27 +27,21 @@ class BarWindow(Entity):
             position=(0.05, -0.05, -1), scale=(0.9, 0.9),
             color=window_bg_color)
 
-        self.bar_height = 1/3
+        self.bar_height = 1/2
 
         self.healthbar = Entity(
             parent=self.bar_bg, model='quad', origin=(-.5, .5),
             position=(0, 0, -2), scale=(1, self.bar_height),
             color=color.red
         )
-        self.manabar = Entity(
+        self.energybar = Entity(
             parent=self.bar_bg, model='quad', origin=(-.5, .5),
             position=(0, -self.bar_height, -2),
             scale=(1, self.bar_height),
-            color=color.hex("0000cc")
-        )
-        self.stambar = Entity(
-            parent=self.bar_bg, model='quad', origin=(-.5, .5),
-            position=(0, -2 * (self.bar_height), -2),
-            scale=(1, self.bar_height),
-            color=color.yellow
+            color=color.hex("00cc00")
         )
 
-        grid(self.bar_bg, num_rows=3, num_cols=1, color=color.black)
+        grid(self.bar_bg, num_rows=2, num_cols=1, color=color.black)
 
         self.update_rate = 1.0
         self.update_timer = 0.0
@@ -57,17 +51,12 @@ class BarWindow(Entity):
         if self.update_timer > self.update_rate:
             self.update_timer -= self.update_rate
             self.update_health()
-            self.update_mana()
-            self.update_stamina()
+            self.update_energy()
 
     def update_health(self):
         ratio = self.player.health / self.player.maxhealth
         self.healthbar.scale = (ratio, self.bar_height)
 
-    def update_mana(self):
-        ratio = self.player.mana / self.player.maxmana
-        self.manabar.scale = (ratio, self.bar_height)
-
-    def update_stamina(self):
-        ratio = self.player.stamina / self.player.maxstamina
-        self.stambar = (ratio, self.bar_height)
+    def update_energy(self):
+        ratio = self.player.energy / self.player.energy
+        self.energybar.scale = (ratio, self.bar_height)

@@ -24,17 +24,13 @@ class StatsWindow(Entity):
 
         self.rating_labels = [
             ('health', 'Health'),
-            ('mana', 'Mana'),
-            ('stamina', 'Stamina'),
+            ('energy', 'Energy'),
             ('armor', 'Armor'),
-            ('spellshield', 'Spell Shield')
         ]
         self.innate_labels = [
-            ('bdy', 'Body'),
             ('str', 'Strength'),
             ('dex', 'Dexterity'),
             ('ref', 'Reflexes'),
-            ('int', 'Intelligence'),
             ('hardy', 'Hardiness')
         ]
         self.mod_labels = [
