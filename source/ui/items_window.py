@@ -33,9 +33,9 @@ class ItemsWindow(Entity):
         # The second dimension is only used for spacing
         equip_frame_width = 0.4
         # Number of boxes in the grid
-        equip_grid_size = Vec3(3, 3)
+        equip_grid_size = Vec2(3, 3)
         # % of width of box used as spacing between boxes
-        equip_box_spacing = 0.1
+        equip_box_spacing = 0.2
         # Where in the grid the gear slots go
         equipped_positions = {
             "armor": Vec3(1, -1, -1),
@@ -44,21 +44,25 @@ class ItemsWindow(Entity):
             "oh": Vec3(2, -2, -1),
         }
         # ============CODE=================
-        xy_ratio = equip_grid_size[0] / equip_grid_size[1]
+        grid_ratio = equip_grid_size[0] / equip_grid_size[1]
+        # compute the height of the frame WRT window given width, grid size, and spacing
+        x = equip_frame_width / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
+        y = x * window_wh_ratio
+        equip_frame_height = y * (equip_grid_size[1] + equip_box_spacing * (equip_grid_size[1] - 1))
         # height of equip frame relative to the width
-        equip_frame_height = equip_frame_width / xy_ratio * window_wh_ratio
-        equip_frame_scale = Vec2(equip_frame_width, equip_frame_height)
-        self.equipped_subframe = Entity(parent=self, origin=(-.5, .5),
+        equip_frame_scale = Vec3(equip_frame_width, equip_frame_height, 1)
+        self.equipped_frame = Entity(parent=self, origin=(-.5, .5),
                                         position=(edge_margin, -edge_margin, -1),
                                         scale=equip_frame_scale)
-        # Width and height of the frame minus the total width and height of the spacing
-        boxes_w, boxes_h = [1 - (equip_grid_size[i] - 1) * equip_box_spacing / equip_grid_size[i]
-                            for i in range(2)]
-        equip_box_scale = Vec3(boxes_w / equip_grid_size[0], boxes_h / equip_grid_size[1], 1)
+        # Compure the scale of the boxes with respect to the frame
+        box_w = 1 / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
+        box_h = 1 / (equip_grid_size[1] + equip_box_spacing * (equip_grid_size[1] - 1))
+
+        equip_box_scale = Vec3(box_w, box_h, 1)
 
         self.equipment_boxes = {
             slot: ItemBox(text=slot, slot=slot, container_name="equipment",
-                           parent=self.equipped_subframe,
+                           parent=self.equipped_frame,
                            position=pos * ((1 + equip_box_spacing) * equip_box_scale),
                            scale=equip_box_scale, color=slot_color)
                 for slot, pos in equipped_positions.items()
@@ -72,8 +76,8 @@ class ItemsWindow(Entity):
         # Position of the subframe
         inventory_position = (3 * edge_margin + equip_frame_scale[0], -edge_margin, -1)
         # ===========CODE==============
-        xy_ratio = inventory_grid_size[0] / inventory_grid_size[1]
-        inventory_frame_height = inventory_frame_width / xy_ratio * window_wh_ratio
+        grid_ratio = inventory_grid_size[0] / inventory_grid_size[1]
+        inventory_frame_height = inventory_frame_width / grid_ratio * window_wh_ratio
         inventory_frame_scale = Vec2(inventory_frame_width, inventory_frame_height)
 
         self.inventory_positions = [Vec3(i, -j, -1)
