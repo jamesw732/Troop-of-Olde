@@ -6,7 +6,7 @@
             "dmg": 5,
             "delay": 1,
             "range": 2,
-            "style": "1h slash",
+            "style": "1h melee",
             "slots": ["mh", "oh"]
         },
         "stats": {
@@ -21,7 +21,7 @@
             "dmg": 9,
             "delay": 2,
             "range": 3,
-            "style": "1h slash",
+            "style": "1h melee",
             "slots": ["mh", "oh"]
         },
         "stats": {
@@ -36,7 +36,7 @@
             "dmg": 18,
             "delay": 3,
             "range": 5,
-            "style": "2h slash",
+            "style": "2h melee",
             "slot": "mh"
         },
         "icon": "2h_sword.png"

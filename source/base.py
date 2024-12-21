@@ -4,12 +4,6 @@ import math
 
 fists_base_dmg = 2
 
-style_to_method = {
-    "fists": "pummels",
-    "1h slash": "slashes",
-    "2h slash": "slashes",
-}
-
 default_cb_attrs = {
     "maxhealth": 0,
     "health": 100,

@@ -2,7 +2,7 @@ from ursina import *
 from ursina.networking import rpc
 import random
 
-from .base import sigmoid, sqdist, fists_base_dmg, style_to_method
+from .base import sigmoid, sqdist, fists_base_dmg
 from .networking.base import network
 from .states.skills import attempt_raise_skill
 from .ui.main import ui
@@ -94,8 +94,7 @@ def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
     """Produce a string with information about the melee hit."""
     if miss:
         return f"{src.cname} attempts to hit {tgt.cname}, but misses!"
-    method = style_to_method[style]
-    return f"{src.cname} {method} {tgt.cname} for {dmg} damage!"
+    return f"{src.cname} hits {tgt.cname} for {dmg} damage!"
 
 def get_haste_modifier(haste):
     """Convert haste to a multiplicative time modifier"""
