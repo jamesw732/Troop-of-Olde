@@ -7,8 +7,6 @@ from ..gamestate import gs
 class LexiconWindow(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.player = gs.pc
-
         # This is used to normalize lengths relative to the width/height of the ItemsWindow
         # Given a width/length, multiply the length by window_wh_ratio to get the correct
         # length relative to the width
@@ -41,12 +39,12 @@ class LexiconWindow(Entity):
                      for j in range(page_grid_size[1])
                      for i in range(page_grid_size[0])]
 
-        self.page1_boxes = [PowerBox(slot=str(i), container_name="inventory",
+        self.page1_boxes = [PowerBox(gs.pc.page1, "page1", i,
                                             parent=self.page1,
                                             position=pos * box_scale * (1 + box_spacing),
                                             scale=box_scale, color=slot_color)
                             for i, pos in enumerate(positions)]
-        self.page2_boxes = [PowerBox(slot=str(i), container_name="inventory",
+        self.page2_boxes = [PowerBox(gs.pc.page2, "page2", i,
                                             parent=self.page2,
                                             position=pos * box_scale * (1 + box_spacing),
                                             scale=box_scale, color=slot_color)
@@ -63,9 +61,21 @@ class LexiconWindow(Entity):
         pass
 
 class PowerBox(Entity):
-    def __init__(self, *args, container=None, slot=None, container_name="", **kwargs):
+    def __init__(self, page, page_name, slot, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
-        self.container_name = container_name
-        self.container = getattr(gs.pc, container_name)
+        self.page_name = page_name
+        self.page = page
         self.slot = slot
-        self.itemicon = None
+        power = page[slot]
+        if power is not None:
+            PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
+                      position=(0, 0, -2))
+
+
+class PowerIcon(Entity):
+    def __init__(self, power, *args, **kwargs):
+        super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
+        self.power = power
+
+    def on_click(self):
+        self.power.apply_effect()

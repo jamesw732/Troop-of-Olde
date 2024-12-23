@@ -125,7 +125,7 @@ class ItemsWindow(Entity):
         if item is None:
             return
         if "icon" in item:
-            texture = os.path.join(icons_dir, item["icon"])
+            texture = os.path.join(effect_icons_dir, item["icon"])
             load_texture(texture)
             icon = ItemIcon(item, parent=parent, scale=(1, 1),
                             position=(0, 0, -2), texture=item["icon"])

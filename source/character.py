@@ -9,6 +9,7 @@ from .networking.base import network
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
+from .power import Power
 from .states.cbstate_complete import apply_complete_cb_state
 from .states.cbstate_base import BaseCombatState, apply_base_state
 from .states.cbstate_mini import apply_mini_state
@@ -21,7 +22,8 @@ class Character(Entity):
     def __init__(self, cname="Player", uuid=None, type="player",
                  pstate=None, base_state=None,
                  complete_cb_state=None, mini_state=None,
-                 equipment={}, inventory={}, skills={}):
+                 equipment={}, inventory={}, skills={},
+                 lexicon={}):
         """Initializes a character using a PhysicalState and one type of combat state.
         These options are explained below.
 
@@ -64,6 +66,8 @@ class Character(Entity):
         self._init_equipment()
         if type == 'player':
             self._init_inventory()
+
+        self._init_powers()
         # Combat attrs
         self._init_cb_attrs()
         if inventory and self.type == "player":
@@ -73,6 +77,12 @@ class Character(Entity):
                     self.inventory[slot] = Item(str(item))
                 else:
                     self.inventory[slot] = item
+        if lexicon:
+            for i, power_id in enumerate(lexicon["page1"]):
+                self.page1[i] = Power(power_id, self)
+            for i, power_id in enumerate(lexicon["page2"]):
+                self.page2[i] = Power(power_id, self)
+
         # Full creation of character from the ground up
         if base_state:
             apply_base_state(self, base_state)
@@ -169,6 +179,10 @@ class Character(Entity):
 
     def _init_inventory(self):
         self.inventory = copy(default_inventory)
+
+    def _init_powers(self):
+        self.page1 = [None] * 15
+        self.page2 = [None] * 15
 
     def _update_sec_phys_attrs(self):
         """Adjust secondary physical attributes to state changes.
@@ -282,7 +296,7 @@ class NameLabel(Text):
 
 
 def get_character_states_from_json(pname):
-    """Does all the work needed to get inputs to Character from a player in players.json"""
+    """Does all the work needed to get inputs to Character from a player name in players.json"""
     players_path = os.path.join(os.path.dirname(__file__), "..", "data", "players.json")
     with open(players_path) as players:
         d = json.load(players)[pname]
@@ -294,15 +308,20 @@ def get_character_states_from_json(pname):
     equipment_raw = d.get("equipment", {})
     inventory_raw = d.get("inventory", {})
     skills_raw = d.get("skills", {})
+    page1 = d.get("page1", {})
+    page2 = d.get("page2", {})
+
     pstate = PhysicalState(**pstate_raw)
     pstate["cname"] = pname
     basestate = BaseCombatState(**basestate_raw)
     equipment = IdContainer(equipment_raw)
     inventory = IdContainer(inventory_raw)
     skills = SkillState(skills_raw)
-    return pstate, basestate, equipment, inventory, skills
+    lexicon = {"page1": page1, "page2": page2}
+    return pstate, basestate, equipment, inventory, skills, lexicon
 
 def load_character_from_json(pname):
-    pstate, basestate, equipment, inventory, skills = get_character_states_from_json(pname)
+    pstate, basestate, equipment, inventory, skills, lexicon = get_character_states_from_json(pname)
     return Character(cname=pname, pstate=pstate, base_state=basestate,
-                        equipment=equipment, inventory=inventory, skills=skills)
+                     equipment=equipment, inventory=inventory, skills=skills,
+                     lexicon=lexicon)
