@@ -1,6 +1,8 @@
 from ursina import *
 import os
 import json
+
+from .networking.base import network
 from .ui.base import ui
 
 
@@ -25,7 +27,9 @@ class Effect(Entity):
             if "damage" in self.effects:
                 dmg = self.effects["damage"]
                 char.health -= dmg
-                ui.gamewindow.add_message(f"{char.cname} is damaged for {dmg} damage!")
+                msg = f"{char.cname} is damaged for {dmg} damage!"
+                ui.gamewindow.add_message(msg)
+                network.broadcast(network.peer.remote_print, msg)
             destroy(self)
 
         

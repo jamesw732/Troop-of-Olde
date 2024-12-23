@@ -78,9 +78,9 @@ class Character(Entity):
                 else:
                     self.inventory[slot] = item
         if lexicon:
-            for i, power_id in enumerate(lexicon["page1"]):
+            for i, power_id in lexicon["page1"].items():
                 self.page1[i] = Power(power_id, self)
-            for i, power_id in enumerate(lexicon["page2"]):
+            for i, power_id in lexicon["page2"].items():
                 self.page2[i] = Power(power_id, self)
 
         # Full creation of character from the ground up
@@ -181,8 +181,8 @@ class Character(Entity):
         self.inventory = copy(default_inventory)
 
     def _init_powers(self):
-        self.page1 = [None] * 15
-        self.page2 = [None] * 15
+        self.page1 = {}
+        self.page2 = {}
 
     def _update_sec_phys_attrs(self):
         """Adjust secondary physical attributes to state changes.
@@ -308,8 +308,8 @@ def get_character_states_from_json(pname):
     equipment_raw = d.get("equipment", {})
     inventory_raw = d.get("inventory", {})
     skills_raw = d.get("skills", {})
-    page1 = d.get("page1", {})
-    page2 = d.get("page2", {})
+    page1_raw = d.get("page1", [])
+    page2_raw = d.get("page2", [])
 
     pstate = PhysicalState(**pstate_raw)
     pstate["cname"] = pname
@@ -317,6 +317,9 @@ def get_character_states_from_json(pname):
     equipment = IdContainer(equipment_raw)
     inventory = IdContainer(inventory_raw)
     skills = SkillState(skills_raw)
+    page1 = IdContainer({str(i): power_id for i, power_id in enumerate(page1_raw)})
+    page2 = IdContainer({str(i): power_id for i, power_id in enumerate(page2_raw)})
+
     lexicon = {"page1": page1, "page2": page2}
     return pstate, basestate, equipment, inventory, skills, lexicon
 

@@ -3,6 +3,7 @@ from ursina import *
 from .base import *
 from .header import *
 from ..gamestate import gs
+from ..networking.base import network
 
 class LexiconWindow(Entity):
     def __init__(self, *args, **kwargs):
@@ -65,8 +66,8 @@ class PowerBox(Entity):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         self.page_name = page_name
         self.page = page
-        self.slot = slot
-        power = page[slot]
+        self.slot = str(slot)
+        power = page.get(self.slot, None)
         if power is not None:
             PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
                       position=(0, 0, -2))
@@ -78,4 +79,8 @@ class PowerIcon(Entity):
         self.power = power
 
     def on_click(self):
-        self.power.apply_effect()
+        if network.is_main_client():
+            self.power.apply_effect()
+        else:
+            network.peer.request_apply_effect(network.peer.get_connections()[0], gs.pc.uuid,
+                                              self.parent.page_name, self.parent.slot)

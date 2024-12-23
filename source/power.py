@@ -1,7 +1,9 @@
 from ursina import *
 import os
 import json
+
 from .effect import Effect
+from .networking.base import network, rpc
 
 power_path = os.path.join(os.path.dirname(__file__), "..", "data", "powers.json")
 with open(power_path) as power_json:
@@ -29,3 +31,10 @@ class Power(Entity):
                 return
             effect = Effect(self.effect_id)
             effect.apply_to_char(self.char.target)
+
+@rpc(network.peer)
+def request_apply_effect(connection, time_received, uuid: int, page: str, slot: str):
+    char = network.uuid_to_char[uuid]
+    power = getattr(char, page).get(slot, None)
+    if power is not None:
+        power.apply_effect()

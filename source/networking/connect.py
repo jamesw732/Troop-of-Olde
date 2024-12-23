@@ -20,10 +20,10 @@ def input(key):
         if key == "h":
             network.peer.start("localhost", 8080, is_host=True)
             pname = "Demo Player"
-            pstate, basestate, equipment, inventory, skills = \
+            pstate, basestate, equipment, inventory, skills, lexicon = \
                 get_character_states_from_json(pname)
             char = Character(pstate=pstate, base_state=basestate, equipment=equipment,
-                             inventory=inventory, skills=skills)
+                             inventory=inventory, skills=skills, lexicon=lexicon)
             network.my_uuid = network.uuid_counter
             network.uuid_counter += 1
             char.uuid = network.my_uuid
@@ -57,19 +57,22 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
         gs.pname = "Demo Player"
-        pstate, base_state, equipment, inventory, skills = \
+        pstate, base_state, equipment, inventory, skills, lexicon = \
             get_character_states_from_json(gs.pname)
         gs.pc = Character(pstate=pstate, base_state=base_state,
-                          equipment=equipment, inventory=inventory, skills=skills)
-        network.peer.request_enter_world(connection, pstate, base_state, equipment, inventory, skills)
+                          equipment=equipment, inventory=inventory, skills=skills, lexicon=lexicon)
+        network.peer.request_enter_world(connection, pstate, base_state, equipment, inventory, skills,
+                                         lexicon["page1"], lexicon["page2"])
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: IdContainer,
-                        inventory: IdContainer, skills: SkillState):
+                        inventory: IdContainer, skills: SkillState,
+                        page1: IdContainer, page2: IdContainer):
     if network.peer.is_hosting():
         char = Character(pstate=new_pstate, base_state=base_state,
-                         equipment=equipment, inventory=inventory, skills=skills)
+                         equipment=equipment, inventory=inventory, skills=skills,
+                         lexicon={"page1": page1, "page2": page2})
         char.uuid = network.uuid_counter
         network.uuid_counter += 1
         network.uuid_to_char[char.uuid] = char

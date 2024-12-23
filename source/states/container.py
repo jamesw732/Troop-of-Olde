@@ -2,7 +2,8 @@ from ..networking.base import network
 from ..base import default_equipment
 
 class IdContainer(dict):
-    """This class represents any container encoded with item id's or item uiid's.
+    """This class represents any container whose positions/slots are encoded by strings,
+    and whose values are encoded by integers.
 
     The meaning of the values is ambiguous - they are always ints, but can reference
     stored item ids (from items.json) or instantiated item ids (Item.uiid). Conversion
