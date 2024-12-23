@@ -1,0 +1,12 @@
+{
+    "0": {
+        "name": "Kick",
+        "icon": "kick.png",
+        "power_type": "ability",
+        "cost": 10,
+        "effect_id": 0,
+        "cooldown": 10,
+        "purpose": "harmful",
+        "target": "single"
+    }
+}

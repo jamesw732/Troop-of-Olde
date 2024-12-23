@@ -1,0 +1,8 @@
+{
+    "0": {
+        "effect_type": "instant",
+        "effects": {
+            "damage": 20
+        }
+    }
+}
