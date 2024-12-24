@@ -3,9 +3,9 @@ logic."""
 from ursina import *
 import json
 
-from .base import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
+from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
 from .combat import progress_mh_combat_timer, progress_oh_combat_timer
-from .networking.base import network
+from .networking import network
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items

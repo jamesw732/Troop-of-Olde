@@ -3,10 +3,10 @@ from ursina.networking import rpc
 import json
 import copy
 
-from .base import default_equipment, default_inventory
+from . import default_equipment, default_inventory
 from .gamestate import gs
-from .networking.base import network
-from .ui.base import ui
+from .networking import network
+from .ui import ui
 # This import might be a problem eventually
 from .states.container import IdContainer, container_to_ids, ids_to_container
 from .states.stat_change import StatChange, apply_stat_change, remove_stat_change

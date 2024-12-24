@@ -1,6 +1,6 @@
 from ursina.networking import rpc
 
-from ..networking.base import network
+from ..networking import network
 
 """DO NOT import attrs"""
 

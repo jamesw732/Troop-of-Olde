@@ -1,10 +1,10 @@
 from ursina import *
 import copy
 
-from .base import *
+from . import *
 from ..gamestate import gs
 from ..item import *
-from ..networking.base import network
+from ..networking import network
 
 """Explanation of terminology used in this file:
 Item, named items, represent the invisible data of an item. They inherit dict and are mostly used just like dicts.

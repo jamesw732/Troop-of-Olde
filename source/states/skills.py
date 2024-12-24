@@ -2,10 +2,10 @@ import random
 
 from ursina.networking import rpc
 
-from ..base import all_skills
-from ..networking.base import network
+from .. import all_skills
+from ..networking import network
 from ..gamestate import gs
-from ..ui.base import ui
+from ..ui import ui
 
 
 class SkillState(dict):

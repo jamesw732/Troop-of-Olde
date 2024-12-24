@@ -1,9 +1,9 @@
 from ursina import *
 
-from .base import *
+from . import *
 from .header import *
 from ..gamestate import gs
-from ..networking.base import network
+from ..networking import network
 
 class LexiconWindow(Entity):
     def __init__(self, *args, **kwargs):

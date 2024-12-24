@@ -1,7 +1,7 @@
 from ursina import time
 from ursina.networking import rpc
 
-from .base import network
+from . import network
 
 from ..gamestate import gs
 from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state

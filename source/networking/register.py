@@ -1,4 +1,4 @@
-from .base import network
+from . import network
 from ..states.cbstate_complete import CompleteCombatState, serialize_complete_cb_state, \
         deserialize_complete_cb_state
 from ..states.cbstate_base import BaseCombatState, serialize_base_cb_state, deserialize_base_cb_state

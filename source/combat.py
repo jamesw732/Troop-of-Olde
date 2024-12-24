@@ -2,8 +2,8 @@ from ursina import *
 from ursina.networking import rpc
 import random
 
-from .base import sigmoid, sqdist, fists_base_dmg
-from .networking.base import network
+from . import sigmoid, sqdist, fists_base_dmg
+from .networking import network
 from .states.skills import attempt_raise_skill
 from .ui.main import ui
 

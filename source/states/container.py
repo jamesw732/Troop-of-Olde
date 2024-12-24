@@ -1,5 +1,5 @@
-from ..networking.base import network
-from ..base import default_equipment
+from ..networking import network
+from .. import default_equipment
 
 class IdContainer(dict):
     """This class represents any container whose positions/slots are encoded by strings,

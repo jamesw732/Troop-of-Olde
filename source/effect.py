@@ -2,8 +2,8 @@ from ursina import *
 import os
 import json
 
-from .networking.base import network
-from .ui.base import ui
+from .networking import network
+from .ui import ui
 
 
 effects_path = os.path.join(os.path.dirname(__file__), "..", "data", "effects.json")

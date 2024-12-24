@@ -1,7 +1,7 @@
 from ursina import destroy
 from ursina.networking import rpc
 
-from .base import network
+from . import network
 from ..gamestate import gs
 
 

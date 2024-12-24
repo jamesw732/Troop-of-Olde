@@ -3,7 +3,7 @@ import os
 import json
 
 from .effect import Effect
-from .networking.base import network, rpc
+from .networking import network, rpc
 
 power_path = os.path.join(os.path.dirname(__file__), "..", "data", "powers.json")
 with open(power_path) as power_json:

@@ -2,7 +2,7 @@
 
 from ursina import *
 
-from ..networking.base import network
+from ..networking import network
 
 attrs = {
     "model": str,

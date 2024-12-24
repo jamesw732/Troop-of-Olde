@@ -1,7 +1,7 @@
 from ursina import destroy
 from ursina.networking import rpc
 
-from .base import network
+from . import network
 from .register import CompleteCombatState, BaseCombatState, MiniCombatState, \
     IdContainer, PhysicalState, StatChange, SkillState
 from ..character import Character, get_character_states_from_json
