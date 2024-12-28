@@ -290,7 +290,7 @@ class ItemIcon(Entity):
             update_container("inventory", gs.pc.inventory)
         else:
             conn = network.peer.get_connections()[0]
-            network.peer.remote_auto_equip(conn, self.item.uiid, str(self.parent.slot), self.parent.container_name)
+            network.peer.remote_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
@@ -300,7 +300,7 @@ class ItemIcon(Entity):
             update_container("inventory", gs.pc.inventory)
         else:
             conn = network.peer.get_connections()[0]
-            network.peer.remote_auto_unequip(conn, self.item.uiid, self.parent.slot)
+            network.peer.remote_auto_unequip(conn, self.item.iiid, self.parent.slot)
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""

@@ -102,9 +102,9 @@ class Item(dict):
         if "functions" not in self:
             self['functions'] = copy.copy(self.type_to_options.get(self["type"], []))
         if network.peer.is_hosting():
-            self.uiid = network.uiid_counter
-            network.uiid_to_item[network.uiid_counter] = self
-            network.uiid_counter += 1
+            self.iiid = network.iiid_counter
+            network.iiid_to_item[network.iiid_counter] = self
+            network.iiid_counter += 1
 
 
 def equip_many_items(char, itemsdict):

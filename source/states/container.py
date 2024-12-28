@@ -6,9 +6,9 @@ class IdContainer(dict):
     and whose values are encoded by integers.
 
     The meaning of the values is ambiguous - they are always ints, but can reference
-    stored item ids (from items.json) or instantiated item ids (Item.uiid). Conversion
+    stored item ids (from items.json) or instantiated item ids (Item.iiid). Conversion
     of global ids to Items is left up to the programmer, but ids_to_container and
-    container_to_ids are intended for use with uiid's (renaming might be appropriate)
+    container_to_ids are intended for use with iiid's (renaming might be appropriate)
     Every container is assumed to be a dict or a list of 2-typles keyed by strings and
     valued by ints."""
     def __init__(self, container={}):
@@ -38,9 +38,9 @@ def deserialize_init_container(reader):
 
 def container_to_ids(container):
     """Convert a container (Character attribute) to one sendable over the network"""
-    return IdContainer({slot: item.uiid if item is not None else -1
+    return IdContainer({slot: item.iiid if item is not None else -1
                           for slot, item in container.items()})
 
 def ids_to_container(init_container):
-    """Convert an IdContainer (dict mapping slots to uiids) to a dict of Items"""
-    return {slot: network.uiid_to_item.get(itemid, None) for slot, itemid in init_container.items()}
+    """Convert an IdContainer (dict mapping slots to iiids) to a dict of Items"""
+    return {slot: network.iiid_to_item.get(itemid, None) for slot, itemid in init_container.items()}
