@@ -26,6 +26,14 @@ class Header(Entity):
 
         self.ui_scale = self.getScale(camera.ui)
 
+    def on_click(self):
+        self.dragging = True
+        self.set_step()
+
+    def input(self, key):
+        if key == "left mouse up" and self.dragging:
+            self.dragging = False
+
     def update(self):
         if self.dragging:
             if mouse.position:

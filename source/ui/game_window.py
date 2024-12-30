@@ -97,6 +97,14 @@ class ScrollBar(Entity):
         self.min_y, self.max_y)
         self.parent.parent.match_text_to_scrollbar()
 
+    def on_click(self):
+        self.dragging = True
+        self.set_step()
+
+    def input(self, key):
+        if key == "left mouse up" and self.dragging:
+            self.dragging = False
+
     def update(self):
         if self.dragging:
             if mouse.position:

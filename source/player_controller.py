@@ -36,8 +36,6 @@ class PlayerController(Entity):
 
         self.bind_keys()
 
-        self.dragging_entity = None
-
     def update(self):
         """Continuous client updates"""
         # Frame by frame adjustments
@@ -87,18 +85,6 @@ class PlayerController(Entity):
             elif isinstance(tgt, ItemIcon):
                 tgt.clicked = True
                 tgt.step = tgt.get_position(camera.ui) - mouse.position
-            elif isinstance(tgt, (Header, ScrollBar)):
-                self.dragging_entity = tgt
-                tgt.dragging = True
-                tgt.set_step()
-            elif isinstance(tgt, ScrollBar):
-                self.dragging_entity = tgt
-                tgt.dragging = True
-                tgt.set_step()
-        elif key == "left mouse up":
-            if self.dragging_entity is not None:
-                self.dragging_entity.dragging = False
-                self.dragging_entity = None
         elif key == "toggle_combat":
             msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
             ui.gamewindow.add_message(msg)
