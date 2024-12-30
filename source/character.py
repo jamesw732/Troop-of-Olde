@@ -275,6 +275,9 @@ class Character(Entity):
             # Apply old state to ensure synchronization and update non-lerp attrs
             apply_physical_state(self, self.prev_state)
 
+    def on_click(self):
+        gs.playercontroller.set_target(self)
+
 
 class NameLabel(Text):
     def __init__(self, char):

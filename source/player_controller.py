@@ -80,9 +80,7 @@ class PlayerController(Entity):
         # if key == "right mouse up":
             # mouse.visible = True
         elif key == "left mouse down":
-            if isinstance(tgt, Character):
-                self.set_target(tgt)
-            elif isinstance(tgt, ItemIcon):
+            if isinstance(tgt, ItemIcon):
                 tgt.clicked = True
                 tgt.step = tgt.get_position(camera.ui) - mouse.position
         elif key == "toggle_combat":
