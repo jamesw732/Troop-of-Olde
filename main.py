@@ -1,30 +1,20 @@
+import os
+import subprocess
+
 from ursina import *
 
-from source.character import *
-from source.player_controller import *
-from source.npc_controller import *
-from source.world_gen import *
-from source.gamestate import *
-from source.item import *
-from source.ui.main import make_all_ui
-from source.states.cbstate_base import BaseCombatState
+from source.networking import network
+from source.networking.connect import *
+from source.networking.continuous import *
+from source.networking.disconnect import *
+from source.networking.register import *
 
-app = Ursina(borderless=False)
-gs.world = GenerateWorld("demo.json")
+try:
+    parent_dir = os.path.dirname(os.path.abspath(__file__))
+    server = subprocess.Popen(["python", "server.py"], cwd=parent_dir)
+    app = Ursina(borderless=False)
+    network.peer.start("localhost", 8080, is_host=False)
 
-pname = "Demo Player"
-player = load_character_from_json(pname)
-player.ignore_traverse = gs.chars
-gs.pc = player
-gs.playercontroller = PlayerController(player)
-
-npcs = gs.world.create_npcs("demo_npcs.json")
-for npc in npcs:
-    npc.controller = NPC_Controller(npc, player)
-
-gs.chars += npcs
-gs.chars.append(player)
-
-make_all_ui()
-
-app.run()
+    app.run()
+finally:
+    server.kill()
