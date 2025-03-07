@@ -17,33 +17,7 @@ def input(key):
     If not hosting, just connect and let on_connect handle the rest.
     """
     if not network.peer.is_running():
-        if key == "h":
-            network.peer.start("localhost", 8080, is_host=True)
-            pname = "Demo Player"
-            pstate, basestate, equipment, inventory, skills, lexicon = \
-                get_character_states_from_json(pname)
-            char = Character(pstate=pstate, base_state=basestate, equipment=equipment,
-                             inventory=inventory, skills=skills, lexicon=lexicon)
-            network.my_uuid = network.uuid_counter
-            network.uuid_counter += 1
-            char.uuid = network.my_uuid
-            network.uuid_to_char[network.my_uuid] = char
-            gs.chars.append(char)
-            char.ignore_traverse = gs.chars
-            gs.pc = char
-            gs.playercontroller = PlayerController(char, peer=network.peer)
-
-            gs.world = GenerateWorld("demo.json")
-            npcs = gs.world.create_npcs("demo_npcs.json")
-            gs.chars += npcs
-            for npc in npcs:
-                npc.controller = NPC_Controller(npc, char)
-                npc.uuid = network.uuid_counter
-                network.uuid_to_char[npc.uuid] = npc
-                network.uuid_counter += 1
-
-            make_all_ui()
-        elif key == "c":
+        if key == "c":
             print("Attempting to connect")
             network.peer.start("localhost", 8080, is_host=False)
 
