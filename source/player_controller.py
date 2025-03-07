@@ -23,7 +23,9 @@ class PlayerController(Entity):
 
         self.camdistance = camdistance
 
-        self.focus = Entity(model="cube", visible_self=False, position=self.character.position + Vec3(0, 0.5 * self.character.height, 0), rotation=(1, 0, 0))
+        self.focus = Entity(model="cube", visible_self=False,
+                            position=self.character.position + Vec3(0, 0.5 * self.character.height, 0),
+                            rotation=(1, 0, 0))
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
