@@ -274,7 +274,7 @@ class ItemIcon(Entity):
                 self.position = Vec3(0, 0, -1)
                 return False
 
-        if network.is_main_client():
+        if network.peer.is_hosting():
             internal_swap(gs.pc, my_container, my_slot, other_container, other_slot)
             ui.playerwindow.items.update_ui_icons(my_container)
             ui.playerwindow.items.update_ui_icons(other_container)
@@ -284,7 +284,7 @@ class ItemIcon(Entity):
 
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
-        if network.is_main_client():
+        if network.peer.is_hosting():
             iauto_equip(gs.pc, self.parent.container_name, self.parent.slot)
             update_container("equipment", gs.pc.equipment)
             update_container("inventory", gs.pc.inventory)
@@ -294,7 +294,7 @@ class ItemIcon(Entity):
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
-        if network.is_main_client():
+        if network.peer.is_hosting():
             iauto_unequip(gs.pc, self.parent.slot)
             update_container("equipment", gs.pc.equipment)
             update_container("inventory", gs.pc.inventory)

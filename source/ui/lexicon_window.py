@@ -79,7 +79,7 @@ class PowerIcon(Entity):
         self.power = power
 
     def on_click(self):
-        if network.is_main_client():
+        if network.peer.is_hosting():
             self.power.apply_effect()
         else:
             network.peer.request_apply_effect(network.peer.get_connections()[0], gs.pc.uuid,

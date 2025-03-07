@@ -131,7 +131,7 @@ class Character(Entity):
         if self.target and not self.target.alive:
             self.target = None
             self.combat_timer = 0
-        else:
+        elif network.peer.is_hosting():
             if self.target and self.target.alive and self.in_combat:
                 progress_mh_combat_timer(self)
                 # See if we should progress offhand timer too
@@ -150,7 +150,7 @@ class Character(Entity):
         # Death Handling
         if self.health <= 0:
             # Wait for server to tell character to die
-            if network.is_main_client():
+            if network.peer.is_hosting():
                 self.die()
 
     def _init_phys_attrs(self):

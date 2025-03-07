@@ -1,7 +1,6 @@
 """Defines and declares the network state. Also some universally helpful
 networking methods. Any file that uses networking will import this."""
 from ursina.networking import RPCPeer, rpc
-from ..ui import ui
 
 class Network:
     """Represent's client's view of the network state"""
@@ -30,13 +29,6 @@ class Network:
             for connection in network.peer.get_connections():
                 func(connection, *args)
 
-    def is_main_client(self):
-        return self.peer.is_hosting() or not self.peer.is_running()
 
 # RPC needs to know about network at compile time, so this global seems necessary
 network = Network()
-
-@rpc(network.peer)
-def remote_print(connection, time_received, msg: str):
-    """Remotely print a message for another player"""
-    ui.gamewindow.add_message(msg)

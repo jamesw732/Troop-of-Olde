@@ -4,6 +4,7 @@ import random
 
 from . import sigmoid, sqdist, fists_base_dmg
 from .networking import network
+from .networking.toolbox import *
 from .states.skills import attempt_raise_skill
 from .ui.main import ui
 
@@ -17,7 +18,7 @@ def progress_mh_combat_timer(char):
     if char.mh_combat_timer > delay:
         char.mh_combat_timer -= delay
         if get_target_hittable(char, wep):
-            if network.is_main_client():
+            if network.peer.is_hosting():
                 attempt_melee_hit(char, char.target, "mh")
             else:
                 # Host-authoritative, so we need to ask the host to compute the hit
@@ -35,7 +36,7 @@ def progress_oh_combat_timer(char):
     if char.oh_combat_timer > delay:
         char.oh_combat_timer -= delay
         if get_target_hittable(char, wep):
-            if network.is_main_client():
+            if network.peer.is_hosting():
                 attempt_melee_hit(char, char.target, "oh")
             else:
                 # Host-authoritative, so we need to ask the host to compute the hit

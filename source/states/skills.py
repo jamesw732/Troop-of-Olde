@@ -23,7 +23,7 @@ def raise_skill(char, skill):
     if gs.pc is char:
         ui.playerwindow.skills.set_label_text(skill)
     # Not sure how this could possibly be untrue but better safe than sorry
-    elif network.is_main_client():
+    elif network.peer.is_hosting():
         connection = network.uuid_to_connection[char.uuid]
         network.peer.remote_raise_skill(connection, skill)
 
