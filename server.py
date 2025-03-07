@@ -14,7 +14,7 @@ def start_server(name, port):
     network.peer.start(name, port, is_host=True)
     network.my_uuid = network.uuid_counter
     network.uuid_counter += 1
-    gs.world = GenerateWorld("demo.json")
+    gs.world = GenerateWorld("demo.json", headless=True)
     npcs = gs.world.create_npcs("demo_npcs.json")
     gs.chars += npcs
     for npc in npcs:
@@ -24,9 +24,9 @@ def start_server(name, port):
         network.uuid_counter += 1
 
 
-
 if __name__ == "__main__":
-    app = Ursina(window_type="offscreen")
+    # app = Ursina(window_type="offscreen")
+    app = Ursina(window_type="none")
     start_server("localhost", 8080)
     app.run()
     

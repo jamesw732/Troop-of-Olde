@@ -9,13 +9,14 @@ from .states.physicalstate import PhysicalState
 
 
 class GenerateWorld:
-    def __init__(self, file):
+    def __init__(self, file, headless=False):
         """Create world.
 
         file: str, name of file to load in data/zones. Not full path."""
         path = os.path.abspath(os.path.dirname(__file__))
         self.zones_path = os.path.join(path, "..", "data", "zones")
         zonepath = os.path.join(self.zones_path, file)
+        self.headless = headless
         if "json" in zonepath:
             self.parse_json_zone(zonepath)
 
@@ -26,7 +27,7 @@ class GenerateWorld:
         with open(file) as f:
             world_data = json.load(f)
         for (entity, data) in world_data.items():
-            if entity == "Sky":
+            if entity == "Sky" and not self.headless:
                 Sky(**data)
             else:
                 Entity(**self.parse_colors(data))
