@@ -32,9 +32,3 @@ class Power(Entity):
             effect = Effect(self.effect_id)
             effect.apply_to_char(self.char.target)
 
-@rpc(network.peer)
-def request_apply_effect(connection, time_received, uuid: int, page: str, slot: str):
-    char = network.uuid_to_char[uuid]
-    power = getattr(char, page).get(slot, None)
-    if power is not None:
-        power.apply_effect()

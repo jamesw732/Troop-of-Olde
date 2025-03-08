@@ -8,26 +8,21 @@ from .networking.toolbox import *
 from .states.skills import attempt_raise_skill
 from .ui.main import ui
 
+
 # PUBLIC
 def progress_mh_combat_timer(char):
-    """Increment combat timer by dt. If past max, attempt a melee hit."""
+    """Increment combat timer by dt. Returns True if we exceeded the weapon's delay"""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
     wep = char.equipment['mh']
     delay = get_wpn_delay(char, wep)
     if char.mh_combat_timer > delay:
         char.mh_combat_timer -= delay
-        if get_target_hittable(char, wep):
-            if network.peer.is_hosting():
-                attempt_melee_hit(char, char.target, "mh")
-            else:
-                # Host-authoritative, so we need to ask the host to compute the hit
-                network.peer.remote_attempt_melee_hit(
-                    network.peer.get_connections()[0],
-                    char.uuid, char.target.uuid, "mh")
+        return True
+    return False
 
 def progress_oh_combat_timer(char):
-    """Increment combat timer by dt. If past max, attempt a melee hit."""
+    """Increment combat timer by dt. Returns True if we exceeded the weapon's delay"""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     # * dw_skill / rec_level if slot == oh else 1
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
@@ -35,17 +30,9 @@ def progress_oh_combat_timer(char):
     delay = get_wpn_delay(char, wep)
     if char.oh_combat_timer > delay:
         char.oh_combat_timer -= delay
-        if get_target_hittable(char, wep):
-            if network.peer.is_hosting():
-                attempt_melee_hit(char, char.target, "oh")
-            else:
-                # Host-authoritative, so we need to ask the host to compute the hit
-                network.peer.remote_attempt_melee_hit(
-                    network.peer.get_connections()[0],
-                    char.uuid, char.target.uuid, "oh")
+        return True
+    return False
 
-
-# PRIVATE
 def attempt_melee_hit(src, tgt, slot):
     """Main driver method for melee combat called by progress_mh/oh_melee_timer.
     Only main client (ie host or offline client) should call this. If not main client,
@@ -58,8 +45,7 @@ def attempt_melee_hit(src, tgt, slot):
         # If hit goes through, do some more fancy calculations to get damage
         wep = src.equipment[slot]
         if wep is not None and "info" not in wep:
-            ui.gamewindow.add_message(f"Try hitting {target.cname} with something else.")
-            return
+            return f"Try hitting {target.cname} with something else."
         base_dmg = get_wpn_dmg(src, wep)
         style = get_wpn_style(src, wep)
 
@@ -70,36 +56,7 @@ def attempt_melee_hit(src, tgt, slot):
         hitstring = get_melee_hit_string(src, tgt, style=style, dmg=dmg)
         reduce_health(tgt, dmg)
         attempt_raise_skill(src, style, prob=0.5)
-    ui.gamewindow.add_message(hitstring)
-    # Broadcast the hit info to all peers, if host
-    network.broadcast(network.peer.remote_print, hitstring)
-
-@rpc(network.peer)
-def remote_attempt_melee_hit(connection, time_received, src_uuid: int, tgt_uuid: int, slot: str):
-    """Wrapper for calling attempt_melee_hit remotely"""
-    src = network.uuid_to_char.get(src_uuid)
-    tgt = network.uuid_to_char.get(tgt_uuid)
-    if src and tgt:
-        attempt_melee_hit(src, tgt, slot)
-
-# HELPER FUNCTIONS
-def increase_health(char, amt):
-    """Function to be used whenever increasing character's health"""
-    char.health = min(char.maxhealth, char.health + amt)
-
-def reduce_health(char, amt):
-    """Function to be used whenever decreasing character's health"""
-    char.health -= amt
-
-def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
-    """Produce a string with information about the melee hit."""
-    if miss:
-        return f"{src.cname} attempts to hit {tgt.cname}, but misses!"
-    return f"{src.cname} hits {tgt.cname} for {dmg} damage!"
-
-def get_haste_modifier(haste):
-    """Convert haste to a multiplicative time modifier"""
-    return max(0, 1 + haste / 100)
+    return hitstring
 
 def get_target_hittable(char, wpn):
     """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
@@ -130,6 +87,25 @@ def get_target_hittable(char, wpn):
         ui.gamewindow.add_message(f"{char.target.cname} is out of range!")
         return False
 
+# PRIVATE
+def increase_health(char, amt):
+    """Function to be used whenever increasing character's health"""
+    char.health = min(char.maxhealth, char.health + amt)
+
+def reduce_health(char, amt):
+    """Function to be used whenever decreasing character's health"""
+    char.health -= amt
+
+def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
+    """Produce a string with information about the melee hit."""
+    if miss:
+        return f"{src.cname} attempts to hit {tgt.cname}, but misses!"
+    return f"{src.cname} hits {tgt.cname} for {dmg} damage!"
+
+def get_haste_modifier(haste):
+    """Convert haste to a multiplicative time modifier"""
+    return max(0, 1 + haste / 100)
+
 def get_wpn_dmg(char, wpn):
     if wpn is None:
         return 1
@@ -156,9 +132,3 @@ def get_wpn_delay(char, wpn):
     info = wpn.get('info', {})
     return info.get('delay', 1)
 
-@rpc(network.peer)
-def remote_death(connection, time_received, char_uuid: int):
-    """Tell other peers that a character died. Only to be called by host."""
-    char = network.uuid_to_char.get(char_uuid)
-    if char:
-        char.die()

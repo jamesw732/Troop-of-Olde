@@ -3,40 +3,9 @@ from ursina.networking import rpc
 
 from . import network
 
-from ..gamestate import gs
 from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
 from ..states.cbstate_mini import MiniCombatState, apply_mini_state
 from ..states.physicalstate import PhysicalState
-
-
-def update():
-    network.peer.update()
-    # No point updating if no peers
-    if not (network.peer.is_running() and network.peer.connection_count() > 0):
-        return
-    my_char = network.uuid_to_char.get(network.my_uuid)
-    if not my_char:
-        return
-
-    network.update_timer += time.dt
-    if network.update_timer >= network.update_rate:
-        network.update_timer -= network.update_rate
-        new_state = PhysicalState(my_char)
-        connections = network.peer.get_connections()
-        for connection in connections:
-            network.peer.update_char_pstate(connection, my_char.uuid, new_state)
-        if network.peer.is_hosting():
-            for char in gs.chars:
-                mini_state = MiniCombatState(char)
-                for connection in connections:
-                    if connection not in network.connection_to_char:
-                        continue
-                    if network.connection_to_char[connection] is char:
-                        network.peer.update_pc_cbstate(connection, char.uuid,
-                                                       CompleteCombatState(char))
-                    else:
-                        network.peer.update_npc_cbstate(connection, char.uuid,
-                                                        mini_state)
 
 
 @rpc(network.peer)

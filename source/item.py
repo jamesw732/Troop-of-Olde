@@ -266,47 +266,6 @@ def find_first_empty_inventory(char):
 
 
 # NETWORKING
-@rpc(network.peer)
-def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
-    """Request host to swap items internally, host will send back updated container states"""
-    if not network.peer.is_hosting():
-        return
-    char = network.connection_to_char[connection]
-    internal_swap(char, container1, slot1, container2, slot2)
-    for name in set([container1, container2]):
-        container = container_to_ids(getattr(char, name))
-        network.peer.remote_update_container(connection, name, container)
-
-@rpc(network.peer)
-def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
-    """Request host to automatically equip a given item."""
-    char = network.connection_to_char[connection]
-    iauto_equip(char, old_container, old_slot)
-    for name in set([old_container, "equipment"]):
-        container = container_to_ids(getattr(char, name))
-        network.peer.remote_update_container(connection, name, container)
-
-@rpc(network.peer)
-def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
-    """Request host to automatically unequip a given item."""
-    char = network.connection_to_char[connection]
-    iauto_unequip(char, old_slot)
-    for name in ["equipment", "inventory"]:
-        container = container_to_ids(getattr(char, name))
-        network.peer.remote_update_container(connection, name, container)
-
-# Final container updates
-@rpc(network.peer)
-def remote_update_container(connection, time_received, container_name: str, container: IdContainer):
-    """Update internal containers and visual containers
-
-    Mimic most of the process in ItemIcon.swap_locs for hosts, but
-    this will only be done by non-hosts"""
-    if network.peer.is_hosting():
-        return
-    internal_container = ids_to_container(container)
-    update_container(container_name, internal_container)
-
 def update_container(container_name, internal_container):
     """Updates character's internal container and UI container from network"""
     loop = internal_container.items()

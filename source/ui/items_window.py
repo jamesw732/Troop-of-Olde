@@ -5,6 +5,7 @@ from . import *
 from ..gamestate import gs
 from ..item import *
 from ..networking import network
+from ..networking.world_requests import *
 
 """Explanation of terminology used in this file:
 Item, named items, represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
@@ -279,7 +280,7 @@ class ItemIcon(Entity):
             ui.playerwindow.items.update_ui_icons(my_container)
             ui.playerwindow.items.update_ui_icons(other_container)
         else:
-            conn = network.peer.get_connections()[0]
+            conn = network.server_connection
             network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
 
     def auto_equip(self):
@@ -289,7 +290,7 @@ class ItemIcon(Entity):
             update_container("equipment", gs.pc.equipment)
             update_container("inventory", gs.pc.inventory)
         else:
-            conn = network.peer.get_connections()[0]
+            conn = network.server_connection
             network.peer.remote_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
 
     def auto_unequip(self):
@@ -299,7 +300,7 @@ class ItemIcon(Entity):
             update_container("equipment", gs.pc.equipment)
             update_container("inventory", gs.pc.inventory)
         else:
-            conn = network.peer.get_connections()[0]
+            conn = network.server_connection
             network.peer.remote_auto_unequip(conn, self.item.iiid, self.parent.slot)
 
     def get_item_slots(self):

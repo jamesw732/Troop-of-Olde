@@ -4,6 +4,7 @@ from . import *
 from .header import *
 from ..gamestate import gs
 from ..networking import network
+from ..networking.world_requests import request_use_power
 
 class LexiconWindow(Entity):
     def __init__(self, *args, **kwargs):
@@ -79,8 +80,5 @@ class PowerIcon(Entity):
         self.power = power
 
     def on_click(self):
-        if network.peer.is_hosting():
-            self.power.apply_effect()
-        else:
-            network.peer.request_apply_effect(network.peer.get_connections()[0], gs.pc.uuid,
-                                              self.parent.page_name, self.parent.slot)
+        network.peer.request_apply_effect(network.peer.get_connections()[0], gs.pc.uuid,
+                                          self.parent.page_name, self.parent.slot)

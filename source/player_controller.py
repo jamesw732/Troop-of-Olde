@@ -5,6 +5,8 @@ import numpy
 import json
 
 from .character import Character
+from .networking import network
+from .networking.world_requests import *
 from .ui.main import ui
 from .ui.items_window import ItemIcon
 from .ui.header import Header
@@ -86,9 +88,7 @@ class PlayerController(Entity):
                 tgt.clicked = True
                 tgt.step = tgt.get_position(camera.ui) - mouse.position
         elif key == "toggle_combat":
-            msg = "Now entering combat" if not self.character.in_combat else "Now leaving combat"
-            ui.gamewindow.add_message(msg)
-            self.character.in_combat = not self.character.in_combat
+            network.peer.request_toggle_combat(network.server_connection)
         elif key in ui.playerwindow.input_to_interface:
             ui.playerwindow.open_window(key)
 

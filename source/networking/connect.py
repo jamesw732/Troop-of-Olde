@@ -23,13 +23,14 @@ def input(key):
 
 @rpc(network.peer)
 def on_connect(connection, time_connected):
-    """What host should do when there's a new connection
+    """What a client should do when they connect.
     Host just needs to make a new character, map connection/uuid to it, increment uuid,
     and send the new character to peers.
     Will need to generate world on peer, spawn all characters including
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
+        print("Attempting to connect")
         gs.pname = "Demo Player"
         pstate, base_state, equipment, inventory, skills, lexicon = \
             get_character_states_from_json(gs.pname)
@@ -98,6 +99,7 @@ def bind_pc(connection, time_received, uuid: int):
         network.uuid_to_char[uuid] = gs.pc
         gs.pc.uuid = uuid
         network.my_uuid = uuid
+        network.server_connection = connection
 
 @rpc(network.peer)
 def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: IdContainer):

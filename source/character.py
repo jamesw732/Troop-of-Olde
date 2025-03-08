@@ -4,8 +4,9 @@ from ursina import *
 import json
 
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
-from .combat import progress_mh_combat_timer, progress_oh_combat_timer
+from .combat import progress_mh_combat_timer, progress_oh_combat_timer, attempt_melee_hit, get_target_hittable
 from .networking import network
+from .networking.world_responses import remote_death
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
@@ -133,7 +134,11 @@ class Character(Entity):
             self.combat_timer = 0
         elif network.peer.is_hosting():
             if self.target and self.target.alive and self.in_combat:
-                progress_mh_combat_timer(self)
+                if progress_mh_combat_timer(self) and get_target_hittable(self, self.equipment["mh"]):
+                    msg = attempt_melee_hit(self, self.target, "mh")
+                    conn = network.uuid_to_connection.get(self.uuid, None)
+                    if conn is not None:
+                        network.peer.remote_print(conn, msg)
                 # See if we should progress offhand timer too
                 # (if has skill dw):
                 mh_is_1h = self.equipment["mh"] is None \
@@ -141,8 +146,12 @@ class Character(Entity):
                 offhand = self.equipment["oh"]
                 # basically just check if not wearing a shield
                 dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
-                if dual_wielding:
-                    progress_oh_combat_timer(self)
+                if dual_wielding and progress_oh_combat_timer(self)\
+                and get_target_hittable(self, self.equipment["oh"]):
+                    msg = attempt_melee_hit(self, self.target, "oh")
+                    conn = network.uuid_to_connection.get(self.uuid, None)
+                    if conn is not None:
+                        network.peer.remote_print(conn, msg)
             else:
                 self.mh_combat_timer = 0
                 self.oh_combat_timer = 0

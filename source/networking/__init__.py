@@ -12,6 +12,8 @@ class Network:
         self.uuid_to_connection = dict()
         self.iiid_to_item = dict()
 
+        self.server_connection = None
+
         # uuid is more like a unique character id, npc's get them too
         self.uuid_counter = 0
         self.my_uuid = None

@@ -4,9 +4,10 @@ from ursina.networking import rpc
 from source.gamestate import gs
 from source.networking import network
 from source.networking.connect import *
-from source.networking.continuous import *
+from source.networking.host_continuous import *
 from source.networking.disconnect import *
 from source.networking.register import *
+from source.networking.world_requests import *
 from source.npc_controller import NPC_Controller
 from source.world_gen import GenerateWorld
 
