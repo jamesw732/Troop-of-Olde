@@ -13,8 +13,7 @@ def toggle_combat(connection, time_received, toggle: bool):
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
-    """Tell other peers that a character died. Only to be called by host.
-    Move this."""
+    """Tell other peers that a character died. Only to be called by host."""
     char = network.uuid_to_char.get(char_uuid)
     if char:
         char.die()

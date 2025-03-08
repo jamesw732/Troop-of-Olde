@@ -161,6 +161,8 @@ class Character(Entity):
             # Wait for server to tell character to die
             if network.peer.is_hosting():
                 self.die()
+                # for conn in network.peer.get_connections():
+                #     network.peer.remote_death(conn, self.uuid)
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -264,11 +266,12 @@ class Character(Entity):
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
-        msg = f"{self.cname} perishes."
-        ui.gamewindow.add_message(msg)
-        self.alive = False
         if network.peer.is_hosting():
             network.broadcast(network.peer.remote_death, self.uuid)
+        else:
+            msg = f"{self.cname} perishes."
+            ui.gamewindow.add_message(msg)
+        self.alive = False
         destroy(self)
 
     def update_lerp_state(self, state, time):
