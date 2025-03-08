@@ -1,0 +1,78 @@
+This file contains a heap-like todo list, with the following priorities:
+Right now - These are things that I'm actively doing whenever I spend time developing
+Next - These are things that I need to do next, after I'm finished with what I'm doing right now
+Backlog - These are things that could be done, but are not high priority
+Distant - These are abstract ideas about things that will need to be done eventually
+
+
+Right now:
+First, just try to get the code working while also working towards a cleaner division between server code
+and client code. Ideally, there are no more "if network.peer.is_hosting()" lines.
+Combat:
+This should be exclusively handled by the server. The client should just request that their character
+enters and exits combat, nothing else for now.
+
+
+
+
+
+
+
+Next:
+Rework the nonessential classes to have a clearer division between server and client code.
+Characters:
+I think there should be three classes for Characters.
+Character - These are the manifestations on the server. It is here that things like combat are controlled.
+NPC - These are the non-player characters manifested on the client. They are basically zombies controlled
+by the server. They can lerp and eventually perform animations, but all of that logic is determined by the
+server.
+PC - This is the player character manifested on the client. It is attached to a PlayerController, which
+has the capability to send requests to the server for things like targeting and entering combat. For now, the
+PC also simulates physics for itself and listens to PlayerController for movement, rather than the server.
+Since it doesn't listen to the server for movement, it does not have LERP capabilities.
+
+Rework task documentation/ideas. For now, I think the following files will suffice:
+- A todo list (this one)
+- A tex document which basically documents EVERYTHING - code architecture, formulas used/implementation
+    details, philosophy (monetization, development practices, what makes a game fun), game mechanics/features,
+    lore, class content. The code documentation essentially serves as the implementation definition.
+- Stuff like technical_debt, performance_improvements should get moved to github issues
+
+
+
+
+
+Backlog:
+Work on ironing out the current functionality of the code.
+This includes:
+Refining combat formulas to incorporate skills and anything left behind (some of this may be done):
+- attack range (done)
+- damage (done ish)
+- accuracy (needs skills)
+- probability to upgrade skill
+- dual wield attack rate
+- 2h weapons
+Fix bars window not updating stamina and mana
+Fill out the weapon types, create new weapons
+
+
+Clean up the code, including some things from technical_debt:
+- Move all base.py's to __init__.py
+- Inconsistencies in the UI code
+- Order of functions in some files could be improved
+- Remove * imports, replace with full module imports
+
+
+Effects, spells, abilities
+
+
+
+Relevant nearby steps, tools for doing them? Abstract, just write them down to collect ideas on how to accomplish.
+- Combat system (effects, spells, abilities, npc logic) - Python/Ursina
+- Databasing for mobs, items, etc - json at first, then sqlite/sqlalchemy
+- GUI - Ursina
+- Character models - Blender (AI?)
+- Character textures - Blender (AI?)
+- World terrain - Perlin noise (+ Panda3D or maybe handwritten)
+- World structures - Blender (AI?)
+- World textures - Blender builtin https://cloud.blender.org/p/textures/5813449c1f474213fb4babc5
