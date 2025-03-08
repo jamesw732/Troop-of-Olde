@@ -57,20 +57,32 @@ class LexiconWindow(Entity):
             grid(slot, num_rows=1, num_cols=1, color=color.black)
 
     def enable_colliders(self):
-        pass
+        # Is it possible to accomplish this without looping?
+        for box in self.page1_boxes:
+            if box.icon is not None:
+                box.icon.collision = True
+        for box in self.page2_boxes:
+            if box.icon is not None:
+                box.icon.collision = True
 
     def disable_colliders(self):
-        pass
+        for box in self.page1_boxes:
+            if box.icon is not None:
+                box.icon.collision = False
+        for box in self.page2_boxes:
+            if box.icon is not None:
+                box.icon.collision = False
 
 class PowerBox(Entity):
     def __init__(self, page, page_name, slot, *args, **kwargs):
-        super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
+        super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
         self.page_name = page_name
         self.page = page
         self.slot = str(slot)
+        self.icon = None
         power = page.get(self.slot, None)
         if power is not None:
-            PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
+            self.icon = PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
                       position=(0, 0, -2))
 
 
