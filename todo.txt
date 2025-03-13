@@ -8,18 +8,11 @@ Distant - These are abstract ideas about things that will need to be done eventu
 Right now:
 First, just try to get the code working while also working towards a cleaner division between server code
 and client code. Ideally, there are no more "if network.peer.is_hosting()" lines.
-Combat:
-This should be exclusively handled by the server. The client should just request that their character
-enters and exits combat, nothing else for now.
+
+Check:
+using powers
 
 
-
-
-
-
-
-Next:
-Rework the nonessential classes to have a clearer division between server and client code.
 Characters:
 I think there should be three classes for Characters.
 Character - These are the manifestations on the server. It is here that things like combat are controlled.
@@ -31,12 +24,22 @@ has the capability to send requests to the server for things like targeting and 
 PC also simulates physics for itself and listens to PlayerController for movement, rather than the server.
 Since it doesn't listen to the server for movement, it does not have LERP capabilities.
 
+
+
+Next:
+Change the internal equipment and inventory containers to just be lists. It may be valid to keep a slot_to_ind
+dictionary so that the naming is clear for the equipment, but sending dictionaries instead of lists over
+the network just feels extremely cumbersome.
+
+
 Rework task documentation/ideas. For now, I think the following files will suffice:
 - A todo list (this one)
 - A tex document which basically documents EVERYTHING - code architecture, formulas used/implementation
     details, philosophy (monetization, development practices, what makes a game fun), game mechanics/features,
-    lore, class content. The code documentation essentially serves as the implementation definition.
-- Stuff like technical_debt, performance_improvements should get moved to github issues
+    lore, class content, documentation plan.
+This file essentially serves as the implementation definition.
+- Stuff like technical_debt, performance_improvements should get moved to github issues. Basically, anything
+more distant than "Backlog" and more specific than "Distant" belongs in a Github issue.
 
 
 
@@ -54,20 +57,21 @@ Refining combat formulas to incorporate skills and anything left behind (some of
 - 2h weapons
 Fix bars window not updating stamina and mana
 Fill out the weapon types, create new weapons
+Make item movement smoother - maybe if mouse velocity is high or has moved sufficiently, start dragging the item
+immediately rather than waiting
 
 
 Clean up the code, including some things from technical_debt:
-- Move all base.py's to __init__.py
 - Inconsistencies in the UI code
 - Order of functions in some files could be improved
 - Remove * imports, replace with full module imports
 
 
-Effects, spells, abilities
+Flesh out Effects, spells, abilities
 
 
 
-Relevant nearby steps, tools for doing them? Abstract, just write them down to collect ideas on how to accomplish.
+Distant/Big Picture:
 - Combat system (effects, spells, abilities, npc logic) - Python/Ursina
 - Databasing for mobs, items, etc - json at first, then sqlite/sqlalchemy
 - GUI - Ursina
