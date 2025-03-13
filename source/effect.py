@@ -3,6 +3,7 @@ import os
 import json
 
 from .networking import network
+from .networking.toolbox import remote_print
 from .ui import ui
 
 
@@ -23,13 +24,13 @@ class Effect(Entity):
             self.timer = 0
 
     def apply_to_char(self, char):
+        msg = ""
         if self.effect_type == "instant":
             if "damage" in self.effects:
                 dmg = self.effects["damage"]
                 char.health -= dmg
                 msg = f"{char.cname} is damaged for {dmg} damage!"
-                ui.gamewindow.add_message(msg)
-                network.broadcast(network.peer.remote_print, msg)
             destroy(self)
+        return msg
 
         

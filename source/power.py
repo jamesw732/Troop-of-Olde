@@ -30,5 +30,7 @@ class Power(Entity):
             if not self.char.target:
                 return
             effect = Effect(self.effect_id)
-            effect.apply_to_char(self.char.target)
+            msg = effect.apply_to_char(self.char.target)
+            if msg:
+                network.broadcast(network.peer.remote_print, msg)
 

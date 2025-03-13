@@ -92,5 +92,5 @@ class PowerIcon(Entity):
         self.power = power
 
     def on_click(self):
-        network.peer.request_apply_effect(network.peer.get_connections()[0], gs.pc.uuid,
+        network.peer.request_use_power(network.peer.get_connections()[0], gs.pc.uuid,
                                           self.parent.page_name, self.parent.slot)
