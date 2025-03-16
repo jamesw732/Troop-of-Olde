@@ -3,6 +3,7 @@ from ursina.networking import rpc
 
 from . import network
 from ..item import *
+from ..gamestate import gs
 
 @rpc(network.peer)
 def toggle_combat(connection, time_received, toggle: bool):
@@ -13,11 +14,18 @@ def toggle_combat(connection, time_received, toggle: bool):
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
-    """Tell other peers that a character died. Only to be called by host."""
+    """Tell clients that a character died. Only to be called by host."""
     char = network.uuid_to_char.get(char_uuid)
     if char:
         char.die()
 
+@rpc(network.peer)
+def remote_set_target(connection, time_received, uuid: int):
+    """Update player character's target"""
+    tgt = network.uuid_to_char[uuid]
+    gs.pc.target = tgt
+    msg = f"Now targeting: {tgt.cname}"
+    ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def remote_update_container(connection, time_received, container_name: str, container: IdContainer):

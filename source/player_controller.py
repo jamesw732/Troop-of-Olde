@@ -4,7 +4,6 @@ from ursina import *
 import numpy
 import json
 
-from .character import Character
 from .networking import network
 from .networking.world_requests import *
 from .ui.main import ui
@@ -164,8 +163,7 @@ class PlayerController(Entity):
 
         target: Character"""
         self.character.target = target
-        msg = f"Now targeting: {target.cname}"
-        ui.gamewindow.add_message(msg)
+        network.peer.request_set_target(network.server_connection, target.uuid)
 
     def bind_keys(self):
         """Load and read data/key_mappings.json and bind them in ursina.input_handler"""

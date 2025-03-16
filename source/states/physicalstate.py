@@ -12,9 +12,6 @@ attrs = {
     "color": str,
 
     "cname": str,
-    "type": str,
-    "target": int,
-    "in_combat": bool,
 }
 
 class PhysicalState(dict):
@@ -24,7 +21,7 @@ class PhysicalState(dict):
 
         Explanations of nontrivial kwargs:
         color: string representing the color, ie "red" or "orange". See ursina.color.colors for possible keys
-        target: uuid of character's target"""
+        """
         # If a character was passed, take its attributes
         if char is not None:
             for attr in attrs:
@@ -32,6 +29,7 @@ class PhysicalState(dict):
                     val = getattr(char, attr)
                     # Only include attrs intentionally set
                     if val is not None:
+                        # Why do I check for collider if not in attrs?
                         if attr in ["collider", "color", "model"]:
                             # Ursina objects exist in PhysicalState as string names
                             val = val.name

@@ -10,6 +10,7 @@ from ..states.physicalstate import PhysicalState
 def update():
     network.peer.update()
     my_char = network.uuid_to_char.get(network.my_uuid)
+
     if my_char is None:
         return
 

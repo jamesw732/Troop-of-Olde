@@ -9,27 +9,24 @@ Right now:
 First, just try to get the code working while also working towards a cleaner division between server code
 and client code. Ideally, there are no more "if network.peer.is_hosting()" lines.
 
-Check:
-using powers
 
+Check that logging out works as expected
 
 Characters:
-I think there should be three classes for Characters.
-Character - These are the manifestations on the server. It is here that things like combat are controlled.
-NPC - These are the non-player characters manifested on the client. They are basically zombies controlled
-by the server. They can lerp and eventually perform animations, but all of that logic is determined by the
-server.
-PC - This is the player character manifested on the client. It is attached to a PlayerController, which
-has the capability to send requests to the server for things like targeting and entering combat. For now, the
-PC also simulates physics for itself and listens to PlayerController for movement, rather than the server.
-Since it doesn't listen to the server for movement, it does not have LERP capabilities.
-
+Probably would be good to have some cases when equipping equipment upon character creation. Should be
+able to equip items without changing stats.
 
 
 Next:
-Change the internal equipment and inventory containers to just be lists. It may be valid to keep a slot_to_ind
+- Rework combat code structure, some of it can definitely go into Character
+- Clean up states, networking/state_updates.py can be moved to networking/world_requests.py
+- Improve networking containers. Two main changes here, one is changing the internal equipment and
+inventory containers to just be lists. It may be valid to keep a slot_to_ind
 dictionary so that the naming is clear for the equipment, but sending dictionaries instead of lists over
 the network just feels extremely cumbersome.
+The other is to unify "page1" and "page2" of the lexicon... this can and should really just be a list.
+In both cases, I'll need to encode an "empty" element, probably just as the empty string.
+- Remove is_hosting check from item init
 
 
 Rework task documentation/ideas. For now, I think the following files will suffice:

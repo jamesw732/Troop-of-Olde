@@ -1,4 +1,4 @@
-# Handles all world generation.
+"""Generate the world from a json. Only run by the server."""
 from ursina import Entity, Sky, color
 import json
 import os
@@ -42,8 +42,7 @@ class GenerateWorld:
         states = [(PhysicalState(**data["physical"]),
                    BaseCombatState(**data["combat"]))
                    for (npc, data) in npc_data.items()]
-        return [Character(type="npc", pstate=state[0], base_state=state[1])
-                for state in states]
+        return [Character(pstate=state[0], base_state=state[1]) for state in states]
 
     def parse_colors(self, data):
         """Parses colors from a json, which are just formatted as strings.

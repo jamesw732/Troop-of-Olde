@@ -1,15 +1,21 @@
+"""Handles all procedures relevant to connecting to the server. This should probably be re-segmented
+since the networking refactoring"""
 from ursina import destroy
 from ursina.networking import rpc
 
 from . import network
 from .register import CompleteCombatState, BaseCombatState, MiniCombatState, \
     IdContainer, PhysicalState, StatChange, SkillState
-from ..character import Character, get_character_states_from_json
+from .state_updates import update_pc_cbstate
+from ..character import Character
+from ..npc import NPC
+from ..player_character import PlayerCharacter
 from ..npc_controller import NPC_Controller
 from ..gamestate import gs
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 from ..ui.main import make_all_ui
+from ..states import get_character_states_from_json
 
 def input(key):
     """Right now, handles login inputs. Very temporary framework.
@@ -34,8 +40,9 @@ def on_connect(connection, time_connected):
         gs.pname = "Demo Player"
         pstate, base_state, equipment, inventory, skills, lexicon = \
             get_character_states_from_json(gs.pname)
-        gs.pc = Character(pstate=pstate, base_state=base_state,
-                          equipment=equipment, inventory=inventory, skills=skills, lexicon=lexicon)
+        # Don't make any assumptions about the combat state, just wait for server
+        gs.pc = PlayerCharacter(pstate=pstate, equipment=equipment, inventory=inventory, skills=skills,
+                                lexicon=lexicon)
         network.peer.request_enter_world(connection, pstate, base_state, equipment, inventory, skills,
                                          lexicon["page1"], lexicon["page2"])
 
@@ -70,6 +77,8 @@ def request_enter_world(connection, time_received, new_pstate: PhysicalState,
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, char.uuid, new_pstate, new_mini_state)
+        # pc_cbstate = CompleteCombatState(char)
+        # network.peer.update_pc_cbstate(connection, char.uuid, pc_cbstate)
         network.peer.bind_pc(connection, char.uuid)
         network.peer.make_ui(connection)
         # Send over instantiated item id's
@@ -111,13 +120,13 @@ def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: 
         network.iiid_to_item[iiid] = gs.pc.equipment[k]
 
 @rpc(network.peer)
-def spawn_npc(connection, time_received, uuid: int,
+def spawn_npc(connection, time_received, uuid: int, 
               phys_state: PhysicalState, mini_state: MiniCombatState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        char = Character(pstate=phys_state, mini_state=mini_state)
+        char = NPC(pstate=phys_state, cb_state=mini_state)
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid
