@@ -3,7 +3,7 @@ Clients will never initialize a Character object, only the server will."""
 from ursina import *
 
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
-from .combat import progress_mh_combat_timer, progress_oh_combat_timer, attempt_melee_hit, get_target_hittable
+from .combat import progress_mh_combat_timer, progress_oh_combat_timer, attempt_melee_hit, get_wpn_range
 from .networking import network
 from .networking.world_responses import remote_death
 from .physics import handle_movement
@@ -97,7 +97,7 @@ class Character(Entity):
             self.target = None
             self.combat_timer = 0
         if self.target and self.target.alive and self.in_combat:
-            if progress_mh_combat_timer(self) and get_target_hittable(self, self.equipment["mh"]):
+            if progress_mh_combat_timer(self) and self.get_target_hittable(self.equipment["mh"]):
                 msg = attempt_melee_hit(self, self.target, "mh")
                 conn = network.uuid_to_connection.get(self.uuid, None)
                 if conn is not None:
@@ -110,7 +110,7 @@ class Character(Entity):
             # basically just check if not wearing a shield
             dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
             if dual_wielding and progress_oh_combat_timer(self)\
-            and get_target_hittable(self, self.equipment["oh"]):
+            and self.get_target_hittable(self.equipment["oh"]):
                 msg = attempt_melee_hit(self, self.target, "oh")
                 conn = network.uuid_to_connection.get(self.uuid, None)
                 if conn is not None:
@@ -191,6 +191,40 @@ class Character(Entity):
             if sqdist(entity.position, self.position) < sdist:
                 return False
         return True
+
+    def get_target_hittable(self, wpn):
+        """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
+        if not self.get_tgt_los(self.target):
+            conn = network.uuid_to_connection[self.uuid]
+            network.peer.remote_print(conn, f"You can't see {self.target.cname}.")
+            return False
+        atk_range = get_wpn_range(wpn)
+        # use center rather than center of feet
+        pos_src = self.position + Vec3(0, self.scale_y / 2, 0)
+        pos_tgt = self.target.position + Vec3(0, self.target.scale_y / 2, 0)
+        ray_dir = pos_tgt - pos_src
+        ray_dist = distance(pos_tgt, pos_src)
+        # Draw a line between the two
+        line1 = raycast(pos_src, direction=ray_dir, distance=ray_dist,
+                       traverse_target=self)
+        line2 = raycast(pos_tgt, direction=-ray_dir, distance=ray_dist,
+                        traverse_target=self.target)
+        # ie one char is inside the other
+        if not line1.hit or not line2.hit:
+            return True
+        point1 = line1.world_point
+        point2 = line2.world_point
+
+        # don't compute the distance between their centers, compute the distance between
+        # their bodies
+        inner_distance = distance(point1, point2)
+        in_range = inner_distance <= atk_range
+        if in_range:
+            return True
+        else:
+            conn = network.uuid_to_connection[self.uuid]
+            network.peer.remote_print(conn, f"{self.target.cname} is out of range!")
+            return False
 
     def on_destroy(self):
         """Upon being destroyed, remove all references to objects attached to this character"""

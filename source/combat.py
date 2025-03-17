@@ -58,39 +58,6 @@ def attempt_melee_hit(src, tgt, slot):
         attempt_raise_skill(src, style, prob=0.5)
     return hitstring
 
-def get_target_hittable(char, wpn):
-    """Returns whether char.target is able to be hit, ie in LoS and within attack range"""
-    if not char.get_tgt_los(char.target):
-        conn = network.uuid_to_connection[char.uuid]
-        network.peer.remote_print(conn, f"You can't see {char.target.cname}.")
-        return False
-    atk_range = get_wpn_range(wpn)
-    # use center rather than center of feet
-    pos_src = char.position + Vec3(0, char.scale_y / 2, 0)
-    pos_tgt = char.target.position + Vec3(0, char.target.scale_y / 2, 0)
-    ray_dir = pos_tgt - pos_src
-    ray_dist = distance(pos_tgt, pos_src)
-    # Draw a line between the two
-    line1 = raycast(pos_src, direction=ray_dir, distance=ray_dist,
-                   traverse_target=char)
-    line2 = raycast(pos_tgt, direction=-ray_dir, distance=ray_dist,
-                    traverse_target=char.target)
-    # ie one char is inside the other
-    if not line1.hit or not line2.hit:
-        return True
-    point1 = line1.world_point
-    point2 = line2.world_point
-
-    # don't compute the distance between their centers, compute the distance between
-    # their bodies
-    inner_distance = distance(point1, point2)
-    in_range = inner_distance <= atk_range
-    if in_range:
-        return True
-    else:
-        conn = network.uuid_to_connection[char.uuid]
-        network.peer.remote_print(conn, f"{char.target.cname} is out of range!")
-        return False
 
 # PRIVATE
 def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
