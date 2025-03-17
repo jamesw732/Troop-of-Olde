@@ -211,3 +211,11 @@ class Character(Entity):
         network.broadcast(network.peer.remote_death, self.uuid)
         self.alive = False
         destroy(self)
+
+    def increase_health(self, amt):
+        """Function to be used whenever increasing character's health"""
+        self.health = min(self.maxhealth, self.health + amt)
+
+    def reduce_health(self, amt):
+        """Function to be used whenever decreasing character's health"""
+        self.health -= amt

@@ -15,7 +15,7 @@ def progress_mh_combat_timer(char):
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
     wep = char.equipment['mh']
-    delay = get_wpn_delay(char, wep)
+    delay = get_wpn_delay(wep)
     if char.mh_combat_timer > delay:
         char.mh_combat_timer -= delay
         return True
@@ -27,7 +27,7 @@ def progress_oh_combat_timer(char):
     # * dw_skill / rec_level if slot == oh else 1
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
     wep = char.equipment['oh']
-    delay = get_wpn_delay(char, wep)
+    delay = get_wpn_delay(wep)
     if char.oh_combat_timer > delay:
         char.oh_combat_timer -= delay
         return True
@@ -46,15 +46,15 @@ def attempt_melee_hit(src, tgt, slot):
         wep = src.equipment[slot]
         if wep is not None and "info" not in wep:
             return f"Try hitting {target.cname} with something else."
-        base_dmg = get_wpn_dmg(src, wep)
-        style = get_wpn_style(src, wep)
+        base_dmg = get_wpn_dmg(wep)
+        style = get_wpn_style(wep)
 
         base_dmg *= 2 * sigmoid(src.str - tgt.armor)
         min_hit = max(0, ceil(base_dmg * 0.5))
         max_hit = max(0, ceil(base_dmg * 1.5))
         dmg = random.randint(min_hit, max_hit)
         hitstring = get_melee_hit_string(src, tgt, style=style, dmg=dmg)
-        reduce_health(tgt, dmg)
+        tgt.reduce_health(dmg)
         attempt_raise_skill(src, style, prob=0.5)
     return hitstring
 
@@ -64,7 +64,7 @@ def get_target_hittable(char, wpn):
         conn = network.uuid_to_connection[char.uuid]
         network.peer.remote_print(conn, f"You can't see {char.target.cname}.")
         return False
-    atk_range = get_attack_range(char, wpn)
+    atk_range = get_wpn_range(wpn)
     # use center rather than center of feet
     pos_src = char.position + Vec3(0, char.scale_y / 2, 0)
     pos_tgt = char.target.position + Vec3(0, char.target.scale_y / 2, 0)
@@ -93,14 +93,6 @@ def get_target_hittable(char, wpn):
         return False
 
 # PRIVATE
-def increase_health(char, amt):
-    """Function to be used whenever increasing character's health"""
-    char.health = min(char.maxhealth, char.health + amt)
-
-def reduce_health(char, amt):
-    """Function to be used whenever decreasing character's health"""
-    char.health -= amt
-
 def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
     """Produce a string with information about the melee hit."""
     if miss:
@@ -111,26 +103,26 @@ def get_haste_modifier(haste):
     """Convert haste to a multiplicative time modifier"""
     return max(0, 1 + haste / 100)
 
-def get_wpn_dmg(char, wpn):
+def get_wpn_dmg(wpn):
     if wpn is None:
         return 1
     info = wpn.get('info', {})
     return info.get('dmg', 1)
 
-def get_wpn_style(char, wpn):
+def get_wpn_style(wpn):
     if wpn is None:
         return 'fists'
     info = wpn.get('info', {})
     return info.get('style', 'fists')
 
-def get_attack_range(char, wpn):
+def get_wpn_range(wpn):
     """Equivalent to wpn['info']['range'] with some precautions"""
     if wpn is None:
         return 1
     info = wpn.get('info', {})
     return info.get('range', 1)
 
-def get_wpn_delay(char, wpn):
+def get_wpn_delay(wpn):
     """Equivalent to wpn['info']['delay'] with some precautions"""
     if wpn is None:
         return 1
