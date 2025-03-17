@@ -1,2 +1,7 @@
 examples.py
+experiments.py
 resources.txt
+*.swp
+ideas/*
+Doc/*
+!Doc/developer.tex
