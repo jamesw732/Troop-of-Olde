@@ -84,7 +84,48 @@ As the rest of this document is built up (and the game is developed), this secti
     \item Make all rewards from faction-specific quests obtainable through other means.
     \item No crafting, as it distracts from the dungeon crawling and the items just create a huge inventory mess.
 \end{itemize}
-\subsubsection{Class System}
+\subsubsection{Class Systems}
+There are several ideas for how to implement a class system, each with their drawbacks.
+\begin{enumerate}
+    \item The player has a lexicon that can store two pages of powers for the player to use.
+        Each level range/zone has a ``basic'' and ``advanced'' page for each class (which there
+        ~8 of) which contains these powers,
+        obtained by killing enemies of your class in the zone. The pages essentially unlock half of a class
+        for the player, and players are allowed to mix classes (only the basic pages, and up to some
+        restrictions on combinations, for flavor). Mixing classes may fundamentally change the
+        class, for example ranger + wizard would get elemental arrows, whereas the ranger probably wouldn't
+        get those. You are also not restricted to a class you choose, your combination of pages defines
+        your class completely and you don't have to make any upfront decisions about it.\\\ \\
+        This idea solves the problem of players not liking the class they choose. I also think it
+        provides a take on multiclassing that is much more feasible than Minions of Mirth (in terms
+        of balancing and flavor). Another good thing about it is that it creates a backdoor way to
+        create classes after release, if that's something I want to do.\\
+        However, I don't know if it would actually be fun to play with. It
+        seems hard to make the progression work because you're stuck on the previous zone's pages
+        until you get the right drop, and then you have a huge power spike? Doesn't seem quite right.
+        It might also not make for the best gameplay experience to only care about fighting enemies
+        of your class. As of right now, the only reasons I can think of for killing an enemy that's not
+        your class are: it's your teammate's class, or you need to kill it to get through the dungeon. Also,
+        how does enemy multiclassing work?
+    \item The player has a lexicon that contains a page for each level range/zone. Enemies of your class
+        will have access to a subset of the powers on the page of the corresponding zone, and will drop some
+        or all of the pages which unlock those powers. \\\ \\
+        I think as far as progression goes, this is really good and I can imagine myself enjoying this
+        progression system. This does introduce some problems that the first idea fixes, namely players
+        having reduced agency in their class selections. It also makes it tougher to add classes over
+        time since I'd need to add content to every existing zone.
+\end{enumerate}
+One thing I'm realizing is that in a class-based game (or even a non-class-based game, honestly), the
+quality of the progression system scales with how well the content is tailored to your specific class.
+The main implication of this is that having lots of classes can impede individual progression.
+I see a few ways to account for this.\\
+One is to just not have very many classes, so that this isn't
+really a problem from the start. If there are only, say, four classes, then having to deal with
+irrelevant enemies isn't as big of a problem because the relevant ones will be more common.\\
+Twreeo is to separate content by class, for example class-specific dungeons. This way, players can
+very well curate the content they consume, but with the downside of cooperative dungeon crawling
+being less fun for everyone.\\
+Three is to manually adjust spawn rates based on classes of players logged in.
 
 \section{Content}
 \subsection{Characters}
