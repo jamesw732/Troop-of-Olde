@@ -6,6 +6,7 @@ from ursina.networking import rpc
 
 from . import network
 from ..item import *
+from ..ui import ui
 from ..gamestate import gs
 from ..states.physicalstate import PhysicalState, apply_physical_state
 from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
@@ -58,7 +59,15 @@ def remote_update_container(connection, time_received, container_name: str, cont
     if network.peer.is_hosting():
         return
     internal_container = ids_to_container(container)
-    update_container(container_name, internal_container)
+
+    loop = internal_container.items()
+    container = getattr(gs.pc, container_name)
+    for slot, item in loop:
+        container[slot] = item
+        auto_primary_option(item, container_name)
+
+    ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
+    # Should probably also force update player stats now
 
 # Physical
 @rpc(network.peer)

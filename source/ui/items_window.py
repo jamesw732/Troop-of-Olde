@@ -275,33 +275,18 @@ class ItemIcon(Entity):
                 self.position = Vec3(0, 0, -1)
                 return False
 
-        if network.peer.is_hosting():
-            internal_swap(gs.pc, my_container, my_slot, other_container, other_slot)
-            ui.playerwindow.items.update_ui_icons(my_container)
-            ui.playerwindow.items.update_ui_icons(other_container)
-        else:
-            conn = network.server_connection
-            network.peer.remote_swap(conn, my_container, str(my_slot), other_container, str(other_slot))
+        conn = network.server_connection
+        network.peer.request_swap_items(conn, my_container, str(my_slot), other_container, str(other_slot))
 
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
-        if network.peer.is_hosting():
-            iauto_equip(gs.pc, self.parent.container_name, self.parent.slot)
-            update_container("equipment", gs.pc.equipment)
-            update_container("inventory", gs.pc.inventory)
-        else:
-            conn = network.server_connection
-            network.peer.remote_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
+        conn = network.server_connection
+        network.peer.request_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
-        if network.peer.is_hosting():
-            iauto_unequip(gs.pc, self.parent.slot)
-            update_container("equipment", gs.pc.equipment)
-            update_container("inventory", gs.pc.inventory)
-        else:
-            conn = network.server_connection
-            network.peer.remote_auto_unequip(conn, self.item.iiid, self.parent.slot)
+        conn = network.server_connection
+        network.peer.request_auto_unequip(conn, self.item.iiid, self.parent.slot)
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""

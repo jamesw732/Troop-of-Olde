@@ -36,7 +36,7 @@ def request_use_power(connection, time_received, uuid: int, page: str, slot: str
 
 # ITEMS
 @rpc(network.peer)
-def remote_swap(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
+def request_swap_items(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
     """Request host to swap items internally, host will send back updated container states"""
     if not network.peer.is_hosting():
         return
@@ -47,7 +47,7 @@ def remote_swap(connection, time_received, container1: str, slot1: str, containe
         network.peer.remote_update_container(connection, name, container)
 
 @rpc(network.peer)
-def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
+def request_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
     """Request host to automatically equip a given item."""
     char = network.connection_to_char[connection]
     iauto_equip(char, old_container, old_slot)
@@ -56,7 +56,7 @@ def remote_auto_equip(connection, time_received, itemid: int, old_slot: str, old
         network.peer.remote_update_container(connection, name, container)
 
 @rpc(network.peer)
-def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
+def request_auto_unequip(connection, time_received, itemid: int, old_slot: str):
     """Request host to automatically unequip a given item."""
     char = network.connection_to_char[connection]
     iauto_unequip(char, old_slot)

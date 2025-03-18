@@ -229,6 +229,7 @@ def iauto_equip(char, old_container, old_slot):
     internal_swap(char, old_container, old_slot, "equipment", new_slot)
 
 def iauto_unequip(char, old_slot):
+    """Auto unequips an item internally"""
     new_slot = find_first_empty_inventory(char)
     if new_slot == "":
         return
@@ -263,15 +264,3 @@ def find_first_empty_inventory(char):
         return next(empty_slots)
     except StopIteration:
         return ""
-
-
-# NETWORKING
-def update_container(container_name, internal_container):
-    """Updates character's internal container and UI container from network"""
-    loop = internal_container.items()
-    container = getattr(gs.pc, container_name)
-    for slot, item in loop:
-        container[slot] = item
-        auto_primary_option(item, container_name)
-
-    ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
