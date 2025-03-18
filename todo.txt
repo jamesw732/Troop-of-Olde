@@ -9,24 +9,18 @@ Right now:
 First, just try to get the code working while also working towards a cleaner division between server code
 and client code. Ideally, there are no more "if network.peer.is_hosting()" lines.
 
-
-Check that logging out works as expected
-
-Characters:
-Probably would be good to have some cases when equipping equipment upon character creation. Should be
-able to equip items without changing stats.
-
-
-Next:
-- Rework combat code structure, some of it can definitely go into Character
-- Clean up states, networking/state_updates.py can be moved to networking/world_requests.py
+- Add functionality to equip items without changing stats, since equipping items on a client creates
+a temporary desynchronization of the client/server states.
+- Remove is_hosting check from item init
 - Improve networking containers. Two main changes here, one is changing the internal equipment and
 inventory containers to just be lists. It may be valid to keep a slot_to_ind
 dictionary so that the naming is clear for the equipment, but sending dictionaries instead of lists over
 the network just feels extremely cumbersome.
 The other is to unify "page1" and "page2" of the lexicon... this can and should really just be a list.
 In both cases, I'll need to encode an "empty" element, probably just as the empty string.
-- Remove is_hosting check from item init
+
+
+Next:
 
 
 Rework task documentation/ideas. For now, I think the following files will suffice:
@@ -38,7 +32,7 @@ This file essentially serves as the implementation definition.
 - Stuff like technical_debt, performance_improvements should get moved to github issues. Basically, anything
 more distant than "Backlog" and more specific than "Distant" belongs in a Github issue.
 
-
+Test everything.
 
 
 
