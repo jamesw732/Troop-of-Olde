@@ -109,7 +109,7 @@ There are several ideas for how to implement a class system, each with their dra
         how does enemy multiclassing work?
     \item The player has a lexicon that contains a page for each level range/zone. Enemies of your class
         will have access to a subset of the powers on the page of the corresponding zone, and will drop some
-        or all of the pages which unlock those powers. \\\ \\
+        or all of the pages which unlock those powers. You can also obtain powers by completing quests.\\\ \\
         I think as far as progression goes, this is really good and I can imagine myself enjoying this
         progression system. This does introduce some problems that the first idea fixes, namely players
         having reduced agency in their class selections. It also makes it tougher to add classes over
@@ -119,13 +119,27 @@ One thing I'm realizing is that in a class-based game (or even a non-class-based
 quality of the progression system scales with how well the content is tailored to your specific class.
 The main implication of this is that having lots of classes can impede individual progression.
 I see a few ways to account for this.\\
-One is to just not have very many classes, so that this isn't
+One is to just have few classes, so that this isn't
 really a problem from the start. If there are only, say, four classes, then having to deal with
 irrelevant enemies isn't as big of a problem because the relevant ones will be more common.\\
-Twreeo is to separate content by class, for example class-specific dungeons. This way, players can
+Two is to separate content by class, for example class-specific dungeons. This way, players can
 very well curate the content they consume, but with the downside of cooperative dungeon crawling
-being less fun for everyone.\\
-Three is to manually adjust spawn rates based on classes of players logged in.
+being less useful for everyone involved.\\
+Three is to manually adjust spawn rates based on classes of players logged in.\\
+
+Of these, I think the best solution is to have only a few classes, but maybe redefine what classes do.
+A class shouldn't completely define a character's playstyle/role, but rather provide the player with some
+direction or strengths to play towards. This means each class should be relatively verstile, and
+can support multiple playstyles.\\
+My ideas for the classes are:
+\begin{itemize}
+    \item Paladin: uses light magic to improve their own melee combat capabilities and heal
+    \item Elementalist (Arcanist? Tempest? Can't figure out a name): uses elemental magic to cast powerful
+        offensive spells and debuffs, and imbue weapons with elemental effects.
+    \item Druid: uses nature magic to provide melee support, casting damage, and healing, and can
+        shapeshift for more personal utility (ie improved self offensive/defensive capabilities).
+    \item Coercer: uses mind magic to interact with enemies and support allies in creative ways.
+\end{itemize}
 
 \section{Content}
 \subsection{Characters}
