@@ -1,11 +1,10 @@
 from ursina import *
 
-from source.character import *
-from source.networking import *
-from source.networking.continuous import *
+from source.networking import network
 from source.networking.connect import *
+from source.networking.client_continuous import *
 from source.networking.disconnect import *
-from source.world_gen import *
+from source.networking.register import *
 
 
 app = Ursina(borderless=False)
