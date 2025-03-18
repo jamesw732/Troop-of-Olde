@@ -6,8 +6,7 @@ Distant - These are abstract ideas about things that will need to be done eventu
 
 
 Right now:
-First, just try to get the code working while also working towards a cleaner division between server code
-and client code. Ideally, there are no more "if network.peer.is_hosting()" lines.
+Clean up the code to a passable level. Remove all smells, and fix any buggy behavior.
 
 - Add functionality to equip items without changing stats, since equipping items on a client creates
 a temporary desynchronization of the client/server states.
@@ -18,6 +17,8 @@ dictionary so that the naming is clear for the equipment, but sending dictionari
 the network just feels extremely cumbersome.
 The other is to unify "page1" and "page2" of the lexicon... this can and should really just be a list.
 In both cases, I'll need to encode an "empty" element, probably just as the empty string.
+- Figure out the kinks in the physics system, such as not being able to jump twice in a row or
+shooting up the wall.
 
 
 Next:
