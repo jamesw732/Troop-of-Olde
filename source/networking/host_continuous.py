@@ -3,7 +3,7 @@ from ursina import time
 from ursina.networking import rpc
 
 from . import network
-from .state_updates import *
+from .world_responses import *
 from ..gamestate import gs
 from ..states.cbstate_complete import CompleteCombatState
 from ..states.cbstate_mini import MiniCombatState

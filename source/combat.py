@@ -4,7 +4,7 @@ import random
 
 from . import sigmoid, sqdist, fists_base_dmg
 from .networking import network
-from .networking.toolbox import *
+from .networking.world_responses import remote_print
 from .states.skills import attempt_raise_skill
 from .ui.main import ui
 
@@ -34,9 +34,7 @@ def progress_oh_combat_timer(char):
     return False
 
 def attempt_melee_hit(src, tgt, slot):
-    """Main driver method for melee combat called by progress_mh/oh_melee_timer.
-    Only main client (ie host or offline client) should call this. If not main client,
-    call remote version."""
+    """Main driver method for melee combat called by progress_mh/oh_melee_timer."""
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if random.random() < sigmoid((src.dex - tgt.ref) / 10):
         # It's a miss

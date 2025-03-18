@@ -6,7 +6,7 @@ from ursina.networking import rpc
 from . import network
 from .register import CompleteCombatState, BaseCombatState, MiniCombatState, \
     IdContainer, PhysicalState, StatChange, SkillState
-from .state_updates import update_pc_cbstate
+from .world_responses import update_pc_cbstate
 from ..character import Character
 from ..npc import NPC
 from ..player_character import PlayerCharacter

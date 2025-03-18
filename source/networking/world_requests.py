@@ -1,12 +1,15 @@
 """This file contains generic RPC functions that are only called by the client.
 
 Perhaps counterintuitively, all the function definitions will be executed on the host's
-machine, not the client."""
+machine, not the client. They are *called* client side, though.
+These are essentially networking wrappers for procedures done by the server. If a client
+needs something done by the server, they call a function from here."""
 from ursina.networking import rpc
 
 from . import network
 from .world_responses import *
 from ..item import *
+from ..states.physicalstate import PhysicalState, apply_physical_state
 
 # COMBAT
 @rpc(network.peer)
@@ -61,3 +64,19 @@ def remote_auto_unequip(connection, time_received, itemid: int, old_slot: str):
         container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
 
+# State Updates
+@rpc(network.peer)
+def request_update_pstate(connection, time_received, uuid: int,
+                       phys_state: PhysicalState):
+    """Client-authoritatively apply physical state updates.
+    Don't apply new state directly, instead add it as the new LERP state.
+    Host will broadcast the new state to all other peers.
+    """
+    char = network.uuid_to_char.get(uuid, None)
+    if char is None:
+        return
+    apply_physical_state(char, phys_state)
+    if network.peer.is_hosting():
+        for conn in network.peer.get_connections():
+            if conn is not connection:
+                network.peer.update_lerp_pstate(conn, uuid, phys_state)
