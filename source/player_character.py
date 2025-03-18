@@ -60,7 +60,7 @@ class PlayerCharacter(Entity):
         if equipment:
             if isinstance(equipment, IdContainer):
                 equipment = {slot: Item(itemid) for slot, itemid in equipment.items()}
-            equip_many_items(self, equipment)
+            equip_many_items(self, equipment, handle_stats=False)
 
         if inventory:
             for slot, item in inventory.items():

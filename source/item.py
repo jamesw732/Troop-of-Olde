@@ -106,44 +106,93 @@ class Item(dict):
             network.iiid_to_item[network.iiid_counter] = self
             network.iiid_counter += 1
 
+# Public functions
+def internal_swap(char, container1, slot1, container2, slot2):
+    """Handles all the magic necessary to swap two items. Main driving function
+    for moving items.
 
-def equip_many_items(char, itemsdict):
+    It is important to treat container1 and slot1 as the source, as the
+    corresponding Item cannot be None"""
+    item1 = getattr(char, container1)[slot1]
+    item2 = getattr(char, container2)[slot2]
+
+    # If we're intentionally equipping offhand, unequip 2h if wearing
+    man_unequip_2h = equipping_oh_wearing_2h(char, item1, slot2) \
+                     or equipping_oh_wearing_2h(char, item2, slot1)
+    # If equipping 2h, also unequip offhand if wearing
+    if equipping_2h(item1, container2):
+        unequip_offhand(char)
+    if equipping_2h(item2, container1):
+        unequip_offhand(char)
+
+    internal_move_item(char, item1, container2, slot2, container1)
+    handle_stat_updates(char, item1, container2, container1)
+    internal_move_item(char, item2, container1, slot1, container2)
+    handle_stat_updates(char, item2, container1, container2)
+    # Save auto unequipping 2h for last, otherwise position gets screwed up
+    if man_unequip_2h:
+        iauto_unequip(char, "mh")
+
+def iauto_equip(char, old_container, old_slot):
+    """Auto equips an item internally"""
+    item = getattr(char, old_container)[old_slot]
+    new_slot = find_first_empty_equip(item, char)
+    internal_swap(char, old_container, old_slot, "equipment", new_slot)
+
+def iauto_unequip(char, old_slot):
+    """Auto unequips an item internally"""
+    new_slot = find_first_empty_inventory(char)
+    if new_slot == "":
+        return
+    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
+
+def equip_many_items(char, itemsdict, handle_stats=True):
     """Magically equips all items in itemsdict. Use this only when characters enter world.
     char: Character
-    itemsdict: dict mapping equipment slots to Items"""
+    itemsdict: dict mapping equipment slots to Items
+    handle_stats: bool, only True when called by server"""
     for slot, item in itemsdict.items():
-        internal_move_item(char, item, "equipment", slot, old_container_n="nowhere")
+        internal_move_item(char, item, "equipment", slot, from_container_n="nowhere")
         update_primary_option(item, "unequip")
+        if handle_stats:
+            handle_stat_updates(char, item, "equipment", "nowhere")
 
-def internal_move_item(char, item, new_container_n, new_slot, old_container_n="inventory"):
-    """Move an item internally from old_container_n to new_container_n.
-
-    Updates stats for items being equipped.
-    char: Character
-    item: Item
-    new_container_n: str, name of target container
-    new_slot: str or int, key or index of target container
-    old_container_n: str, name of source container
-    """
-    new_container = getattr(char, new_container_n)
-    new_container[new_slot] = item
-    if item is None:
-        return
-    if new_container_n == "equipment":
-        # Skip stat change if staying within equipment
-        if old_container_n != "equipment":
-            apply_stat_change(char, item["stats"])
-    elif old_container_n == "equipment":
-        remove_stat_change(char, item["stats"])
-    char.update_max_ratings()
-    auto_primary_option(item, new_container_n)
-
-
-# Update item functions
-def auto_primary_option(item, container_name):
+def auto_set_primary_option(item, container_name):
     new_primary_option = get_primary_option_from_container(item, container_name)
     update_primary_option(item, new_primary_option)
 
+# Private functions
+def internal_move_item(char, item, to_container_n, to_slot, from_container_n="inventory"):
+    """Move an item internally from from_container_n to to_container_n. Does not update stats.
+
+    char: Character
+    item: Item
+    to_container_n: str, name of target container
+    to_slot: str or int, key or index of target container
+    from_container_n: str, name of source container
+    """
+    to_container = getattr(char, to_container_n)
+    to_container[to_slot] = item
+    auto_set_primary_option(item, to_container_n)
+
+def handle_stat_updates(char, item, to_container_n, from_container_n):
+    """Updates stats for an item being equipped or unequipped
+
+    char: Character
+    item: Item
+    to_container_n: str, name of target container
+    from_container_n: str, name of source container"""
+    if item is None:
+        return
+    if to_container_n == "equipment":
+        # Skip stat change if staying within equipment
+        if from_container_n != "equipment":
+            apply_stat_change(char, item["stats"])
+    elif from_container_n == "equipment":
+        remove_stat_change(char, item["stats"])
+    char.update_max_ratings()
+
+# Lower level private functions
 def get_primary_option_from_container(item, container):
     """Get intended primary option of an item based on where it is"""
     if item is None or container is None:
@@ -166,31 +215,6 @@ def update_primary_option(item, funcname):
     # This seems really bad. Definitely want to work something better out once
     # item tooltips are a thing
     item["functions"][0] = funcname
-
-
-# Internal item swap code
-def internal_swap(char, container1, slot1, container2, slot2):
-    """Combines all functions necessary to be a wrapper for ItemIcon.swap_locs
-
-    It is important to treat container1 and slot1 as the source, as the
-    corresponding Item cannot be None"""
-    item1 = getattr(char, container1)[slot1]
-    item2 = getattr(char, container2)[slot2]
-
-    # If we're intentionally equipping offhand, unequip 2h if wearing
-    man_unequip_2h = equipping_oh_wearing_2h(char, item1, slot2) \
-                     or equipping_oh_wearing_2h(char, item2, slot1)
-    # If equipping 2h, also unequip offhand if wearing
-    if equipping_2h(item1, container2):
-        unequip_offhand(char)
-    if equipping_2h(item2, container1):
-        unequip_offhand(char)
-
-    internal_move_item(char, item1, container2, slot2, container1)
-    internal_move_item(char, item2, container1, slot1, container2)
-    # Save auto unequipping 2h for last, otherwise position gets screwed up
-    if man_unequip_2h:
-        iauto_unequip(char, "mh")
 
 def equipping_2h(item, tgt_container):
     return tgt_container == "equipment" and item_is_2h(item)
@@ -219,21 +243,6 @@ def item_is_2h(item):
     if item is None:
         return False
     return item.get("type") == "weapon" and item.get("info", {}).get("style", "")[:2] == "2h"
-
-
-# Auto equipping/unequipping
-def iauto_equip(char, old_container, old_slot):
-    """Auto equips an item internally"""
-    item = getattr(char, old_container)[old_slot]
-    new_slot = find_first_empty_equip(item, char)
-    internal_swap(char, old_container, old_slot, "equipment", new_slot)
-
-def iauto_unequip(char, old_slot):
-    """Auto unequips an item internally"""
-    new_slot = find_first_empty_inventory(char)
-    if new_slot == "":
-        return
-    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
 
 def find_first_empty_equip(item, char):
     """Find the correct spot to equip this item to"""
