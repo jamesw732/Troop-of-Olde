@@ -28,7 +28,7 @@ JSON Structure:
         "functions": [funcname1, funcname2, etc]
     }
 }
-Eventual attrs: on_use (an Effect), model (a str), texture (a str)
+Eventual attrs: on_use (an Effect id), model (a str), texture (a str)
 
 name is required
 
@@ -86,14 +86,14 @@ class Item(dict):
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, id):
+    def __init__(self, item_id):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
-        id: items_dict key, int or str (gets casted to a str)
+        item_id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs"""
-        id = str(id)
-        self.id = id
+        item_id = str(item_id)
+        self.id = item_id
         self.icon = None
-        data = items_dict[id]
+        data = items_dict[item_id]
 
         super().__init__(**data)
         # Need to be careful with assigning mutable objects
