@@ -2,7 +2,7 @@
 from ursina import time
 from ursina.networking import rpc
 
-from . import network
+from .network import network
 from .world_requests import *
 from ..states.state import State
 

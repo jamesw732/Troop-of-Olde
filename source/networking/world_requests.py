@@ -6,7 +6,7 @@ These are essentially networking wrappers for procedures done by the server. If 
 needs something done by the server, they call a function from here."""
 from ursina.networking import rpc
 
-from . import network
+from .network import network
 from .world_responses import *
 from ..item import *
 from ..states.state import State, apply_physical_state

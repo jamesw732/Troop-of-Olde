@@ -3,7 +3,7 @@ since the networking refactoring"""
 from ursina import destroy
 from ursina.networking import rpc
 
-from . import network
+from .network import network
 from .register import *
 from .world_responses import update_pc_cbstate
 from ..character import Character
