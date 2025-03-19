@@ -2,8 +2,7 @@ from ursina import *
 import os
 import json
 
-from .networking import network
-from .networking.world_responses import remote_print
+from .networking import network, remote_print
 from .ui import ui
 
 

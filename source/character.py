@@ -4,8 +4,7 @@ from ursina import *
 
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
 from .combat import progress_mh_combat_timer, progress_oh_combat_timer, attempt_melee_hit, get_wpn_range
-from .networking import network
-from .networking.world_responses import remote_death
+from .networking import network, remote_death
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
