@@ -8,9 +8,7 @@ from . import network
 from ..item import *
 from ..ui import ui
 from ..gamestate import gs
-from ..states.physicalstate import PhysicalState, apply_physical_state
-from ..states.cbstate_complete import CompleteCombatState, apply_complete_cb_state
-from ..states.cbstate_mini import MiniCombatState, apply_mini_state
+from ..states.state import State, apply_physical_state, apply_state
 
 # Combat
 @rpc(network.peer)
@@ -36,18 +34,18 @@ def remote_set_target(connection, time_received, uuid: int):
     ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
-def update_pc_cbstate(connection, time_received, uuid: int, cbstate: CompleteCombatState):
+def update_pc_cbstate(connection, time_received, uuid: int, cbstate: State):
     """Update combat state for a player character"""
     char = network.uuid_to_char.get(uuid)
     if char:
-        apply_complete_cb_state(char, cbstate)
+        apply_state(char, cbstate)
 
 @rpc(network.peer)
-def update_npc_cbstate(connection, time_received, uuid: int, cbstate: MiniCombatState):
+def update_npc_cbstate(connection, time_received, uuid: int, cbstate: State):
     """Update combat state for an NPC"""
     char = network.uuid_to_char.get(uuid)
     if char:
-        apply_mini_state(char, cbstate)
+        apply_state(char, cbstate)
 
 # Items
 @rpc(network.peer)
@@ -72,7 +70,7 @@ def remote_update_container(connection, time_received, container_name: str, cont
 # Physical
 @rpc(network.peer)
 def update_lerp_pstate(connection, time_received, uuid: int,
-                       phys_state: PhysicalState):
+                       phys_state: State):
     """Remotely call char.update_lerp_state"""
     npc = network.uuid_to_char.get(uuid)
     if npc is None:

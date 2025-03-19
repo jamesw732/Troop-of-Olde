@@ -9,7 +9,7 @@ from .networking import network
 from .ui import ui
 # This import might be a problem eventually
 from .states.container import IdContainer, container_to_ids, ids_to_container
-from .states.stat_change import StatChange, apply_stat_change, remove_stat_change
+from .states.state import State, apply_state_diff, remove_state_diff
 
 """
 JSON Structure:
@@ -98,7 +98,7 @@ class Item(dict):
         super().__init__(**data)
         # Need to be careful with assigning mutable objects
         if self["type"] in ["weapon", "equipment"]:
-            self["stats"] = StatChange(**self.get("stats", {}))
+            self["stats"] = State("pc_combat", **self.get("stats", {}))
         if "functions" not in self:
             self['functions'] = copy.copy(self.type_to_options.get(self["type"], []))
         if network.peer.is_hosting():
@@ -187,9 +187,9 @@ def handle_stat_updates(char, item, to_container_n, from_container_n):
     if to_container_n == "equipment":
         # Skip stat change if staying within equipment
         if from_container_n != "equipment":
-            apply_stat_change(char, item["stats"])
+            apply_state_diff(char, item["stats"])
     elif from_container_n == "equipment":
-        remove_stat_change(char, item["stats"])
+        remove_state_diff(char, item["stats"])
     char.update_max_ratings()
 
 # Lower level private functions

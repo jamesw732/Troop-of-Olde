@@ -4,8 +4,7 @@ import json
 import os
 
 from .character import Character
-from .states.cbstate_base import BaseCombatState
-from .states.physicalstate import PhysicalState
+from .states.state import State
 
 
 class GenerateWorld:
@@ -39,8 +38,8 @@ class GenerateWorld:
         path = os.path.join(self.zones_path, file)
         with open(path) as f:
             npc_data = json.load(f)
-        states = [(PhysicalState(**data["physical"]),
-                   BaseCombatState(**data["combat"]))
+        states = [(State("physical", **data["physical"]),
+                   State("physical", **data["combat"]))
                    for (npc, data) in npc_data.items()]
         return [Character(pstate=state[0], base_state=state[1]) for state in states]
 

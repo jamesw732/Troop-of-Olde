@@ -4,7 +4,7 @@ from ursina.networking import rpc
 
 from . import network
 from .world_requests import *
-from ..states.physicalstate import PhysicalState
+from ..states.state import State
 
 
 def update():
@@ -18,6 +18,6 @@ def update():
 
     if network.update_timer >= network.update_rate:
         network.update_timer -= network.update_rate
-        new_state = PhysicalState(my_char)
+        new_state = State("physical", my_char)
         for conn in network.peer.get_connections():
             network.peer.request_update_pstate(conn, network.my_uuid, new_state)

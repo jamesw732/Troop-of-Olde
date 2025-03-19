@@ -4,33 +4,31 @@ Only to be initialized by a client, and only for the player character.
 from ursina import *
 import json
 
-from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
+from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
 from .networking import network
 from .networking.world_responses import remote_death
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
 from .power import Power
-from .states.cbstate_complete import apply_complete_cb_state
 from .states.container import IdContainer
-from .states.physicalstate import PhysicalState, apply_physical_state
-from .states.skills import SkillState
+from .states.state import *
 from .ui.main import ui
 
 class PlayerCharacter(Entity):
     def __init__(self, cname="Player", uuid=None, 
-                 pstate=None, complete_cb_state=None, 
+                 pstate=None, cb_state=None, 
                  equipment={}, inventory={}, skills={}, lexicon={}):
         """Initializes the player character. Should only be called once per client.
 
         cname: name of character, str
         uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
         type: "player" or "npc"
-        pstate: PhysicalState; defines client-authoritative attrs
-        complete_cb_state: CompleteCombatState; Skip any ground-up computation and just overwrite the combat attrs
+        pstate: State; defines client-authoritative attrs
+        cb_state: State; Skip any ground-up computation and just overwrite the combat attrs
         equipment: dict of Items keyed by slot, or IdContainer of item id's keyed by slot
         inventory: dict of Items keyed by index within inventory, 0-23, or IdContainer of item id's keyed by slot
-        skills: SkillState dict mapping str skill names to int skill levels
+        skills: State dict mapping str skill names to int skill levels
         lexicon: IdContainer mapping slot to power id
         """
         assert not network.peer.is_hosting()
@@ -46,7 +44,7 @@ class PlayerCharacter(Entity):
         self._init_phys_attrs()
         # Apply phys state, overwriting some of the initialized attrs
         if pstate:
-            apply_physical_state(self, pstate)
+            apply_state(self, pstate)
         # Make namelabel
         self.namelabel = NameLabel(self)
 
@@ -77,10 +75,10 @@ class PlayerCharacter(Entity):
                 self.page2[i] = Power(power_id, self)
 
         # Host created my character
-        if complete_cb_state:
-            apply_complete_cb_state(self, complete_cb_state)
+        if cb_state:
+            apply_state(self, cb_state)
 
-        self.skills = skills
+        self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 
     def update(self):
         """Character updates which happen every frame"""

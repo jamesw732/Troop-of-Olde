@@ -3,17 +3,15 @@ Only to be initialized by the client."""
 from ursina import *
 import json
 
-from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
+from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
 from .networking import network
 from .networking.world_responses import remote_death
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
 from .power import Power
-from .states.cbstate_mini import apply_mini_state
 from .states.container import IdContainer
-from .states.physicalstate import PhysicalState, apply_physical_state
-from .states.skills import SkillState
+from .states.state import *
 from .ui.main import ui
 
 class NPC(Entity):
@@ -26,8 +24,8 @@ class NPC(Entity):
         cname: name of character, str
         uuid: unique id, only relevant if on network. Used to encode which player you're talking about online.
         type: "player" or "npc"
-        pstate: PhysicalState; defines client-authoritative attrs
-        cb_state: MiniCombatState; Only initializes the most minimal attrs that the player needs to see
+        pstate: State; defines client-authoritative attrs
+        cb_state: State; Only initializes the most minimal attrs that the player needs to see
         from NPC's.
         equipment: dict of Items keyed by slot, or IdContainer of item id's keyed by slot
         inventory: dict of Items keyed by index within inventory, 0-23, or IdContainer of item id's keyed by slot
@@ -72,9 +70,9 @@ class NPC(Entity):
 
         # Host created a character that isn't mine
         if cb_state:
-            apply_mini_state(self, cb_state)
+            apply_state(self, cb_state)
 
-        self.skills = skills
+        self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 
     def update(self):
         """Character updates which happen every frame"""
@@ -112,7 +110,7 @@ class NPC(Entity):
     def _init_lerp_attrs(self):
         """Initialize lerp logic"""
         self.prev_state = None
-        self.new_state = PhysicalState(self)
+        self.new_state = State("physical", self)
         self.prev_lerp_recv = 0
         self.lerping = False
         self.lerp_rate = 0

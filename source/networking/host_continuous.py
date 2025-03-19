@@ -5,8 +5,7 @@ from ursina.networking import rpc
 from . import network
 from .world_responses import *
 from ..gamestate import gs
-from ..states.cbstate_complete import CompleteCombatState
-from ..states.cbstate_mini import MiniCombatState
+from ..states.state import State
 
 
 def update():
@@ -20,13 +19,13 @@ def update():
         network.update_timer -= network.update_rate
         connections = network.peer.get_connections()
         for char in gs.chars:
-            mini_state = MiniCombatState(char)
+            mini_state = State("npc_combat", char)
             for connection in connections:
                 if connection not in network.connection_to_char:
                     continue
                 if network.connection_to_char[connection] is char:
                     network.peer.update_pc_cbstate(connection, char.uuid,
-                                                   CompleteCombatState(char))
+                                                   State("pc_combat", char))
                 else:
                     network.peer.update_npc_cbstate(connection, char.uuid,
                                                     mini_state)

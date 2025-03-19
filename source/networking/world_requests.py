@@ -9,7 +9,7 @@ from ursina.networking import rpc
 from . import network
 from .world_responses import *
 from ..item import *
-from ..states.physicalstate import PhysicalState, apply_physical_state
+from ..states.state import State, apply_physical_state
 
 # COMBAT
 @rpc(network.peer)
@@ -67,7 +67,7 @@ def request_auto_unequip(connection, time_received, itemid: int, old_slot: str):
 # State Updates
 @rpc(network.peer)
 def request_update_pstate(connection, time_received, uuid: int,
-                       phys_state: PhysicalState):
+                       phys_state: State):
     """Client-authoritatively apply physical state updates.
     Don't apply new state directly, instead add it as the new LERP state.
     Host will broadcast the new state to all other peers.

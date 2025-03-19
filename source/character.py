@@ -2,7 +2,7 @@
 Clients will never initialize a Character object, only the server will."""
 from ursina import *
 
-from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory
+from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
 from .combat import progress_mh_combat_timer, progress_oh_combat_timer, attempt_melee_hit, get_wpn_range
 from .networking import network
 from .networking.world_responses import remote_death
@@ -10,10 +10,8 @@ from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
 from .power import Power
-from .states.cbstate_base import BaseCombatState, apply_base_state
 from .states.container import IdContainer
-from .states.physicalstate import PhysicalState, apply_physical_state
-from .states.skills import SkillState
+from .states.state import *
 from .ui.main import ui
 
 class Character(Entity):
@@ -26,11 +24,11 @@ class Character(Entity):
 
         cname: name of character, str
         uuid: unique id. Used to encode which player you're talking about online.
-        pstate: PhysicalState; defines physical attrs, these are updated client-authoritatively
-        base_state: BaseCombatState; used to build the character's stats from the ground up
+        pstate: State; defines physical attrs, these are updated client-authoritatively
+        base_state: State; used to build the character's stats from the ground up
         equipment: dict of Items keyed by slot, or IdContainer of item id's keyed by slot
         inventory: dict of Items keyed by index within inventory, 0-23, or IdContainer of item id's keyed by slot
-        skills: SkillState dict mapping str skill names to int skill levels
+        skills: State dict mapping str skill names to int skill levels
         lexicon: IdContainer mapping slot to power id
         """
         assert network.peer.is_hosting()
@@ -73,7 +71,7 @@ class Character(Entity):
 
         # Full creation of character from the ground up
         if base_state:
-            apply_base_state(self, base_state)
+            apply_state(self, base_state)
         if equipment:
             if isinstance(equipment, IdContainer):
                 equipment = {slot: Item(itemid) for slot, itemid in equipment.items()}
@@ -81,11 +79,10 @@ class Character(Entity):
         # ... apply effects
         self.update_max_ratings()
         for attr in ["health", "energy", "armor"]:
-            # if not hasattr(base_state, attr):
             maxval = getattr(self, "max" + attr)
             setattr(self, attr, maxval)
 
-        self.skills = skills
+        self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 
     def update(self):
         """Character updates which happen every frame"""
@@ -151,7 +148,7 @@ class Character(Entity):
     def _update_jump_attrs(self):
         """Adjust secondary physical attributes to state changes.
         These attrs are not adjusted directly by state changes,
-        but still deserve to be updated by them."""
+        but still deserve to be updated when state changes occur."""
         self.height = self.scale_y
         self.max_jump_height = self.height * 1.5
         self.max_jump_time = 0.3
@@ -160,9 +157,7 @@ class Character(Entity):
             self.rem_jump_time = self.max_jump_time
 
     def update_max_ratings(self):
-        """Adjust secondary combat attributes to state changes.
-        These attrs are not adjusted directly by state changes,
-        but still deserve to be updated by them."""
+        """Adjust max ratings, for example after receiving a staet update."""
         self.maxhealth = self.statichealth
         self.maxenergy = self.staticenergy
         self.health = min(self.maxhealth, self.health)
