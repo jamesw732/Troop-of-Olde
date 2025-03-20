@@ -5,3 +5,4 @@ resources.txt
 ideas/*
 Doc/*
 !Doc/developer.tex
+*pycache*
