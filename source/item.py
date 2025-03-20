@@ -1,11 +1,9 @@
 from ursina import *
-from ursina.networking import rpc
 import json
 import copy
 
 from . import default_equipment, default_inventory
 from .gamestate import gs
-from .networking import network
 # This import might be a problem eventually
 from .states.container import IdContainer, container_to_ids, ids_to_container
 from .states.state import State, apply_state_diff, remove_state_diff
@@ -100,10 +98,14 @@ class Item(dict):
             self["stats"] = State("pc_combat", **self.get("stats", {}))
         if "functions" not in self:
             self['functions'] = copy.copy(self.type_to_options.get(self["type"], []))
-        if network.peer.is_hosting():
-            self.iiid = network.iiid_counter
-            network.iiid_to_item[network.iiid_counter] = self
-            network.iiid_counter += 1
+        if gs.network.peer.is_hosting():
+            # Set the instantiated ID.
+            # Currently, instantiated item id's are only transmitted to
+            # the client upon connection, they will eventually need to be transmitted upon creation.
+            # This should probably be outside of this __init__, though.
+            self.iiid = gs.network.iiid_counter
+            gs.network.iiid_to_item[gs.network.iiid_counter] = self
+            gs.network.iiid_counter += 1
 
 # Public functions
 def internal_swap(char, container1, slot1, container2, slot2):

@@ -5,14 +5,12 @@ from ursina import *
 import json
 
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
-from .networking import network
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
 from .power import Power
 from .states.container import IdContainer
 from .states.state import *
-from .ui import ui
 
 class PlayerCharacter(Entity):
     def __init__(self, cname="Player", uuid=None, 
@@ -30,7 +28,7 @@ class PlayerCharacter(Entity):
         skills: State dict mapping str skill names to int skill levels
         lexicon: IdContainer mapping slot to power id
         """
-        assert not network.peer.is_hosting()
+        assert not gs.network.peer.is_hosting()
         # Character-specific attrs
         self.cname = cname
         self.uuid = uuid
@@ -158,9 +156,11 @@ class PlayerCharacter(Entity):
         return True
 
     def on_destroy(self):
-        """Upon being destroyed, remove all references to objects attached to this character"""
+        """Upon being destroyed, remove all references to objects attached to this character. This
+        is likely not perfect, and I imagine that characters will continue to live after being
+        destroyed."""
         if self.uuid is not None:
-            del network.uuid_to_char[self.uuid]
+            del gs.network.uuid_to_char[self.uuid]
         try:
             gs.chars.remove(self)
         except:
@@ -174,9 +174,7 @@ class PlayerCharacter(Entity):
         del self.ignore_traverse
 
     def die(self):
-        """Essentially just destroy self and make sure the rest of the network knows if host."""
         msg = f"{self.cname} perishes."
-        ui.gamewindow.add_message(msg)
         self.alive = False
         destroy(self)
 

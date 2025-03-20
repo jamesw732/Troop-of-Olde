@@ -2,8 +2,6 @@ from ursina import *
 import os
 import json
 
-from .networking import network, remote_print
-
 
 effects_path = os.path.join(os.path.dirname(__file__), "..", "data", "effects.json")
 with open(effects_path) as effects_json:

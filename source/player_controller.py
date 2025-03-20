@@ -1,24 +1,19 @@
-"""Entirely private class (after instantiating) that handles player inputs."""
+"""Singleton class that handles player inputs. This and networking.world_responses are the only
+things that directly affect client-side characters."""
 
 from ursina import *
 import numpy
 import json
 
-from .networking import network
-from .networking.world_requests import *
-from .ui import ui
-from .ui.items_window import ItemIcon
-
+from .gamestate import gs
 
 class PlayerController(Entity):
     """Client-side player input handler."""
-    def __init__(self, character, peer=None, camdistance=20):
+    def __init__(self, character, camdistance=20):
         """Initialize player controller."""
         super().__init__()
         self.character = character
         self.character.type = "player"
-
-        self.peer = peer
 
         self.camdistance = camdistance
 
@@ -66,28 +61,24 @@ class PlayerController(Entity):
                 return
             if not tgt.has_ancestor(camera.ui):
                 self.camdistance = max(self.camdistance - 1, 0)
-            if tgt.has_ancestor(ui.gamewindow.parent):
-                ui.gamewindow.scrollbar.scroll_up()
+            if tgt.has_ancestor(gs.ui.gamewindow.parent):
+                gs.ui.gamewindow.scrollbar.scroll_up()
         elif key == "scroll down":
             if tgt is None:
                 return
             if not tgt.has_ancestor(camera.ui):
                 self.camdistance = min(self.camdistance + 1, 75)
-            if tgt.has_ancestor(ui.gamewindow.parent):
-                ui.gamewindow.scrollbar.scroll_down()
+            if tgt.has_ancestor(gs.ui.gamewindow.parent):
+                gs.ui.gamewindow.scrollbar.scroll_down()
         elif key == "right mouse down":
             # mouse.visible = False
             self.prev_mouse_position = mouse.position
         # if key == "right mouse up":
             # mouse.visible = True
-        elif key == "left mouse down":
-            if isinstance(tgt, ItemIcon):
-                tgt.clicked = True
-                tgt.step = tgt.get_position(camera.ui) - mouse.position
         elif key == "toggle_combat":
-            network.peer.request_toggle_combat(network.server_connection)
-        elif key in ui.playerwindow.input_to_interface:
-            ui.playerwindow.open_window(key)
+            gs.network.peer.request_toggle_combat(gs.network.server_connection)
+        elif key in gs.ui.playerwindow.input_to_interface:
+            gs.ui.playerwindow.open_window(key)
 
     def handle_keyboard_movement(self, movement_inputs):
         """Sets keyboard component of character velocity.
@@ -161,7 +152,7 @@ class PlayerController(Entity):
 
         target: Character"""
         self.character.target = target
-        network.peer.request_set_target(network.server_connection, target.uuid)
+        gs.network.peer.request_set_target(gs.network.server_connection, target.uuid)
 
     def bind_keys(self):
         """Load and read data/key_mappings.json and bind them in ursina.input_handler"""

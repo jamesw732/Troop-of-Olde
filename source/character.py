@@ -3,12 +3,12 @@ Clients will never initialize a Character object, only the server will."""
 from ursina import *
 
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
-from .combat import progress_mh_combat_timer, progress_oh_combat_timer, attempt_melee_hit, get_wpn_range
-from .networking import network, remote_death
+from .combat import *
 from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
 from .power import Power
+from .skills import *
 from .states.container import IdContainer
 from .states.state import *
 
@@ -29,7 +29,7 @@ class Character(Entity):
         skills: State dict mapping str skill names to int skill levels
         lexicon: IdContainer mapping slot to power id
         """
-        assert network.peer.is_hosting()
+        assert gs.network.peer.is_hosting()
         # Character-specific attrs
         self.controller = None
         self.cname = cname
@@ -93,10 +93,13 @@ class Character(Entity):
             self.combat_timer = 0
         if self.target and self.target.alive and self.in_combat:
             if progress_mh_combat_timer(self) and self.get_target_hittable(self.equipment["mh"]):
-                msg = attempt_melee_hit(self, self.target, "mh")
-                conn = network.uuid_to_connection.get(self.uuid, None)
+                hit, msg = attempt_melee_hit(self, self.target, "mh")
+                mh_skill = get_wpn_style(self.equipment["mh"])
+                if hit and check_raise_skill(self, mh_skill):
+                    raise_skill(self, mh_skill)
+                conn = gs.network.uuid_to_connection.get(self.uuid, None)
                 if conn is not None:
-                    network.peer.remote_print(conn, msg)
+                    gs.network.peer.remote_print(conn, msg)
             # See if we should progress offhand timer too
             # (if has skill dw):
             mh_is_1h = self.equipment["mh"] is None \
@@ -106,10 +109,13 @@ class Character(Entity):
             dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
             if dual_wielding and progress_oh_combat_timer(self)\
             and self.get_target_hittable(self.equipment["oh"]):
-                msg = attempt_melee_hit(self, self.target, "oh")
-                conn = network.uuid_to_connection.get(self.uuid, None)
+                hit, msg = attempt_melee_hit(self, self.target, "oh")
+                oh_skill = get_wpn_style(self.equipment["oh"])
+                if hit and check_raise_skill(self, oh_skill):
+                    raise_skill(self, oh_skill)
+                conn = gs.network.uuid_to_connection.get(self.uuid, None)
                 if conn is not None:
-                    network.peer.remote_print(conn, msg)
+                    gs.network.peer.remote_print(conn, msg)
         else:
             self.mh_combat_timer = 0
             self.oh_combat_timer = 0
@@ -118,8 +124,6 @@ class Character(Entity):
         if self.health <= 0:
             # Wait for server to tell character to die
             self.die()
-                # for conn in network.peer.get_connections():
-                #     network.peer.remote_death(conn, self.uuid)
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -188,8 +192,8 @@ class Character(Entity):
     def get_target_hittable(self, wpn):
         """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
         if not self.get_tgt_los(self.target):
-            conn = network.uuid_to_connection[self.uuid]
-            network.peer.remote_print(conn, f"You can't see {self.target.cname}.")
+            conn = gs.network.uuid_to_connection[self.uuid]
+            gs.network.peer.remote_print(conn, f"You can't see {self.target.cname}.")
             return False
         atk_range = get_wpn_range(wpn)
         # use center rather than center of feet
@@ -215,14 +219,16 @@ class Character(Entity):
         if in_range:
             return True
         else:
-            conn = network.uuid_to_connection[self.uuid]
-            network.peer.remote_print(conn, f"{self.target.cname} is out of range!")
+            conn = gs.network.uuid_to_connection[self.uuid]
+            gs.network.peer.remote_print(conn, f"{self.target.cname} is out of range!")
             return False
 
     def on_destroy(self):
-        """Upon being destroyed, remove all references to objects attached to this character"""
+        """Upon being destroyed, remove all references to objects attached to this character. This
+        is likely not perfect, and I imagine that characters will continue to live after being 
+        destroyed."""
         if self.uuid is not None:
-            del network.uuid_to_char[self.uuid]
+            del gs.network.uuid_to_char[self.uuid]
         try:
             gs.chars.remove(self)
         except:
@@ -235,7 +241,7 @@ class Character(Entity):
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
-        network.broadcast(network.peer.remote_death, self.uuid)
+        gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
         self.alive = False
         destroy(self)
 

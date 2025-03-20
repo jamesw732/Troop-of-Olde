@@ -4,8 +4,6 @@ import copy
 from .base import *
 from ..gamestate import gs
 from ..item import *
-from ..networking import network
-from ..networking.world_requests import *
 
 """Explanation of terminology used in this file:
 Item, named items, represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
@@ -275,18 +273,18 @@ class ItemIcon(Entity):
                 self.position = Vec3(0, 0, -1)
                 return False
 
-        conn = network.server_connection
-        network.peer.request_swap_items(conn, my_container, str(my_slot), other_container, str(other_slot))
+        conn = gs.network.server_connection
+        gs.network.peer.request_swap_items(conn, my_container, str(my_slot), other_container, str(other_slot))
 
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
-        conn = network.server_connection
-        network.peer.request_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
+        conn = gs.network.server_connection
+        gs.network.peer.request_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
-        conn = network.server_connection
-        network.peer.request_auto_unequip(conn, self.item.iiid, self.parent.slot)
+        conn = gs.network.server_connection
+        gs.network.peer.request_auto_unequip(conn, self.item.iiid, self.parent.slot)
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""
@@ -295,3 +293,7 @@ class ItemIcon(Entity):
         if slot is not None:
             return [slot]
         return iteminfo.get("slots", [])
+
+    def on_click(self):
+        self.clicked = True
+        self.step = self.get_position(camera.ui) - mouse.position

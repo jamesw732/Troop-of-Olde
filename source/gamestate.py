@@ -7,6 +7,7 @@ class GameState:
         self.playercontroller = None
         self.world = None
         self.chars = [] # Characters
+        self.network = None
 
     def clear(self):
         """Called upon disconnect"""

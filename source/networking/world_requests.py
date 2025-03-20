@@ -32,7 +32,9 @@ def request_use_power(connection, time_received, uuid: int, page: str, slot: str
     char = network.uuid_to_char[uuid]
     power = getattr(char, page).get(slot, None)
     if power is not None:
-        power.apply_effect()
+        msg = power.apply_effect()
+        if msg:
+            network.broadcast(network.peer.remote_print, msg)
 
 # ITEMS
 @rpc(network.peer)

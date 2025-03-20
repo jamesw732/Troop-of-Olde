@@ -1,10 +1,7 @@
 from ursina import *
-from ursina.networking import rpc
 import random
 
 from . import sigmoid, sqdist, fists_base_dmg
-from .networking import network, remote_print
-from .skills import attempt_raise_skill
 
 
 # PUBLIC
@@ -37,6 +34,7 @@ def attempt_melee_hit(src, tgt, slot):
     if random.random() < sigmoid((src.dex - tgt.ref) / 10):
         # It's a miss
         hitstring = get_melee_hit_string(src, tgt, miss=True)
+        hit = False
     else:
         # If hit goes through, do some more fancy calculations to get damage
         wep = src.equipment[slot]
@@ -51,8 +49,8 @@ def attempt_melee_hit(src, tgt, slot):
         dmg = random.randint(min_hit, max_hit)
         hitstring = get_melee_hit_string(src, tgt, style=style, dmg=dmg)
         tgt.reduce_health(dmg)
-        attempt_raise_skill(src, style, prob=0.5)
-    return hitstring
+        hit = True
+    return hit, hitstring
 
 
 # PRIVATE

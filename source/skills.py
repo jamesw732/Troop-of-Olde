@@ -1,24 +1,17 @@
 import random
 
-from ursina.networking import rpc
-
-from .ui import ui
-from .networking import network
 from .gamestate import gs
 
-def attempt_raise_skill(char, skill, prob):
-    if random.random() < prob:
-        raise_skill(char, skill)
+
+def check_raise_skill(char, skill):
+    """Perform a random check to raise a skill level.
+    Will become much more complicated eventually as probability will depend on character, enemy, etc."""
+    prob = 0.5
+    return random.random() < prob
 
 def raise_skill(char, skill):
+    assert gs.network.peer.is_hosting()
     char.skills[skill] += 1
-    if gs.pc is char:
-        ui.playerwindow.skills.set_label_text(skill)
-    elif network.peer.is_hosting():
-        connection = network.uuid_to_connection[char.uuid]
-        network.peer.remote_raise_skill(connection, skill)
+    connection = gs.network.uuid_to_connection[char.uuid]
+    gs.network.peer.remote_update_skill(connection, skill, char.skills[skill])
 
-@rpc(network.peer)
-def remote_raise_skill(connection, time_received, skill: str):
-    raise_skill(gs.pc, skill)
-    ui.playerwindow.skills.set_label_text(skill)

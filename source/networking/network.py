@@ -1,9 +1,9 @@
-"""Defines and declares the network state. Also some universally helpful
-networking methods. Any file that uses networking will import this."""
 from ursina.networking import RPCPeer, rpc
 
+from ..gamestate import gs
+
 class Network:
-    """Represent's client's view of the network state"""
+    """Represents a peer's interface into the network state"""
     def __init__(self):
         self.peer = RPCPeer()
 
@@ -34,3 +34,4 @@ class Network:
 
 # RPC needs to know about network at compile time, so this global seems necessary
 network = Network()
+gs.network = network

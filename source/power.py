@@ -3,7 +3,6 @@ import os
 import json
 
 from .effect import Effect
-from .networking import network, rpc
 
 power_path = os.path.join(os.path.dirname(__file__), "..", "data", "powers.json")
 with open(power_path) as power_json:
@@ -27,10 +26,8 @@ class Power(Entity):
 
     def apply_effect(self):
         if self.target == "single":
-            if not self.char.target:
-                return
+            if not self.char.target or not self.char.target.alive:
+                return ""
             effect = Effect(self.effect_id)
-            msg = effect.apply_to_char(self.char.target)
-            if msg:
-                network.broadcast(network.peer.remote_print, msg)
+            return effect.apply_to_char(self.char.target)
 

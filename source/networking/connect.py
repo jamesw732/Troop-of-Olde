@@ -13,7 +13,7 @@ from ..npc_controller import NPC_Controller
 from ..gamestate import gs
 from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
-from ..ui.main import make_all_ui
+from ..ui import *
 from ..states import *
 
 def input(key):
@@ -59,7 +59,7 @@ def request_enter_world(connection, time_received, new_pstate: State,
         network.uuid_to_connection[new_pc.uuid] = connection
         gs.chars.append(new_pc)
         network.connection_to_char[connection] = new_pc
-        network.peer.generate_world(connection, "demo.json")
+        network.peer.remote_generate_world(connection, "demo.json")
         # The new pc will be an npc for everybody else
         new_npc_cbstate = State("npc_combat", new_pc)
         for conn in network.peer.get_connections():
@@ -84,7 +84,7 @@ def request_enter_world(connection, time_received, new_pstate: State,
         network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
 
 @rpc(network.peer)
-def generate_world(connection, time_received, zone:str):
+def remote_generate_world(connection, time_received, zone:str):
     """Remotely generate the world"""
     gs.world = GenerateWorld(zone)
 
@@ -94,7 +94,7 @@ def bind_pc(connection, time_received, uuid: int):
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        gs.playercontroller = PlayerController(gs.pc, network.peer)
+        gs.playercontroller = PlayerController(gs.pc)
         gs.pc.controller = gs.playercontroller
 
         gs.chars.append(gs.pc)
@@ -129,4 +129,5 @@ def spawn_npc(connection, time_received, uuid: int,
 @rpc(network.peer)
 def make_ui(connection, time_received):
     """Remotely tell a client to make the game UI"""
-    make_all_ui()
+    gs.ui = UI()
+    make_all_ui(gs.ui)

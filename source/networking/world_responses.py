@@ -6,7 +6,6 @@ from ursina.networking import rpc
 
 from .network import network
 from ..item import *
-from ..ui.base import ui
 from ..gamestate import gs
 from ..states.state import State, apply_physical_state, apply_state
 
@@ -16,13 +15,15 @@ def toggle_combat(connection, time_received, toggle: bool):
     my_char = network.uuid_to_char.get(network.my_uuid)
     my_char.in_combat = toggle
     msg = "Now entering combat" if toggle else "Now leaving combat"
-    ui.gamewindow.add_message(msg)
+    gs.ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
     """Tell clients that a character died. Only to be called by host."""
     char = network.uuid_to_char.get(char_uuid)
     if char:
+        msg = f"{char.cname} perishes"
+        gs.ui.gamewindow.add_message(msg)
         char.die()
 
 @rpc(network.peer)
@@ -31,7 +32,7 @@ def remote_set_target(connection, time_received, uuid: int):
     tgt = network.uuid_to_char[uuid]
     gs.pc.target = tgt
     msg = f"Now targeting: {tgt.cname}"
-    ui.gamewindow.add_message(msg)
+    gs.ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, uuid: int, cbstate: State):
@@ -46,6 +47,13 @@ def update_npc_cbstate(connection, time_received, uuid: int, cbstate: State):
     char = network.uuid_to_char.get(uuid)
     if char:
         apply_state(char, cbstate)
+
+# Skills
+@rpc(network.peer)
+def remote_update_skill(connection, time_received, skill: str, val: int):
+    char = gs.pc
+    char.skills[skill] = val
+    gs.ui.playerwindow.skills.set_label_text(skill)
 
 # Items
 @rpc(network.peer)
@@ -64,7 +72,7 @@ def remote_update_container(connection, time_received, container_name: str, cont
         container[slot] = item
         auto_set_primary_option(item, container_name)
 
-    ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
+    gs.ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
     # Should probably also force update player stats now
 
 # Physical
@@ -81,4 +89,4 @@ def update_lerp_pstate(connection, time_received, uuid: int,
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
     """Remotely print a message for another player"""
-    ui.gamewindow.add_message(msg)
+    gs.ui.gamewindow.add_message(msg)
