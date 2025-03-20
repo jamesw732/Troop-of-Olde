@@ -3,7 +3,6 @@ import os
 import json
 
 from .networking import network, remote_print
-from .ui import ui
 
 
 effects_path = os.path.join(os.path.dirname(__file__), "..", "data", "effects.json")

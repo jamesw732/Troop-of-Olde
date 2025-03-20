@@ -6,7 +6,7 @@ from ursina.networking import rpc
 
 from .network import network
 from ..item import *
-from ..ui import ui
+from ..ui.base import ui
 from ..gamestate import gs
 from ..states.state import State, apply_physical_state, apply_state
 

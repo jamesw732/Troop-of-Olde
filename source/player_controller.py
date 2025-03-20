@@ -6,10 +6,8 @@ import json
 
 from .networking import network
 from .networking.world_requests import *
-from .ui.main import ui
+from .ui import ui
 from .ui.items_window import ItemIcon
-from .ui.header import Header
-from .ui.game_window import ScrollBar
 
 
 class PlayerController(Entity):

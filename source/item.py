@@ -6,7 +6,6 @@ import copy
 from . import default_equipment, default_inventory
 from .gamestate import gs
 from .networking import network
-from .ui import ui
 # This import might be a problem eventually
 from .states.container import IdContainer, container_to_ids, ids_to_container
 from .states.state import State, apply_state_diff, remove_state_diff

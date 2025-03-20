@@ -5,7 +5,6 @@ import random
 from . import sigmoid, sqdist, fists_base_dmg
 from .networking import network, remote_print
 from .skills import attempt_raise_skill
-from .ui.main import ui
 
 
 # PUBLIC

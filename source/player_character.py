@@ -12,7 +12,7 @@ from .item import Item, equip_many_items
 from .power import Power
 from .states.container import IdContainer
 from .states.state import *
-from .ui.main import ui
+from .ui import ui
 
 class PlayerCharacter(Entity):
     def __init__(self, cname="Player", uuid=None, 

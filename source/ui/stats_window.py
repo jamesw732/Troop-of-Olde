@@ -1,7 +1,7 @@
 from ursina import *
 import itertools
 
-from . import *
+from .base import *
 from .header import *
 from ..gamestate import gs
 

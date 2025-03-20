@@ -1,6 +1,6 @@
 from ursina import *
 
-from . import *
+from .base import *
 from .header import *
 from .items_window import *
 from .lexicon_window import *

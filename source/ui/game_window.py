@@ -1,6 +1,6 @@
 from ursina import *
 
-from . import *
+from .base import *
 from .header import *
 
 class GameWindow(Entity):

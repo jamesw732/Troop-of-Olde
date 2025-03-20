@@ -1,7 +1,7 @@
 from ursina import *
 import copy
 
-from . import *
+from .base import *
 from ..gamestate import gs
 from ..item import *
 from ..networking import network

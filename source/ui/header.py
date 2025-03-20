@@ -1,6 +1,6 @@
 from ursina import *
 
-from . import *
+from .base import *
 
 class Header(Entity):
     """Class for draggable headers. Any interface that uses a Header
