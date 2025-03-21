@@ -62,10 +62,8 @@ class Character(Entity):
                 else:
                     self.inventory[slot] = item
         if lexicon:
-            for i, power_id in lexicon["page1"].items():
-                self.page1[i] = Power(power_id, self)
-            for i, power_id in lexicon["page2"].items():
-                self.page2[i] = Power(power_id, self)
+            for i, power_id in lexicon.items():
+                self.lexicon[i] = Power(power_id, self)
 
         # Full creation of character from the ground up
         if base_state:
@@ -144,8 +142,7 @@ class Character(Entity):
         self.inventory = copy(default_inventory)
 
     def _init_powers(self):
-        self.page1 = {}
-        self.page2 = {}
+        self.lexicon = {}
 
     def _update_jump_attrs(self):
         """Adjust secondary physical attributes to state changes.

@@ -20,8 +20,7 @@ def get_character_states_from_json(pname):
     equipment_raw = d.get("equipment", {})
     inventory_raw = d.get("inventory", {})
     skills_raw = d.get("skills", {})
-    page1_raw = d.get("page1", [])
-    page2_raw = d.get("page2", [])
+    lexicon_raw = d.get("lexicon", {})
 
     pstate = State("physical", **pstate_raw)
     pstate["cname"] = pname
@@ -29,9 +28,7 @@ def get_character_states_from_json(pname):
     equipment = IdContainer(equipment_raw)
     inventory = IdContainer(inventory_raw)
     skills = State("skills", **skills_raw)
-    page1 = IdContainer({str(i): power_id for i, power_id in enumerate(page1_raw)})
-    page2 = IdContainer({str(i): power_id for i, power_id in enumerate(page2_raw)})
+    lexicon = IdContainer({str(i): power_id for i, power_id in enumerate(lexicon_raw)})
 
-    lexicon = {"page1": page1, "page2": page2}
     return pstate, basestate, equipment, inventory, skills, lexicon
 

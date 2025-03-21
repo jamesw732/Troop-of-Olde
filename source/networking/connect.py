@@ -41,18 +41,17 @@ def on_connect(connection, time_connected):
         # Don't make any assumptions about the combat state, just wait for server
         gs.pc = PlayerCharacter(pstate=pstate, equipment=equipment, inventory=inventory, skills=skills,
                                 lexicon=lexicon)
-        network.peer.request_enter_world(connection, pstate, cb_state, equipment, inventory, skills,
-                                         lexicon["page1"], lexicon["page2"])
+        network.peer.request_enter_world(connection, pstate, cb_state, equipment, inventory, skills, lexicon)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, new_pstate: State,
                         base_state: State, equipment: IdContainer,
                         inventory: IdContainer, skills: State,
-                        page1: IdContainer, page2: IdContainer):
+                        lexicon: IdContainer):
     if network.peer.is_hosting():
         new_pc = Character(pstate=new_pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
-                         lexicon={"page1": page1, "page2": page2})
+                         lexicon=lexicon)
         new_pc.uuid = network.uuid_counter
         network.uuid_counter += 1
         network.uuid_to_char[new_pc.uuid] = new_pc

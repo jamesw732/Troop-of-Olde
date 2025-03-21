@@ -6,23 +6,15 @@ Distant - These are abstract ideas about things that will need to be done eventu
 
 
 Right now:
-Ensure that all __init__'s are the *top* level dependency, not the bottom. This is a substantial
-refactoring change. Basically, every module should only *ever* be imported by a module above it.
-
-To accomplish this, each submodule will need to be modular and have minimal dependence on others.
-I think the cleanest way to do this is to just have a "network" or "ui" parameter to classes that don't
-currently have these but need them.
-
-
 Clean up the code to a passable level. Remove all smells, and fix any buggy behavior.
 
+- Make Power not depend on char
 - Improve networking containers. Several changes here:
 1. Consider changing the internal equipment and inventory containers to just be lists.
 It may be valid to keep a slot_to_ind dictionary so that the naming is clear for the equipment,
 but sending dictionaries instead of lists over the network just feels extremely cumbersome. On the other
 hand, it seems cumbersome to store the whole equipment/inventory states in the json.
-Will require encoding an "empty" element both in the json
-and in runtime, probably empty string for 
+Will require encoding an "empty" element both in the json and in runtime, probably empty string.
 2. Unify "page1" and "page2" of the lexicon... this can just be one IdContainer. Eventually need to
 move towards having multiple pages, but this can stay off the table for now.
 

@@ -9,6 +9,7 @@ from ursina.networking import rpc
 from .network import network
 from .world_responses import *
 from ..item import *
+from ..power import Power
 from ..states.state import State, apply_physical_state
 
 # COMBAT
@@ -28,9 +29,9 @@ def request_set_target(connection, time_received, uuid: int):
 
 # POWERS
 @rpc(network.peer)
-def request_use_power(connection, time_received, uuid: int, page: str, slot: str):
-    char = network.uuid_to_char[uuid]
-    power = getattr(char, page).get(slot, None)
+def request_use_power(connection, time_received, power_id: int):
+    char = network.connection_to_char[connection]
+    power = Power(power_id, char)
     if power is not None:
         msg = power.apply_effect()
         if msg:

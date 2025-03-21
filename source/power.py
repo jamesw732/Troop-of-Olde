@@ -12,8 +12,8 @@ with open(power_path) as power_json:
 class Power(Entity):
     def __init__(self, power_id, char):
         super().__init__()
-        power_id = str(power_id)
-        power_data = id_to_power_data[power_id]
+        self.power_id = power_id
+        power_data = id_to_power_data[str(power_id)]
         for k, v in power_data.items():
             setattr(self, k, v)
 

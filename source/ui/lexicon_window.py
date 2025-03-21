@@ -26,9 +26,6 @@ class LexiconWindow(Entity):
         self.page1 = Entity(parent=self, origin=(-.5, .5),
                                         position=(edge_margin, -edge_margin, -1),
                                         scale=page_scale)
-        self.page2 = Entity(parent=self, origin=(-.5, .5),
-                                        position=(3*edge_margin + page_width, -edge_margin, -1),
-                                        scale=page_scale)
         # Compure the scale of the boxes with respect to the frame
         box_w = 1 / (page_grid_size[0] + box_spacing * (page_grid_size[0] - 1))
         box_h = 1 / (page_grid_size[1] + box_spacing * (page_grid_size[1] - 1))
@@ -39,19 +36,12 @@ class LexiconWindow(Entity):
                      for j in range(page_grid_size[1])
                      for i in range(page_grid_size[0])]
 
-        self.page1_boxes = [PowerBox(gs.pc.page1, "page1", i,
+        self.page1_boxes = [PowerBox(gs.pc.lexicon, i,
                                             parent=self.page1,
                                             position=pos * box_scale * (1 + box_spacing),
                                             scale=box_scale, color=slot_color)
                             for i, pos in enumerate(positions)]
-        self.page2_boxes = [PowerBox(gs.pc.page2, "page2", i,
-                                            parent=self.page2,
-                                            position=pos * box_scale * (1 + box_spacing),
-                                            scale=box_scale, color=slot_color)
-                            for i, pos in enumerate(positions)]
         for slot in self.page1_boxes:
-            grid(slot, num_rows=1, num_cols=1, color=color.black)
-        for slot in self.page2_boxes:
             grid(slot, num_rows=1, num_cols=1, color=color.black)
 
     def enable_colliders(self):
@@ -59,22 +49,15 @@ class LexiconWindow(Entity):
         for box in self.page1_boxes:
             if box.icon is not None:
                 box.icon.collision = True
-        for box in self.page2_boxes:
-            if box.icon is not None:
-                box.icon.collision = True
 
     def disable_colliders(self):
         for box in self.page1_boxes:
             if box.icon is not None:
                 box.icon.collision = False
-        for box in self.page2_boxes:
-            if box.icon is not None:
-                box.icon.collision = False
 
 class PowerBox(Entity):
-    def __init__(self, page, page_name, slot, *args, **kwargs):
+    def __init__(self, page, slot, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
-        self.page_name = page_name
         self.page = page
         self.slot = str(slot)
         self.icon = None
@@ -90,5 +73,4 @@ class PowerIcon(Entity):
         self.power = power
 
     def on_click(self):
-        gs.network.peer.request_use_power(gs.network.peer.get_connections()[0], gs.pc.uuid,
-                                          self.parent.page_name, self.parent.slot)
+        gs.network.peer.request_use_power(gs.network.peer.get_connections()[0], self.power.power_id)
