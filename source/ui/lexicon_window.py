@@ -14,16 +14,16 @@ class LexiconWindow(Entity):
         # How far away from the edge to put the subcontainers
         edge_margin = 0.05
 
-        page_width = 0.4
-        page_grid_size = (3, 5)
+        page_width = 0.9
+        page_grid_size = (6, 5)
         box_spacing = 0.1
-        # Compute height of pages WRT window
+        # Compute height of page WRT window
         x = page_width / (page_grid_size[0] + box_spacing * (page_grid_size[0] - 1))
         y = x * window_wh_ratio
         page_height = y * (page_grid_size[1] + box_spacing * (page_grid_size[1] - 1))
         # height of equip frame relative to the width
         page_scale = Vec3(page_width, page_height, 1)
-        self.page1 = Entity(parent=self, origin=(-.5, .5),
+        self.page = Entity(parent=self, origin=(-.5, .5),
                                         position=(edge_margin, -edge_margin, -1),
                                         scale=page_scale)
         # Compure the scale of the boxes with respect to the frame
@@ -36,22 +36,22 @@ class LexiconWindow(Entity):
                      for j in range(page_grid_size[1])
                      for i in range(page_grid_size[0])]
 
-        self.page1_boxes = [PowerBox(gs.pc.lexicon, i,
-                                            parent=self.page1,
+        self.boxes = [PowerBox(gs.pc.lexicon, i,
+                                            parent=self.page,
                                             position=pos * box_scale * (1 + box_spacing),
                                             scale=box_scale, color=slot_color)
                             for i, pos in enumerate(positions)]
-        for slot in self.page1_boxes:
+        for slot in self.boxes:
             grid(slot, num_rows=1, num_cols=1, color=color.black)
 
     def enable_colliders(self):
         # Is it possible to accomplish this without looping?
-        for box in self.page1_boxes:
+        for box in self.boxes:
             if box.icon is not None:
                 box.icon.collision = True
 
     def disable_colliders(self):
-        for box in self.page1_boxes:
+        for box in self.boxes:
             if box.icon is not None:
                 box.icon.collision = False
 
