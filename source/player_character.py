@@ -67,7 +67,7 @@ class PlayerCharacter(Entity):
 
         if lexicon:
             for i, power_id in lexicon.items():
-                self.lexicon[i] = Power(power_id, self)
+                self.lexicon[i] = Power(power_id)
 
         # Host created my character
         if cb_state:

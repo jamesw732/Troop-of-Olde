@@ -19,13 +19,13 @@ class Effect(Entity):
         if self.effect_type == "persistent":
             self.timer = 0
 
-    def apply_to_char(self, char):
+    def apply_to_char(self, src, tgt):
         msg = ""
         if self.effect_type == "instant":
             if "damage" in self.effects:
                 dmg = self.effects["damage"]
-                char.health -= dmg
-                msg = f"{char.cname} is damaged for {dmg} damage!"
+                tgt.health -= dmg
+                msg = f"{tgt.cname} is damaged for {dmg} damage!"
             destroy(self)
         return msg
 

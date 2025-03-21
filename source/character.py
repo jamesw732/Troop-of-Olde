@@ -63,7 +63,7 @@ class Character(Entity):
                     self.inventory[slot] = item
         if lexicon:
             for i, power_id in lexicon.items():
-                self.lexicon[i] = Power(power_id, self)
+                self.lexicon[i] = Power(power_id)
 
         # Full creation of character from the ground up
         if base_state:

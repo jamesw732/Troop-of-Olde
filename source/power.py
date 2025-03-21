@@ -10,24 +10,22 @@ with open(power_path) as power_json:
 
 
 class Power(Entity):
-    def __init__(self, power_id, char):
+    def __init__(self, power_id):
         super().__init__()
         self.power_id = power_id
         power_data = id_to_power_data[str(power_id)]
         for k, v in power_data.items():
             setattr(self, k, v)
 
-        self.char = char
-
         # set to True immediately after use
         self.on_cooldown = False
         # ticks up if self.on_cooldown
         self.timer = 0
 
-    def apply_effect(self):
+    def apply_effect(self, src, tgt):
         if self.target == "single":
-            if not self.char.target or not self.char.target.alive:
+            if not tgt or not tgt.alive:
                 return ""
             effect = Effect(self.effect_id)
-            return effect.apply_to_char(self.char.target)
+            return effect.apply_to_char(src, tgt)
 

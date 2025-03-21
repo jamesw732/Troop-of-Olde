@@ -4,10 +4,8 @@ from ursina import *
 import json
 
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
-from .physics import handle_movement
 from .gamestate import gs
 from .item import Item, equip_many_items
-from .power import Power
 from .states.container import IdContainer
 from .states.state import *
 
