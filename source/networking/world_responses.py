@@ -36,10 +36,12 @@ def remote_set_target(connection, time_received, uuid: int):
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, uuid: int, cbstate: State):
-    """Update combat state for a player character"""
+    """Update combat state for a player character - This could get couples with update_npc_cbstate"""
     char = network.uuid_to_char.get(uuid)
     if char:
         apply_state(char, cbstate)
+        gs.ui.bars.update_display()
+        gs.ui.playerwindow.stats.update_labels()
 
 @rpc(network.peer)
 def update_npc_cbstate(connection, time_received, uuid: int, cbstate: State):

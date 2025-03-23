@@ -35,13 +35,10 @@ class Network:
     def broadcast_cbstate_update(self, char):
         pc_state = State("pc_combat", char)
         npc_state = State("npc_combat", char)
-        connections = network.peer.get_connections()
+        connections = network.connection_to_char
         for connection in connections:
-            if connection not in network.connection_to_char:
-                continue
             if network.connection_to_char[connection] is char:
                 network.peer.update_pc_cbstate(connection, char.uuid, pc_state)
-                # gs.ui.update_bars()
             else:
                 network.peer.update_npc_cbstate(connection, char.uuid, npc_state)
 

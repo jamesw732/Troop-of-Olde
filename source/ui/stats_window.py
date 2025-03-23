@@ -51,14 +51,9 @@ class StatsWindow(Entity):
         self.update_rate = 1.0
         self.update_timer = 0.0
 
-    def update(self):
-        # If this causes performance problems, just add a timer slower than every frame
-        if self.visible:
-            self.update_timer += time.dt
-            if self.update_timer > self.update_rate:
-                self.update_timer -= self.update_rate
-                for attr in self.entries:
-                    self.update_label(attr)
+    def update_labels(self):
+        for attr in self.entries:
+            self.update_label(attr)
 
     def write_ratings(self):
         Text(text="Ratings", parent=self, origin=(0, 0), world_scale=(18, 18),

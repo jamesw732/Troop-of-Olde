@@ -46,12 +46,9 @@ class BarWindow(Entity):
         self.update_rate = 1.0
         self.update_timer = 0.0
 
-    def update(self):
-        self.update_timer += time.dt
-        if self.update_timer > self.update_rate:
-            self.update_timer -= self.update_rate
-            self.update_health()
-            self.update_energy()
+    def update_display(self):
+        self.update_health()
+        self.update_energy()
 
     def update_health(self):
         if self.player.maxhealth == 0:
