@@ -98,6 +98,8 @@ class Character(Entity):
                 conn = gs.network.uuid_to_connection.get(self.uuid, None)
                 if conn is not None:
                     gs.network.peer.remote_print(conn, msg)
+                    # Should add some sort of check to make sure this isn't happening too often
+                    gs.network.broadcast_cbstate_update(self.target)
             # See if we should progress offhand timer too
             # (if has skill dw):
             mh_is_1h = self.equipment["mh"] is None \
@@ -114,6 +116,7 @@ class Character(Entity):
                 conn = gs.network.uuid_to_connection.get(self.uuid, None)
                 if conn is not None:
                     gs.network.peer.remote_print(conn, msg)
+                    gs.network.broadcast_cbstate_update(self.target)
         else:
             self.mh_combat_timer = 0
             self.oh_combat_timer = 0

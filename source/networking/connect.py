@@ -52,6 +52,7 @@ def request_enter_world(connection, time_received, new_pstate: State,
         new_pc = Character(pstate=new_pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
                          lexicon=lexicon)
+        # Could we handle this uuid business in on_connect?
         new_pc.uuid = network.uuid_counter
         network.uuid_counter += 1
         network.uuid_to_char[new_pc.uuid] = new_pc
@@ -68,8 +69,8 @@ def request_enter_world(connection, time_received, new_pstate: State,
                     if ch is new_pc:
                         continue
                     else:
-                        cstate = State("npc_combat", ch)
-                        network.peer.spawn_npc(conn, ch.uuid, pstate, cstate)
+                        cbstate = State("npc_combat", ch)
+                        network.peer.spawn_npc(conn, ch.uuid, pstate, cbstate)
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, new_pc.uuid, new_pstate, new_npc_cbstate)
@@ -81,6 +82,7 @@ def request_enter_world(connection, time_received, new_pstate: State,
         inst_equipment = IdContainer({k: item.iiid for k, item
                           in new_pc.equipment.items() if item is not None})
         network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
+        network.broadcast_cbstate_update(new_pc)
 
 @rpc(network.peer)
 def remote_generate_world(connection, time_received, zone:str):

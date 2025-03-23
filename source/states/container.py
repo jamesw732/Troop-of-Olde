@@ -1,4 +1,4 @@
-from ..networking import network
+from ..gamestate import gs
 from .. import default_equipment
 
 class IdContainer(dict):
@@ -43,4 +43,4 @@ def container_to_ids(container):
 
 def ids_to_container(init_container):
     """Convert an IdContainer (dict mapping slots to iiids) to a dict of Items"""
-    return {slot: network.iiid_to_item.get(itemid, None) for slot, itemid in init_container.items()}
+    return {slot: gs.network.iiid_to_item.get(itemid, None) for slot, itemid in init_container.items()}

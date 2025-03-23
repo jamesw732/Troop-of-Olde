@@ -73,7 +73,6 @@ def remote_update_container(connection, time_received, container_name: str, cont
         auto_set_primary_option(item, container_name)
 
     gs.ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
-    # Should probably also force update player stats now
 
 # Physical
 @rpc(network.peer)

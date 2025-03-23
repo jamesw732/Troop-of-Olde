@@ -48,6 +48,7 @@ def request_swap_items(connection, time_received, container1: str, slot1: str, c
     for name in set([container1, container2]):
         container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
+        network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
 def request_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
@@ -57,6 +58,7 @@ def request_auto_equip(connection, time_received, itemid: int, old_slot: str, ol
     for name in set([old_container, "equipment"]):
         container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
+        network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
 def request_auto_unequip(connection, time_received, itemid: int, old_slot: str):
@@ -66,6 +68,7 @@ def request_auto_unequip(connection, time_received, itemid: int, old_slot: str):
     for name in ["equipment", "inventory"]:
         container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
+        network.broadcast_cbstate_update(char)
 
 # State Updates
 @rpc(network.peer)
@@ -83,3 +86,5 @@ def request_update_pstate(connection, time_received, uuid: int,
         for conn in network.peer.get_connections():
             if conn is not connection:
                 network.peer.update_lerp_pstate(conn, uuid, phys_state)
+
+

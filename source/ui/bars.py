@@ -54,9 +54,15 @@ class BarWindow(Entity):
             self.update_energy()
 
     def update_health(self):
-        ratio = self.player.health / self.player.maxhealth
+        if self.player.maxhealth == 0:
+            ratio = 0
+        else:
+            ratio = self.player.health / self.player.maxhealth
         self.healthbar.scale = (ratio, self.bar_height)
 
     def update_energy(self):
-        ratio = self.player.energy / self.player.energy
+        if self.player.maxenergy == 0:
+            ratio = 0
+        else:
+            ratio = self.player.energy / self.player.maxenergy
         self.energybar.scale = (ratio, self.bar_height)
