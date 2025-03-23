@@ -7,8 +7,7 @@ from .container import IdContainer
 from .state import State
 
 def get_character_states_from_json(pname):
-    """Does all the work needed to get inputs to Character from a player name in players.json
-    Should this be in the states directory?"""
+    """Does all the work needed to get inputs to Character from a player name in players.json.  """
     players_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "players.json")
     with open(players_path) as players:
         d = json.load(players)[pname]

@@ -163,7 +163,7 @@ class Character(Entity):
         self.maxhealth = self.statichealth
         self.maxenergy = self.staticenergy
         self.health = min(self.maxhealth, self.health)
-        self.energy = min(self.energy, self.energy)
+        self.energy = min(self.maxenergy, self.energy)
 
     def start_jump(self):
         """Set self.jumping to be true if not grounded"""
