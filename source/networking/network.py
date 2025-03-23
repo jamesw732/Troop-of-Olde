@@ -38,9 +38,9 @@ class Network:
         connections = network.connection_to_char
         for connection in connections:
             if network.connection_to_char[connection] is char:
-                network.peer.update_pc_cbstate(connection, char.uuid, pc_state)
+                network.peer.update_cbstate(connection, char.uuid, pc_state)
             else:
-                network.peer.update_npc_cbstate(connection, char.uuid, npc_state)
+                network.peer.update_cbstate(connection, char.uuid, npc_state)
 
 
 # RPC needs to know about network at compile time, so this global seems necessary

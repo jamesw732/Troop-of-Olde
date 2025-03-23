@@ -5,7 +5,6 @@ from ursina.networking import rpc
 
 from .network import network
 from .register import *
-from .world_responses import update_pc_cbstate
 from ..character import Character
 from ..npc import NPC
 from ..player_character import PlayerCharacter
