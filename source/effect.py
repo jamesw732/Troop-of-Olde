@@ -2,6 +2,8 @@ from ursina import *
 import os
 import json
 
+from .gamestate import gs
+
 
 effects_path = os.path.join(os.path.dirname(__file__), "..", "data", "effects.json")
 with open(effects_path) as effects_json:
@@ -25,6 +27,7 @@ class Effect(Entity):
             if "damage" in self.effects:
                 dmg = self.effects["damage"]
                 tgt.health -= dmg
+                gs.network.broadcast_cbstate_update(tgt)
                 msg = f"{tgt.cname} is damaged for {dmg} damage!"
             destroy(self)
         return msg
