@@ -6,68 +6,84 @@ Distant - These are abstract ideas about things that will need to be done eventu
 
 
 Right now:
-Clean up the code to a passable level. Remove all smells, and fix any buggy behavior.
+Clean up the code to a passable level. Remove all smells, and fix any buggy behavior. This involves everything
+below:
 
-- Improve networking containers.
-Consider changing the internal equipment and inventory containers to just be lists.
-It may be valid to keep a slot_to_ind dictionary so that the naming is clear for the equipment,
-but sending dictionaries instead of lists over the network just feels extremely cumbersome. On the other
-hand, it seems cumbersome to store the whole equipment/inventory states in the json.
-Will require encoding an "empty" element both in the json and in runtime, probably empty string.
+1. Consider changing the internal equipment and inventory containers to just be lists.
+Pros:
+- Sending dictionaries over the network is cumbersome, lists are easier.
+- A dict mapping ints casted to strs (as in the json) is just really smelly
+Cons:
+- Can't store incomplete states into disk, pretty much need the full list (and some way to encode an
+empty element)
+- Equipment slot naming becomes slightly less clear. Could just add a separate function that passes a key
+(for example an equipment slot) into the dict, and then maps that back to an index. Probably clunky but worth
+thinking about.
 
-- Figure out the kinks in the physics system, such as not being able to jump twice in a row or
-shooting up the wall.
-- Send stat updates before player opens stat window, updating only after the player opens seems bad.
-I actually think this is best solved by sending stat updates upon instantaneous changes, rather than
-continuously, and also enforce UI update upon instantaneous changes, again rather than continuously.
+2. Figure out the kinks in the physics system, such as not being able to jump twice in a row or
+shooting up the wall. Also includes reducing usage of numpy.
 
-- Figure out why energy doesn't get displayed, maybe no baseenergy key in the json?
+3. Fix server update rate, use Sequence rather than update. Something is weird with this, no error but
+client fails to load world. Probably some sort of race condition that's not caught.
 
 
 Next:
+Get the repo up to a passable level for stuff outside the immediate low hanging fruit. 
+
 Rework task documentation/ideas. For now, I think the following files will suffice:
 - A todo list (this one)
 - A tex document which basically documents EVERYTHING - code architecture, formulas used/implementation
     details, philosophy (monetization, development practices, what makes a game fun), game mechanics/features,
-    lore, class content, documentation plan.
+    lore(?), class content, documentation plan.
 This file essentially serves as the implementation definition.
 - Stuff like technical_debt, performance_improvements should get moved to github issues. Basically, anything
 more distant than "Backlog" and more specific than "Distant" belongs in a Github issue.
 
-Test everything.
+Test everything. Just some baseline functionality for every main feature. 
 
+Client side prediction and server authoritative physics.
 
-
-Backlog:
-Work on ironing out the current functionality of the code.
-This includes:
-Refining combat formulas to incorporate skills and anything left behind (some of this may be done):
-- attack range (done)
-- damage (done ish)
-- accuracy (needs skills)
-- probability to upgrade skill
-- dual wield attack rate
-- 2h weapons
-Fix bars window not updating stamina and mana
-Fill out the weapon types, create new weapons
 Make item movement smoother - maybe if mouse velocity is high or has moved sufficiently, start dragging the item
 immediately rather than waiting
 
 
-Clean up the code, including some things from technical_debt:
-- Inconsistencies in the UI code
-- Order of functions in some files could be improved
-- Remove * imports, replace with full module imports
+Backlog:
+This is mostly low-priority stuff that expands upon the baseline implementation that was created before
+having the perfect vision of what the final product will be like. It's best to not do things from here until
+you're very confident in a decision.
+
+Combat/Character:
+Neglected formulas:
+- probability to upgrade skill
+- hit chance/accuracy
+- dual wield attack rate
+
+Incomplete subcontent:
+- Weapon types
+- Effects/powers, not nearly enough types at the moment.
+
+Incomplete stat implementations:
+- Energy
+- Armor
+- All the modifiers
+- Regeneration
+- Hardiness
+
+UI:
+Reconsider all the current windows to better represent what I'll want the UI to look like in the final product.
+Certainly doesn't have to look good yet, but should be functional and not clunky.
+Hover and right click tooltips will be the primary visual guide for the UI.
 
 
-Flesh out Effects, spells, abilities
+
 
 
 
 Distant/Big Picture:
+This is old.
 - Combat system (effects, spells, abilities, npc logic) - Python/Ursina
 - Databasing for mobs, items, etc - json at first, then sqlite/sqlalchemy
-- GUI - Ursina
+- UI - Ursina
 - Character models - Blender (AI?)
 - Character textures - Blender (AI?)
 - World terrain - Perlin noise (+ Panda3D or maybe handwritten)

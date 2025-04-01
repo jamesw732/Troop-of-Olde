@@ -30,7 +30,6 @@ default_cb_attrs = {
     "critdmg": 0,
     "critrate": 0,
 
-
     "mh_combat_timer": 0,
     "oh_combat_timer": 0,
     "attackrange": 3
