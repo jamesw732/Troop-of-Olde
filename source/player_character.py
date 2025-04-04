@@ -41,7 +41,7 @@ class PlayerCharacter(Entity):
         self._init_phys_attrs()
         # Apply phys state, overwriting some of the initialized attrs
         if pstate:
-            apply_state(self, pstate)
+            apply_physical_state(self, pstate)
         # Make namelabel
         self.namelabel = NameLabel(self)
 

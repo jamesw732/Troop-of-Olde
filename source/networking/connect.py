@@ -37,18 +37,15 @@ def on_connect(connection, time_connected):
         gs.pname = "Demo Player"
         pstate, cb_state, equipment, inventory, skills, lexicon = \
             get_character_states_from_json(gs.pname)
-        # Don't make any assumptions about the combat state, just wait for server
-        gs.pc = PlayerCharacter(pstate=pstate, equipment=equipment, inventory=inventory, skills=skills,
-                                lexicon=lexicon)
         network.peer.request_enter_world(connection, pstate, cb_state, equipment, inventory, skills, lexicon)
 
 @rpc(network.peer)
-def request_enter_world(connection, time_received, new_pstate: State,
+def request_enter_world(connection, time_received, pstate: State,
                         base_state: State, equipment: IdContainer,
                         inventory: IdContainer, skills: State,
                         lexicon: IdContainer):
     if network.peer.is_hosting():
-        new_pc = Character(pstate=new_pstate, base_state=base_state,
+        new_pc = Character(pstate=pstate, base_state=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
                          lexicon=lexicon)
         # Could we handle this uuid business in on_connect?
@@ -64,16 +61,17 @@ def request_enter_world(connection, time_received, new_pstate: State,
         for conn in network.peer.get_connections():
             if conn == connection:
                 for ch in gs.chars:
-                    pstate = State("physical", ch)
                     if ch is new_pc:
-                        continue
+                        pc_cbstate = State("pc_combat", new_pc)
+                        network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment,
+                                              inventory, skills, lexicon, pc_cbstate)
                     else:
-                        cbstate = State("npc_combat", ch)
-                        network.peer.spawn_npc(conn, ch.uuid, pstate, cbstate)
+                        npc_pstate = State("physical", ch)
+                        npc_cbstate = State("npc_combat", ch)
+                        network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
             # Existing users just need new character
             else:
-                network.peer.spawn_npc(conn, new_pc.uuid, new_pstate, new_npc_cbstate)
-        network.peer.bind_pc(connection, new_pc.uuid)
+                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_npc_cbstate)
         network.peer.make_ui(connection)
         # Send over instantiated item id's
         inst_inventory = IdContainer({k: item.iiid for k, item
@@ -89,21 +87,22 @@ def remote_generate_world(connection, time_received, zone:str):
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def bind_pc(connection, time_received, uuid: int):
-    """Remotely bind player character to uuid and player controller"""
-    if network.peer.is_hosting():
-        return
-    if uuid not in network.uuid_to_char:
-        gs.playercontroller = PlayerController(gs.pc)
-        gs.pc.controller = gs.playercontroller
+def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: IdContainer,
+             inventory: IdContainer, skills: State, lexicon: IdContainer, cbstate: State):
+    gs.pc = PlayerCharacter(pstate=pstate, equipment=equipment, inventory=inventory, skills=skills,
+                            lexicon=lexicon, cb_state=cbstate)
 
-        gs.chars.append(gs.pc)
-        gs.pc.ignore_traverse = gs.chars
+    gs.playercontroller = PlayerController(gs.pc)
+    gs.pc.controller = gs.playercontroller
 
-        network.uuid_to_char[uuid] = gs.pc
-        gs.pc.uuid = uuid
-        network.my_uuid = uuid
-        network.server_connection = connection
+    gs.chars.append(gs.pc)
+    gs.pc.ignore_traverse = gs.chars
+
+    network.uuid_to_char[uuid] = gs.pc
+    gs.pc.uuid = uuid
+    network.my_uuid = uuid
+    network.server_connection = connection
+
 
 @rpc(network.peer)
 def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: IdContainer):
