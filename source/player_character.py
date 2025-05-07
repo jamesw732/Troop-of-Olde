@@ -7,6 +7,7 @@ import json
 from . import sqdist, default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
 from .physics import handle_movement
 from .gamestate import gs
+from .npc import NPC
 from .item import Item, equip_many_items
 from .power import Power
 from .states.container import IdContainer
@@ -132,6 +133,7 @@ class PlayerCharacter(Entity):
         """Set self.jumping to be true if not grounded"""
         if self.grounded:
             self.jumping = True
+            self.grounded = False
 
     def cancel_jump(self):
         """Reset self.jumping, remaining jump height"""
@@ -145,7 +147,7 @@ class PlayerCharacter(Entity):
         tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
         dir = tgt_pos - src_pos
         line_of_sight = raycast(src_pos, direction=dir, distance=inf,
-                                ignore=[entity for entity in scene.entities if type(entity) is Character])
+                                ignore=[entity for entity in scene.entities if isinstance(entity, PlayerCharacter | NPC)])
         if line_of_sight.hit:
             entity = line_of_sight.entity
             if sqdist(entity.position, self.position) < sdist:
