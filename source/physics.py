@@ -11,9 +11,9 @@ def handle_movement(char):
 
     velocity = sum(list(char.velocity_components.values()))
 
-    handle_grounding(char, velocity)
+    if velocity[1] <= 0:
+        handle_grounding(char, velocity)
 
-    # Save some performance if not moving
     if velocity != Vec3.zero:
         velocity = handle_collision(char, velocity)
         velocity = handle_upward_collision(char, velocity)
@@ -49,23 +49,24 @@ def set_jump_vel(char):
 
 
 def handle_grounding(char, velocity):
-    """Determine whether character is on the ground or not."""
+    """Determine whether character is on the ground or not. Kills y velocity if grounded."""
+    ground = raycast(char.world_position + (0, char.height, 0), direction=char.down,
+                     ignore=char.ignore_traverse, debug=True)
+    if not ground.hit:
+        char.grounded = False
+        return
     # If ground is within next timestep, we're grounded.
-    if velocity[1] < 0:
-        ground = raycast(char.position, direction=(0, -1, 0),
-                         distance=abs(velocity[1] * time.dt),
-                         ignore=char.ignore_traverse)
-    # Otherwise, just check a small step downwards.
+    if ground.distance <= char.height + max(0.01, abs(velocity[1] * time.dt)):
+        # print("Grounding")
+        char.grounded = True
+        char.world_y = ground.world_point[1] + 1e-5
+        velocity[1] = 0
     else:
-        ground = raycast(char.position, direction=(0, -1, 0), distance=0.01, ignore=char.ignore_traverse)
-    char.grounded = ground.hit
-
+        # print("Falling")
+        char.grounded = False
 
 def handle_collision(char, velocity, depth=0):
-    """Handles feet collision logic.
-
-    The timing of this function seems very inconsistent, and sometimes slow.
-    At worst, it takes about 0.001 seconds, which """
+    """Handles feet collision logic."""
     # It's concave, don't try to handle it, just stop
     if depth > 3:
         return Vec3(0, 0, 0)
@@ -75,7 +76,7 @@ def handle_collision(char, velocity, depth=0):
         normal = collision_check.world_normal
         speed = distance(Vec3.zero, velocity)
         # It's a wall
-        if normal[1] == 0:
+        if abs(normal.normalized()[1]) <= 0.2:
             new_velocity = velocity - (numpy.dot(normal, velocity)) * normal
             new_velocity = new_velocity
         # It's a slope
