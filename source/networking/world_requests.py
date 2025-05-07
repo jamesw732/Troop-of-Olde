@@ -10,7 +10,7 @@ from .network import network
 from .world_responses import *
 from ..item import *
 from ..power import Power
-from ..states.state import State, apply_physical_state
+from ..states.state import State
 
 # COMBAT
 @rpc(network.peer)
@@ -81,7 +81,7 @@ def request_update_pstate(connection, time_received, uuid: int,
     char = network.uuid_to_char.get(uuid, None)
     if char is None:
         return
-    apply_physical_state(char, phys_state)
+    phys_state.apply(char)
     if network.peer.is_hosting():
         for conn in network.peer.get_connections():
             if conn is not connection:

@@ -60,21 +60,23 @@ labl_to_attrs = {
 }
 
 class State(dict):
-    def __init__(self, state_type, char=None, **kwargs):
-        """Constructs a State object which can be sent over a network.
+    def __init__(self, state_type, src=None, **kwargs):
+        """States are temporary containers that can be sent over the network.
 
-        If neither char nor kwargs is specified, will essentially create a blank dict.
+        They are essentially dicts with the power to extract data from/apply data to
+        objects such as Characters. Developer is held responsible for knowing what type
+        of state to create, the rest is handled automatically.
+        If neither src nor kwargs is specified, will essentially create a blank dict.
         state_type: one of the keys to labl_to_attrs
-        char: Character to grab all attrs from, optional
+        src: object to grab data from, optional
         **kwargs: alternative to grabbing attrs from character, optional
         """
         self.state_type = state_type
         self.attrs = labl_to_attrs[self.state_type]
         # If a character was passed, take its attributes
-        self.src = self.get_src(char)
-        if self.src is not None:
+        if src is not None:
             for attr in self.attrs:
-                val = self.get_val_from_src(attr)
+                val = self._get_val_from_src(attr, src)
                 # Only include attrs intentionally set
                 if val is None:
                     continue
@@ -84,30 +86,55 @@ class State(dict):
             valid_kwargs = {k: v for k, v in kwargs.items() if k in self.attrs}
             super().__init__(**valid_kwargs)
 
-    def get_src(self, char):
-        """Derive the object containing the state information for the given character."""
-        if char is None:
-            return None
-        if self.state_type == "skills":
-            return char.skills
-        return char
+    def apply(self, dst):
+        """Apply attrs to a destination object by overwriting the attrs
+        
+        dst: Character or container object, this may expand"""
+        for k, v in self.items():
+            self._apply_attr(dst, k, v)
+    
+    def apply_diff(self, dst, remove=False):
+        """Apply attrs to a destination object by adding/subtracting the attrs
+        
+        dst: Character or container object, this may expand"""
+        for attr, val in self.items():
+            original_val = self._get_val_from_src(attr, dst)
+            if remove:
+                self._apply_attr(dst, attr, original_val - val)
+            else:
+                self._apply_attr(dst, attr, original_val + val)
 
-    def get_val_from_src(self, attr):
-        """Derive the value a given attr for our source"""
+    def _get_val_from_src(self, attr, src):
+        """Generic wrapper for getting attr from src
+        
+        Only nontrivial handling we need to do is for Dict objects, and also
+        some state attrs we need to assign names rather than objects
+        (because that's how Ursina works), rather than Entity/Mesh objects.
+        Depends on self.state_type to infer what kind of thing src is."""
         if self.state_type == "skills":
-            val = self.src.get(attr, 1)
+            val = src.get(attr, 1)
         else:
-            if not hasattr(self.src, attr):
+            if not hasattr(src, attr):
                 return None
-            val = getattr(self.src, attr)
+            val = getattr(src, attr)
         if self.state_type == "physical" and attr in ["collider", "color", "model"]:
             val = val.name
         return val
 
-    # def get_valid_kwargs(self, kwargs):
-    #     if self.state_type == "skills":
-    #         return {skill: kwargs.get(skill, 1) for skill in all_skills}
-    #     return {k: v for k, v in kwargs.items() if k in self.attrs}
+    def _apply_attr(self, dst, attr, val):
+        """Generic wrapper for setting attr of dst"""
+        if self.state_type == "skills":
+            dst[attr] = val
+            return
+        elif self.state_type == "physical":
+            # Colors can't be strings, need to be color objects
+            if attr == "color" and isinstance(val, str):
+                val = color.colors[val]
+        setattr(dst, attr, val)
+        if attr == "model":
+            # When updating a model, origin gets reset, so we fix
+            # This should probably be intrinsic to the Character, not done here
+            dst.origin = Vec3(0, -0.5, 0)
 
 
 def serialize_state(writer, state):
@@ -128,40 +155,3 @@ def deserialize_state(reader):
         v = reader.read(attrs[k])
         state[k] = v
     return state
-
-def apply_state(char, state):
-    """Apply attrs to char by overwriting the attrs"""
-    state_src = state.get_src(char)
-    for k, v in state.items():
-        setattr(state_src, k, v)
-
-def apply_state_diff(char, state):
-    """Apply attrs to a character by adding all keys of stats to attributes of char
-    char: Character
-    stats: State"""
-    state_src = state.get_src(char)
-    for attr, val in state.items():
-        original_val = getattr(state_src, attr)
-        setattr(state_src, attr, original_val + val)
-
-def remove_state_diff(char, state):
-    """Apply attrs to a character by subtracting all keys of stats from attributes of char
-    char: Character
-    stats: State"""
-    state_src = state.get_src(char)
-    for attr, val in state.items():
-        original_val = getattr(state_src, attr)
-        setattr(state_src, attr, original_val - val)
-
-def apply_physical_state(char, state):
-    """Apply physical state by overwriting. Usage is the same as apply_state,
-    but handles some special casing. Could this just be part of apply_state?"""
-    for k, v in state.items():
-        if k == "color" and isinstance(v, str):
-            # color is supposed to be a string, so grab the color.color
-            v = color.colors[v]
-        setattr(char, k, v)
-        # Overwriting model causes origin to break, fix it
-        if "model" in state:
-            char.origin = Vec3(0, -0.5, 0)
-

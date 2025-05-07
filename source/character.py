@@ -46,7 +46,7 @@ class Character(Entity):
         self._init_phys_attrs()
         # Apply phys state, overwriting some of the initialized attrs
         if pstate:
-            apply_physical_state(self, pstate)
+            pstate.apply(self)
 
         self._init_equipment()
         self._init_inventory()
@@ -67,7 +67,7 @@ class Character(Entity):
 
         # Full creation of character from the ground up
         if base_state:
-            apply_state(self, base_state)
+            base_state.apply(self)
         if equipment:
             if isinstance(equipment, IdContainer):
                 equipment = {slot: Item(itemid) for slot, itemid in equipment.items()}

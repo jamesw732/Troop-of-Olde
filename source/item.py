@@ -6,7 +6,7 @@ from . import default_equipment, default_inventory
 from .gamestate import gs
 # This import might be a problem eventually
 from .states.container import IdContainer, container_to_ids, ids_to_container
-from .states.state import State, apply_state_diff, remove_state_diff
+from .states.state import State
 
 """
 JSON Structure:
@@ -186,11 +186,11 @@ def handle_stat_updates(char, item, to_container_n, from_container_n):
     if item is None:
         return
     if to_container_n == "equipment":
-        # Skip stat change if staying within equipment
+        # Only apply stat change if not swapping between equipment
         if from_container_n != "equipment":
-            apply_state_diff(char, item["stats"])
+            item["stats"].apply_diff(char)
     elif from_container_n == "equipment":
-        remove_state_diff(char, item["stats"])
+        item["stats"].apply_diff(char, remove=True)
     char.update_max_ratings()
 
 # Lower level private functions

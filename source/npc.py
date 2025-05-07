@@ -38,7 +38,7 @@ class NPC(Entity):
         self._init_phys_attrs()
         # Apply phys state, overwriting some of the initialized attrs
         if pstate:
-            apply_physical_state(self, pstate)
+            pstate.apply(self)
         # Make namelabel
         self.namelabel = NameLabel(self)
         # Finally, prep lerp
@@ -65,7 +65,7 @@ class NPC(Entity):
 
         # Host created a character that isn't mine
         if cb_state:
-            apply_state(self, cb_state)
+            cb_state.apply(self)
 
         self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 
@@ -77,7 +77,7 @@ class NPC(Entity):
             # If timer finished, just apply the new state
             if self.lerp_timer >= self.lerp_rate:
                 self.lerping = False
-                apply_physical_state(self, self.new_state)
+                self.new_state.apply(self)
             # Otherwise, LERP normally
             else:
                 self.position = lerp(self.prev_state.get("position", self.position),
@@ -152,7 +152,7 @@ class NPC(Entity):
             self.prev_lerp_recv = time
             self.lerp_timer = 0
             # Apply old state to ensure synchronization and update non-lerp attrs
-            apply_physical_state(self, self.prev_state)
+            self.prev_state.apply(self)
 
     def on_click(self):
         gs.playercontroller.set_target(self)

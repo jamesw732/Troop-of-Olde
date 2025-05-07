@@ -42,7 +42,7 @@ class PlayerCharacter(Entity):
         self._init_phys_attrs()
         # Apply phys state, overwriting some of the initialized attrs
         if pstate:
-            apply_physical_state(self, pstate)
+            pstate.apply(self)
         # Make namelabel
         self.namelabel = NameLabel(self)
 
@@ -72,7 +72,7 @@ class PlayerCharacter(Entity):
 
         # Host created my character
         if cb_state:
-            apply_state(self, cb_state)
+            cb_state.apply(self)
 
         self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 

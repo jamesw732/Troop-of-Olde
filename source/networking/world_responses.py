@@ -7,7 +7,7 @@ from ursina.networking import rpc
 from .network import network
 from ..item import *
 from ..gamestate import gs
-from ..states.state import State, apply_physical_state, apply_state
+from ..states.state import State
 
 # Combat
 @rpc(network.peer)
@@ -39,7 +39,7 @@ def update_cbstate(connection, time_received, uuid: int, cbstate: State):
     char = network.uuid_to_char.get(uuid)
     if char is None:
         return
-    apply_state(char, cbstate)
+    cbstate.apply(char)
     if uuid is network.my_uuid:
         gs.ui.bars.update_display()
         gs.ui.playerwindow.stats.update_labels()
