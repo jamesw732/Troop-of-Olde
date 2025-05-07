@@ -39,7 +39,7 @@ def attempt_melee_hit(src, tgt, slot):
         # If hit goes through, do some more fancy calculations to get damage
         wep = src.equipment[slot]
         if wep is not None and "info" not in wep:
-            return f"Try hitting {target.cname} with something else."
+            return f"Try hitting {tgt.cname} with something else."
         base_dmg = get_wpn_dmg(wep)
         style = get_wpn_style(wep)
 
