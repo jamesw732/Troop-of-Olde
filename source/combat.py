@@ -5,7 +5,7 @@ from . import sigmoid, sqdist, fists_base_dmg
 
 
 # PUBLIC
-def progress_mh_combat_timer(char):
+def tick_mh(char):
     """Increment combat timer by dt. Returns True if we exceeded the weapon's delay"""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
@@ -16,8 +16,8 @@ def progress_mh_combat_timer(char):
         return True
     return False
 
-def progress_oh_combat_timer(char):
-    """Increment combat timer by dt. Returns True if we exceeded the weapon's delay"""
+def tick_oh(char):
+    """Increment char's offhand combat timer by dt. Returns True if we exceeded the weapon's delay"""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     # * dw_skill / rec_level if slot == oh else 1
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
@@ -28,8 +28,8 @@ def progress_oh_combat_timer(char):
         return True
     return False
 
-def attempt_melee_hit(src, tgt, slot):
-    """Main driver method for melee combat called by progress_mh/oh_melee_timer."""
+def attempt_attack(src, tgt, slot):
+    """Main auto attack function called by character upon timer reset."""
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through
     if random.random() < sigmoid((src.dex - tgt.ref) / 10):
         # It's a miss
@@ -55,7 +55,9 @@ def attempt_melee_hit(src, tgt, slot):
 
 # PRIVATE
 def get_melee_hit_string(src, tgt, style="fists", dmg=0, miss=False):
-    """Produce a string with information about the melee hit."""
+    """Produce a string with information about the melee hit.
+
+    style will eventually be used to determine the hit string"""
     if miss:
         return f"{src.cname} attempts to hit {tgt.cname}, but misses!"
     return f"{src.cname} hits {tgt.cname} for {dmg} damage!"

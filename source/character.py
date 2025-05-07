@@ -90,8 +90,8 @@ class Character(Entity):
             self.target = None
             self.combat_timer = 0
         if self.target and self.target.alive and self.in_combat:
-            if progress_mh_combat_timer(self) and self.get_target_hittable(self.equipment["mh"]):
-                hit, msg = attempt_melee_hit(self, self.target, "mh")
+            if tick_mh(self) and self.get_target_hittable(self.equipment["mh"]):
+                hit, msg = attempt_attack(self, self.target, "mh")
                 mh_skill = get_wpn_style(self.equipment["mh"])
                 if hit and check_raise_skill(self, mh_skill):
                     raise_skill(self, mh_skill)
@@ -107,9 +107,9 @@ class Character(Entity):
             offhand = self.equipment["oh"]
             # basically just check if not wearing a shield
             dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
-            if dual_wielding and progress_oh_combat_timer(self)\
+            if dual_wielding and tick_oh(self)\
             and self.get_target_hittable(self.equipment["oh"]):
-                hit, msg = attempt_melee_hit(self, self.target, "oh")
+                hit, msg = attempt_attack(self, self.target, "oh")
                 oh_skill = get_wpn_style(self.equipment["oh"])
                 if hit and check_raise_skill(self, oh_skill):
                     raise_skill(self, oh_skill)
