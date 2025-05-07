@@ -23,9 +23,6 @@ thinking about.
 2. Figure out the kinks in the physics system, such as not being able to jump twice in a row or
 shooting up the wall. Also includes reducing usage of numpy.
 
-3. Fix server update rate, use Sequence rather than update. Something is weird with this, no error but
-client fails to load world. Probably some sort of race condition that's not caught.
-
 
 Next:
 Get the repo up to a passable level for stuff outside the immediate low hanging fruit. 
