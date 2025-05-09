@@ -1,25 +1,20 @@
-"""Singleton class that handles player inputs. This and networking.world_responses are the only
-things that directly affect client-side characters."""
-
 from ursina import *
 import numpy
 import json
 
-from .gamestate import gs
+from gamestate import gs
 
-class PlayerController(Entity):
-    """Client-side player input handler."""
-    def __init__(self, character, camdistance=20):
-        """Initialize player controller."""
+class ClientPlayerController(Entity):
+    """Handles player inputs and eventually client-side interpolation"""
+    def __init__(self, character=None):
         super().__init__()
         self.character = character
-        self.character.type = "player"
 
-        self.camdistance = camdistance
+        self.camdistance = 20
 
-        self.focus = Entity(model="cube", visible_self=False,
-                            position=self.character.position + Vec3(0, 0.5 * self.character.height, 0),
-                            rotation=(1, 0, 0))
+        self.focus = Entity(visible_self=False,
+                            position=self.character.position + Vec3(0, 0.5 * self.character.height),
+                            rotation = (1, 0, 0))
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
@@ -28,32 +23,47 @@ class PlayerController(Entity):
 
         self.fix_player_namelabel()
 
-        self.prev_mouse_position = mouse.position
+        self.prev_mouse_posiiton = mouse.position
 
         self.bind_keys()
 
+    def fix_player_namelabel(self):
+        """Hacky fix to player's namelabel being slow.
+        Just make the parent of the namelabel the focus and that's it"""
+        self.character.namelabel.parent = self.focus
+        self.character.namelabel.position = Vec3(0, self.character.height, 0)
+        self.character.namelabel.fix_rotation = lambda: None
+        self.character.namelabel.fix_position = lambda: None
+
+    def bind_keys(self):
+        """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
+        with open("data/key_mappings.json") as keymap:
+            keymap_json = json.load(keymap)
+            for k, v in keymap_json.items():
+                input_handler.bind(k, v)
+
     def update(self):
-        """Continuous client updates"""
-        # Frame by frame adjustments
+        # Performance: This probably doesn't need to happen every frame, just when we move.
         self.adjust_camera_zoom()
         self.adjust_focus()
-        # Handle continuous inputs
-        # Keyboard movement
+
+        # Performance: probably don't need to use numpy here, just use 
+        # Keyboard Movement
         fwdback = held_keys['move_forward'] - held_keys['move_backward']
         strafe = held_keys['strafe_right'] - held_keys['strafe_left']
         movement_inputs = Vec3(strafe, 0, fwdback)
         self.handle_keyboard_movement(movement_inputs)
-        # Keyboard rotation
+        # Keyboard Rotation
         rotate_ud = held_keys['rotate_up'] - held_keys['rotate_down']
         rotate_lr = held_keys['rotate_right'] - held_keys['rotate_left']
         self.handle_keyboard_rotation(rotate_ud, rotate_lr)
-        # Mouse rotation
+        # Mouse Rotation
         if held_keys['right mouse']:
             self.handle_mouse_rotation()
 
     def input(self, key):
-        """Singular client updates"""
-        tgt = mouse.hovered_entity
+        """Updates from single client inputs"""
+        tgt = mouse.hovered_enitty
         if key == "jump":
             self.character.start_jump()
         elif key == "scroll up":
@@ -71,14 +81,29 @@ class PlayerController(Entity):
             if tgt.has_ancestor(gs.ui.gamewindow.parent):
                 gs.ui.gamewindow.scrollbar.scroll_down()
         elif key == "right mouse down":
-            # mouse.visible = False
             self.prev_mouse_position = mouse.position
-        # if key == "right mouse up":
-            # mouse.visible = True
-        elif key == "toggle_combat":
+        elif key == "toggle combat":
             gs.network.peer.request_toggle_combat(gs.network.server_connection)
         elif key in gs.ui.playerwindow.input_to_interface:
             gs.ui.playerwindow.open_window(key)
+
+    def adjust_camera_zoom(self):
+        """Set camera zoom. Handles camera collision with entities"""
+        theta = numpy.radians(90 - self.focus.rotation_x)
+        phi = numpy.radians(-self.focus.rotation_y)
+        direction = Vec3(numpy.sin(theta) * numpy.sin(phi), numpy.cos(theta),
+                         -1 * numpy.sin(theta) * numpy.cos(phi))
+        ray = raycast(self.focus.position, direction=direction, distance=self.camdistance,
+                      ignore=self.character.ignore_traverse)
+        if ray.hit:
+            dist = math.dist(ray.world_point, self.focus.position)
+            camera.z = -1 * min(self.camdistance, dist)
+        else:
+            camera.z = -1 * self.camdistance
+
+    def adjust_focus(self):
+        """Called every frame, adjust player's focus to character's position"""
+        self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
 
     def handle_keyboard_movement(self, movement_inputs):
         """Sets keyboard component of character velocity.
@@ -123,30 +148,6 @@ class PlayerController(Entity):
         if self.focus.rotation < -max_vert_rotation:
             self.focus.rotation_x = -max_vert_rotation
 
-    def adjust_camera_zoom(self):
-        """Set camera zoom. Handles camera collision with entities"""
-        theta = numpy.radians(90 - self.focus.rotation_x)
-        phi = numpy.radians(-self.focus.rotation_y)
-        direction = Vec3(numpy.sin(theta) * numpy.sin(phi), numpy.cos(theta), -1 * numpy.sin(theta) * numpy.cos(phi))
-        ray = raycast(self.focus.position, direction=direction, distance=self.camdistance, ignore=self.character.ignore_traverse)
-        if ray.hit:
-            dist = math.dist(ray.world_point, self.focus.position)
-            camera.z = -1 * min(self.camdistance, dist)
-        else:
-            camera.z = -1 * self.camdistance
-
-    def adjust_focus(self):
-        """Called every frame, adjust player's focus to character's position"""
-        self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
-
-    def fix_player_namelabel(self):
-        """Hacky fix to player's namelabel being slow.
-        Just make the parent of the namelabel the focus and that's it"""
-        self.character.namelabel.parent = self.focus
-        self.character.namelabel.position = Vec3(0, self.character.height, 0)
-        self.character.namelabel.fix_rotation = lambda: None
-        self.character.namelabel.fix_position = lambda: None
-
     def set_target(self, target):
         """Set character's target.
 
@@ -154,9 +155,15 @@ class PlayerController(Entity):
         self.character.target = target
         gs.network.peer.request_set_target(gs.network.server_connection, target.uuid)
 
-    def bind_keys(self):
-        """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
-        with open("data/key_mappings.json") as keymap:
-            keymap_json = json.load(keymap)
-            for k, v in keymap_json.items():
-                input_handler.bind(k, v)
+
+class ClientNPCController(Entity):
+    def __init__(self):
+        pass
+
+class ServerPlayerController(Entity):
+    def __inif__(self):
+        pass
+
+class ServerNPCController(Entity):
+    def __init__(self):
+        pass
