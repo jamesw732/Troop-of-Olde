@@ -45,6 +45,7 @@ def request_enter_world(connection, time_received, pstate: State,
         new_pc = Character(pstate=pstate, cbstate=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
                          lexicon=lexicon)
+        new_pc.controller = MobController(new_pc)
         # Could we handle this uuid business in on_connect?
         new_pc.uuid = network.uuid_counter
         network.uuid_counter += 1
@@ -54,7 +55,7 @@ def request_enter_world(connection, time_received, pstate: State,
         network.connection_to_char[connection] = new_pc
         network.peer.remote_generate_world(connection, "demo.json")
         # The new pc will be an npc for everybody else
-        new_npc_cbstate = State("npc_combat", new_pc)
+        new_pc_cbstate = State("npc_combat", new_pc)
         for conn in network.peer.get_connections():
             if conn == connection:
                 for ch in gs.chars:
@@ -68,7 +69,7 @@ def request_enter_world(connection, time_received, pstate: State,
                         network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
             # Existing users just need new character
             else:
-                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_npc_cbstate)
+                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
         network.peer.make_ui(connection)
         # Send over instantiated item id's
         inst_inventory = IdContainer({k: item.iiid for k, item

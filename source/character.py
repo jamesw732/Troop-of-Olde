@@ -1,11 +1,8 @@
-"""Represents the physical player/npc entities in game.
-
-Currently incomplete, meant to be a unification of characters (both NPC and PC) for both the server
-and client. Distinctions between these things will be delegated to the respective controllers.
-
-Currently missing functionality that needs to be translated over to controllers:
-Movement/jumping
-Combat
+"""Represents the physical player/npc entities in game, unified for both
+the server and client.
+The functionality of Characters on the client and server is very different,
+(and also player characters vs NPCs), but these distinctions are delegated
+to the respective controllers in controllers.py.
 """
 
 from ursina import *
@@ -24,9 +21,8 @@ class Character(Entity):
     def __init__(self, cname="Player", uuid=None, 
                  pstate=None, cbstate=None,
                  equipment={}, inventory={}, skills={}, lexicon={}):
-        """Initializes a character on the server. Characters corresponding to player characters
-        will have the states sent to the server (the server doesn't store player data), while
-        NPC's have their states read from a file or generated.
+        """Initialize a Character. Generate parameters using
+        states.get_character_states_from_json.
 
         cname: name of character, str
         uuid: unique id. Used to encode which player you're talking about online.
@@ -153,3 +149,6 @@ class Character(Entity):
         """Reset self.jumping, remaining jump height"""
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
+
+    def on_click(self):
+        gs.playercontroller.set_target(self)

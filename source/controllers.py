@@ -2,6 +2,8 @@ from ursina import *
 import numpy
 import json
 
+from .combat import *
+from .skills import *
 from .gamestate import gs
 from .physics import handle_movement
 
@@ -88,7 +90,7 @@ class PlayerController(Entity):
                 gs.ui.gamewindow.scrollbar.scroll_down()
         elif key == "right mouse down":
             self.prev_mouse_position = mouse.position
-        elif key == "toggle combat":
+        elif key == "toggle_combat":
             gs.network.peer.request_toggle_combat(gs.network.server_connection)
         elif key in gs.ui.playerwindow.input_to_interface:
             gs.ui.playerwindow.open_window(key)
@@ -165,6 +167,7 @@ class PlayerController(Entity):
 class NPCController(Entity):
     """Handles everything about characters besides the PC on the client."""
     def __init__(self, character=None):
+        super().__init__()
         if character is not None:
             self.bind_character(character)
         else:
@@ -180,17 +183,48 @@ class NPCController(Entity):
             self.namelabel.adjust_rotation()
 
 class MobController(Entity):
-    """Handles NPC AI logic and stuff like that on the server"""
-    def __init__(self, character=None):
-        pass
+    """Handles server-side character logic such as combat and (eventually)
+    movement"""
+    def __init__(self, character):
+        super().__init__()
+        self.character = character
 
-# class ServerPlayerController(Entity):
-#     def __inif__(self):
-#         pass
-
-# class ServerNPCController(Entity):
-#     def __init__(self):
-#         pass
+    def update(self):
+        char = self.character
+        if char.target and not char.target.alive:
+            char.target = None
+            char.combat_timer = 0
+        if char.target and char.target.alive and char.in_combat:
+            if tick_mh(char) and char.get_target_hittable(char.equipment["mh"]):
+                hit, msg = attempt_attack(char, char.target, "mh")
+                mh_skill = get_wpn_style(char.equipment["mh"])
+                if hit and check_raise_skill(char, mh_skill):
+                    raise_skill(char, mh_skill)
+                conn = gs.network.uuid_to_connection.get(char.uuid, None)
+                if conn is not None:
+                    gs.network.peer.remote_print(conn, msg)
+                    # Should add some sort of check to make sure this isn't happening too often
+                    gs.network.broadcast_cbstate_update(char.target)
+            # See if we should progress offhand timer too
+            # (if has skill dw):
+            mh_is_1h = char.equipment["mh"] is None \
+                or char.equipment["mh"]["info"]["style"][:2] == "1h"
+            offhand = char.equipment["oh"]
+            # basically just check if not wearing a shield
+            dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
+            if dual_wielding and tick_oh(char)\
+            and char.get_target_hittable(char.equipment["oh"]):
+                hit, msg = attempt_attack(char, char.target, "oh")
+                oh_skill = get_wpn_style(char.equipment["oh"])
+                if hit and check_raise_skill(char, oh_skill):
+                    raise_skill(char, oh_skill)
+                conn = gs.network.uuid_to_connection.get(char.uuid, None)
+                if conn is not None:
+                    gs.network.peer.remote_print(conn, msg)
+                    gs.network.broadcast_cbstate_update(char.target)
+        else:
+            char.mh_combat_timer = 0
+            char.oh_combat_timer = 0
 
 class NameLabel(Text):
     def __init__(self, char):

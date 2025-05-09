@@ -1,3 +1,4 @@
+"""API for handling physics calculations."""
 from ursina import *
 import numpy
 

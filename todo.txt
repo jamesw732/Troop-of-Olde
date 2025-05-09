@@ -5,7 +5,7 @@ Backlog - These are things that could be done, but are not high priority
 Distant - These are abstract ideas about things that will need to be done eventually
 
 
-Right now:
+===========================RIGHT NOW===============================
 Clean up the code to a passable level. Remove all smells, and fix any buggy behavior. This involves everything
 below:
 
@@ -23,9 +23,30 @@ thinking about.
 2. Figure out the kinks in the physics system, such as not being able to jump twice in a row or
 shooting up the wall. Also includes reducing usage of numpy.
 
+3. Change the split between character/npc/pc.
+Just have one Character class and delegate all differences to the classes
+PlayerController, NPCController, MobController
 
-Next:
-Get the repo up to a passable level for stuff outside the immediate low hanging fruit. 
+- PlayerController will handle inputs and send them to the server, and
+eventually does client-side prediction for movement.
+- NPCController will control NPCs on the client side, which is a very
+restricted functionality. Will essentially just process inputs from the server 
+and handle LERPing.
+- MobController will control the character functionality on the server side.
+Should think of PlayerController as a remote interface into
+MobController that works through network requests. This means it will handle
+combat and (eventually) movement. NPC AI will be handled in another class,
+since that's supposed to represent the player's literal actions.
+
+4. Refactor connect.py, it's easily the messiest file in the repository.
+
+
+
+
+
+
+===================================NEXT================================================
+Start making non-lateral moves.
 
 Rework task documentation/ideas. For now, I think the following files will suffice:
 - A todo list (this one)
@@ -38,13 +59,18 @@ more distant than "Backlog" and more specific than "Distant" belongs in a Github
 
 Test everything. Just some baseline functionality for every main feature. 
 
-Client side prediction and server authoritative physics.
+Client side prediction and server authoritative physics. Fixed timestep physics.
 
 Make item movement smoother - maybe if mouse velocity is high or has moved sufficiently, start dragging the item
 immediately rather than waiting
 
 
-Backlog:
+
+
+
+
+
+=========================================BACKLOG=================================================
 This is mostly low-priority stuff that expands upon the baseline implementation that was created before
 having the perfect vision of what the final product will be like. It's best to not do things from here until
 you're very confident in a decision.
@@ -76,7 +102,7 @@ Hover and right click tooltips will be the primary visual guide for the UI.
 
 
 
-Distant/Big Picture:
+=====================================DISTANT==============================================
 This is old.
 - Combat system (effects, spells, abilities, npc logic) - Python/Ursina
 - Databasing for mobs, items, etc - json at first, then sqlite/sqlalchemy

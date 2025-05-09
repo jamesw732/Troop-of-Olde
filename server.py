@@ -17,7 +17,7 @@ def start_server(name, port):
     npcs = gs.world.create_npcs("demo_npcs.json")
     gs.chars += npcs
     for npc in npcs:
-        # npc.controller = ServerNPC_Controller(npc)
+        npc.controller = MobController(npc)
         npc.uuid = network.uuid_counter
         network.uuid_to_char[npc.uuid] = npc
         network.uuid_counter += 1

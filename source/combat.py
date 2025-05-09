@@ -1,3 +1,4 @@
+"""API for handling combat calculations"""
 from ursina import *
 import random
 
