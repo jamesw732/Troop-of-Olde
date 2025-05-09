@@ -78,7 +78,7 @@ def update_lerp_pstate(connection, time_received, uuid: int,
     npc = network.uuid_to_char.get(uuid)
     if npc is None:
         return
-    npc.update_lerp_state(phys_state, time_received)
+    npc.controller.update_lerp_state(phys_state, time_received)
 
 # Generic
 @rpc(network.peer)

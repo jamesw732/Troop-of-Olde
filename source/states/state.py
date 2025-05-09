@@ -117,6 +117,8 @@ class State(dict):
             if not hasattr(src, attr):
                 return None
             val = getattr(src, attr)
+        if val is None:
+            return val
         if self.state_type == "physical" and attr in ["collider", "color", "model"]:
             val = val.name
         return val

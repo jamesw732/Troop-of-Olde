@@ -4,6 +4,7 @@ import json
 
 from .combat import *
 from .skills import *
+from .states import *
 from .gamestate import gs
 from .physics import handle_movement
 
@@ -173,13 +174,11 @@ class NPCController(Entity):
     """Handles everything about characters besides the PC on the client.
     
     Todo: LERPing"""
-    def __init__(self, character=None):
+    def __init__(self, character):
         assert not gs.network.peer.is_hosting()
         super().__init__()
-        if character is not None:
-            self.bind_character(character)
-        else:
-            self.character = None
+        self.bind_character(character)
+        self._init_lerp_attrs()
 
     def bind_character(self, character):
         self.character = character
@@ -188,7 +187,44 @@ class NPCController(Entity):
     def update(self):
         self.namelabel.adjust_position()
         self.namelabel.adjust_rotation()
+
+        if self.lerping and self.prev_state:
+            self.lerp_timer += time.dt
+            # If timer finished, just apply the new state
+            if self.lerp_timer >= self.lerp_rate:
+                self.lerping = False
+                self.new_state.apply(self.character)
+            # Otherwise, LERP normally
+            else:
+                self.position = lerp(self.prev_state.get("position", self.position),
+                                     self.new_state.get("position", self.position),
+                                     self.lerp_timer / self.lerp_rate)
+                self.rotation = lerp(self.prev_state.get("rotation", self.rotation),
+                                     self.new_state.get("rotation", self.rotation),
+                                     self.lerp_timer / self.lerp_rate)
     
+    def _init_lerp_attrs(self):
+        """Initialize lerp logic"""
+        self.prev_state = None
+        self.new_state = State("physical", self)
+        self.prev_lerp_recv = 0
+        self.lerping = False
+        self.lerp_rate = 0
+        self.lerp_timer = 0.2
+
+    def update_lerp_state(self, state, time):
+        """Essentially just increments the lerp setup.
+        Slide prev and new state, set self.lerping = True, and apply old state"""
+        self.prev_state = self.new_state
+        self.new_state = state
+        if self.prev_state:
+            self.lerping = True
+            self.lerp_rate = time - self.prev_lerp_recv
+            self.prev_lerp_recv = time
+            self.lerp_timer = 0
+            # Apply old state to ensure synchronization and update non-lerp attrs
+            self.prev_state.apply(self.character)
+
     def on_destroy(self):
         destroy(self.namelabel)
         del self.namelabel
