@@ -10,6 +10,7 @@ from .physics import handle_movement
 class PlayerController(Entity):
     """Handles player inputs and eventually client-side interpolation"""
     def __init__(self, character=None):
+        assert not gs.network.peer.is_hosting()
         super().__init__()
         if character is not None:
             self.bind_character(character)
@@ -163,10 +164,17 @@ class PlayerController(Entity):
         self.character.target = target
         gs.network.peer.request_set_target(gs.network.server_connection, target.uuid)
 
+    def on_destroy(self):
+        destroy(self.namelabel)
+        del self.namelabel
+        del self.character
 
 class NPCController(Entity):
-    """Handles everything about characters besides the PC on the client."""
+    """Handles everything about characters besides the PC on the client.
+    
+    Todo: LERPing"""
     def __init__(self, character=None):
+        assert not gs.network.peer.is_hosting()
         super().__init__()
         if character is not None:
             self.bind_character(character)
@@ -178,19 +186,26 @@ class NPCController(Entity):
         self.namelabel = NameLabel(character)
 
     def update(self):
-        if self.character:
-            self.namelabel.adjust_position()
-            self.namelabel.adjust_rotation()
+        self.namelabel.adjust_position()
+        self.namelabel.adjust_rotation()
+    
+    def on_destroy(self):
+        destroy(self.namelabel)
+        del self.namelabel
+        del self.character
 
 class MobController(Entity):
     """Handles server-side character logic such as combat and (eventually)
     movement"""
     def __init__(self, character):
+        assert gs.network.peer.is_hosting()
         super().__init__()
         self.character = character
 
     def update(self):
         char = self.character
+        if char.health <= 0:
+            char.die()
         if char.target and not char.target.alive:
             char.target = None
             char.combat_timer = 0

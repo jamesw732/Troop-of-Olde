@@ -111,9 +111,10 @@ class Character(Entity):
         self.energy = min(self.maxenergy, self.energy)
 
     def on_destroy(self):
-        """Upon being destroyed, remove all references to objects attached to this character. This
-        is likely not perfect, and I imagine that characters will continue to live after being 
-        destroyed."""
+        """Upon being destroyed, remove all references to objects
+        attached to this character. This is currently not perfect,
+        need to remove every single reference and some are missing.
+        Todo: Remove EVERY reference so char cna be garbage collected."""
         if self.uuid is not None:
             del gs.network.uuid_to_char[self.uuid]
         try:
@@ -122,13 +123,13 @@ class Character(Entity):
             pass
         if self.controller:
             destroy(self.controller)
-            del self.controller.character
             del self.controller
         del self.ignore_traverse
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
-        gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
+        if gs.network.peer.is_hosting():
+            gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
         self.alive = False
         destroy(self)
 

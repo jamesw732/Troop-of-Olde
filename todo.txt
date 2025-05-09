@@ -40,6 +40,11 @@ since that's supposed to represent the player's literal actions.
 
 4. Refactor connect.py, it's easily the messiest file in the repository.
 
+5. Clean up the repository enough to make it presentable. I think it should be public.
+This will involve cleaning up the big documentation article, or at least putting a disclaimer
+that it's incomplete, and fixing the README. I think it should be a tour of the repository rather than
+a pre-push checklist.
+
 
 
 
