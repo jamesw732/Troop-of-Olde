@@ -25,7 +25,6 @@ class Network(Entity):
 
         self.iiid_counter = 0
 
-
     @every(UPDATE_RATE)
     def fixed_update(self):
         network.peer.update()
