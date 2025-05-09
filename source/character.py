@@ -7,7 +7,8 @@ to the respective controllers in controllers.py.
 
 from ursina import *
 
-from . import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
+from . import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills, sqdist
+from .combat import get_wpn_range
 from .gamestate import gs
 from .item import Item, equip_many_items
 from .physics import *
@@ -152,3 +153,51 @@ class Character(Entity):
 
     def on_click(self):
         gs.playercontroller.set_target(self)
+
+
+    def get_tgt_los(self, target):
+        """Returns whether the target is in line of sight"""
+        sdist = sqdist(self.position, self.target.position)
+        src_pos = self.position + Vec3(0, 0.8 * self.scale_y, 0)
+        tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
+        dir = tgt_pos - src_pos
+        line_of_sight = raycast(src_pos, direction=dir, distance=inf,
+                                ignore=[entity for entity in scene.entities if type(entity) is Character])
+        if line_of_sight.hit:
+            entity = line_of_sight.entity
+            if sqdist(entity.position, self.position) < sdist:
+                return False
+        return True
+
+    def get_target_hittable(self, wpn):
+        """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
+        if not self.get_tgt_los(self.target):
+            conn = gs.network.uuid_to_connection[self.uuid]
+            gs.network.peer.remote_print(conn, f"You can't see {self.target.cname}.")
+            return False
+        atk_range = get_wpn_range(wpn)
+        # use center rather than center of feet
+        pos_src = self.position + Vec3(0, self.scale_y / 2, 0)
+        pos_tgt = self.target.position + Vec3(0, self.target.scale_y / 2, 0)
+        ray_dir = pos_tgt - pos_src
+        ray_dist = distance(pos_tgt, pos_src)
+        # Draw a line between the two
+        line1 = raycast(pos_src, direction=ray_dir, distance=ray_dist,
+                       traverse_target=self)
+        line2 = raycast(pos_tgt, direction=-ray_dir, distance=ray_dist,
+                        traverse_target=self.target)
+        # ie one char is inside the other
+        if not line1.hit or not line2.hit:
+            return True
+        point1 = line1.world_point
+        point2 = line2.world_point
+        # don't compute the distance between their centers,
+        # compute the distance between their bodies
+        inner_distance = distance(point1, point2)
+        in_range = inner_distance <= atk_range
+        if in_range:
+            return True
+        else:
+            conn = gs.network.uuid_to_connection[self.uuid]
+            gs.network.peer.remote_print(conn, f"{self.target.cname} is out of range!")
+            return False
