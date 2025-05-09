@@ -2,38 +2,44 @@ from ursina import *
 import numpy
 import json
 
-from gamestate import gs
+from .gamestate import gs
+from .physics import handle_movement
 
-class ClientPlayerController(Entity):
+class PlayerController(Entity):
     """Handles player inputs and eventually client-side interpolation"""
     def __init__(self, character=None):
         super().__init__()
-        self.character = character
-
-        self.camdistance = 20
-
-        self.focus = Entity(visible_self=False,
-                            position=self.character.position + Vec3(0, 0.5 * self.character.height),
-                            rotation = (1, 0, 0))
-        camera.parent = self.focus
-        camera.position = (0, 0, -1 * self.camdistance)
-
-        self.grounded_direction = Vec3(0, 0, 0)
-        self.jumping_direction = Vec3(0, 0, 0)
-
-        self.fix_player_namelabel()
+        if character is not None:
+            self.bind_character(character)
+        else:
+            self.character = None
+        self.bind_camera()
+        self.bind_keys()
 
         self.prev_mouse_posiiton = mouse.position
 
-        self.bind_keys()
+    def bind_character(self, character):
+        self.character = character
+        self.focus = Entity(
+            visible_self=False,
+            position=self.character.position
+                + Vec3(0, 0.5 * self.character.height),
+            rotation = (1, 0, 0))
+        self.namelabel = NameLabel(character)
+        self.fix_namelabel()
 
-    def fix_player_namelabel(self):
-        """Hacky fix to player's namelabel being slow.
-        Just make the parent of the namelabel the focus and that's it"""
-        self.character.namelabel.parent = self.focus
-        self.character.namelabel.position = Vec3(0, self.character.height, 0)
-        self.character.namelabel.fix_rotation = lambda: None
-        self.character.namelabel.fix_position = lambda: None
+    def bind_camera(self):
+        self.camdistance = 20
+
+        camera.parent = self.focus
+        camera.position = (0, 0, -1 * self.camdistance)
+
+    def fix_namelabel(self):
+        """Simplify player character's namelabel"""
+        self.namelabel.parent = self.focus
+        self.namelabel.position = Vec3(0, self.character.height, 0)
+        # self.character.namelabel.fix_rotation = lambda: None
+        # self.character.namelabel.fix_position = lambda: None
 
     def bind_keys(self):
         """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
@@ -63,7 +69,7 @@ class ClientPlayerController(Entity):
 
     def input(self, key):
         """Updates from single client inputs"""
-        tgt = mouse.hovered_enitty
+        tgt = mouse.hovered_entity
         if key == "jump":
             self.character.start_jump()
         elif key == "scroll up":
@@ -156,14 +162,52 @@ class ClientPlayerController(Entity):
         gs.network.peer.request_set_target(gs.network.server_connection, target.uuid)
 
 
-class ClientNPCController(Entity):
-    def __init__(self):
+class NPCController(Entity):
+    """Handles everything about characters besides the PC on the client."""
+    def __init__(self, character=None):
+        if character is not None:
+            self.bind_character(character)
+        else:
+            self.character = None
+
+    def bind_character(self, character):
+        self.character = character
+        self.namelabel = NameLabel(character)
+
+    def update(self):
+        if self.character:
+            self.namelabel.adjust_position()
+            self.namelabel.adjust_rotation()
+
+class MobController(Entity):
+    """Handles NPC AI logic and stuff like that on the server"""
+    def __init__(self, character=None):
         pass
 
-class ServerPlayerController(Entity):
-    def __inif__(self):
-        pass
+# class ServerPlayerController(Entity):
+#     def __inif__(self):
+#         pass
 
-class ServerNPCController(Entity):
-    def __init__(self):
-        pass
+# class ServerNPCController(Entity):
+#     def __init__(self):
+#         pass
+
+class NameLabel(Text):
+    def __init__(self, char):
+        """Creates a namelabel above a character
+        
+        Todo: Change parent to character"""
+        super().__init__(char.cname, parent=scene, scale=10, origin=(0, 0, 0),
+                         position=char.position + Vec3(0, char.height + 1, 0))
+        self.char = char
+
+    def adjust_rotation(self):
+        """Aim the namelabel at the player with the right direction"""
+        if gs.pc:
+            direction = gs.pc.position - camera.world_position
+            self.look_at(direction + self.world_position)
+            self.rotation_z = 0
+
+    def adjust_position(self):
+        """Position the namelabel above the character"""
+        self.position = self.char.position + Vec3(0, self.char.height + 1, 0)

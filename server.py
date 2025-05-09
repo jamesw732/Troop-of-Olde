@@ -7,7 +7,6 @@ from source.networking.connect import *
 from source.networking.disconnect import *
 from source.networking.register import *
 from source.networking.world_requests import *
-from source.npc_controller import NPC_Controller
 from source.world_gen import GenerateWorld
 
 def start_server(name, port):
@@ -18,7 +17,7 @@ def start_server(name, port):
     npcs = gs.world.create_npcs("demo_npcs.json")
     gs.chars += npcs
     for npc in npcs:
-        npc.controller = NPC_Controller(npc)
+        # npc.controller = ServerNPC_Controller(npc)
         npc.uuid = network.uuid_counter
         network.uuid_to_char[npc.uuid] = npc
         network.uuid_counter += 1

@@ -13,6 +13,7 @@ from ursina import *
 from . import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills
 from .gamestate import gs
 from .item import Item, equip_many_items
+from .physics import *
 from .power import Power
 from .skills import *
 from .states.state import *
@@ -36,9 +37,11 @@ class Character(Entity):
         skills: State dict mapping str skill names to int skill levels
         lexicon: IdContainer mapping slot to power id
         """
-        self.controller = None
         self.cname = cname
         self.uuid = uuid
+
+        self.controller = None
+        self.namelabel = None
 
         # Physical attrs
         # First, initialize Entity
@@ -98,6 +101,11 @@ class Character(Entity):
     def _init_powers(self):
         self.lexicon = {}
 
+    def update(self):
+        # This will eventually be moved to MobController, on a fixed
+        # update rate
+        handle_movement(self)
+
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a staet update."""
         self.maxhealth = self.statichealth
@@ -134,3 +142,14 @@ class Character(Entity):
     def reduce_health(self, amt):
         """Function to be used whenever decreasing character's health"""
         self.health -= amt
+
+    def start_jump(self):
+        """Do the things required to make the character jump"""
+        if self.grounded:
+            self.jumping = True
+            self.grounded = False
+
+    def cancel_jump(self):
+        """Reset self.jumping, remaining jump height"""
+        self.jumping = False
+        self.rem_jump_height = self.max_jump_height

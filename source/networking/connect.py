@@ -6,11 +6,8 @@ from ursina.networking import rpc
 from .network import network
 from .register import *
 from ..character import Character
-from ..npc import NPC
-from ..player_character import PlayerCharacter
-from ..npc_controller import NPC_Controller
+from ..controllers import *
 from ..gamestate import gs
-from ..player_controller import PlayerController
 from ..world_gen import GenerateWorld
 from ..ui import *
 from ..states import *
@@ -35,9 +32,9 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
         gs.pname = "Demo Player"
-        pstate, cb_state, equipment, inventory, skills, lexicon = \
+        pstate, cbstate, equipment, inventory, skills, lexicon = \
             get_character_states_from_json(gs.pname)
-        network.peer.request_enter_world(connection, pstate, cb_state, equipment, inventory, skills, lexicon)
+        network.peer.request_enter_world(connection, pstate, cbstate, equipment, inventory, skills, lexicon)
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, pstate: State,
@@ -45,7 +42,7 @@ def request_enter_world(connection, time_received, pstate: State,
                         inventory: IdContainer, skills: State,
                         lexicon: IdContainer):
     if network.peer.is_hosting():
-        new_pc = Character(pstate=pstate, base_state=base_state,
+        new_pc = Character(pstate=pstate, cbstate=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
                          lexicon=lexicon)
         # Could we handle this uuid business in on_connect?
@@ -89,8 +86,9 @@ def remote_generate_world(connection, time_received, zone:str):
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: IdContainer,
              inventory: IdContainer, skills: State, lexicon: IdContainer, cbstate: State):
-    gs.pc = PlayerCharacter(pstate=pstate, equipment=equipment, inventory=inventory, skills=skills,
-                            lexicon=lexicon, cb_state=cbstate)
+    gs.pc = Character(pstate=pstate, equipment=equipment,
+                      inventory=inventory, skills=skills,
+                      lexicon=lexicon, cbstate=cbstate)
 
     gs.playercontroller = PlayerController(gs.pc)
     gs.pc.controller = gs.playercontroller
@@ -115,12 +113,13 @@ def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: 
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int, 
-              phys_state: State, cb_state: State):
+              phys_state: State, cbstate: State):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        char = NPC(pstate=phys_state, cb_state=cb_state)
+        char = Character(pstate=phys_state, cbstate=cbstate)
+        char.controller = NPCController(char)
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid

@@ -41,7 +41,7 @@ class GenerateWorld:
         states = [(State("physical", **data["physical"]),
                    State("physical", **data["combat"]))
                    for (npc, data) in npc_data.items()]
-        return [Character(pstate=state[0], base_state=state[1]) for state in states]
+        return [Character(pstate=tup[0], cbstate=tup[1]) for tup in states]
 
     def parse_colors(self, data):
         """Parses colors from a json, which are just formatted as strings.
