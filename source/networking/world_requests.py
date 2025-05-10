@@ -8,9 +8,57 @@ from ursina.networking import rpc
 
 from .network import network
 from .world_responses import *
+from ..character import Character
+from ..controllers import *
 from ..item import *
+from ..gamestate import gs
 from ..power import Power
 from ..states.state import State
+
+# LOGIN
+@rpc(network.peer)
+def request_enter_world(connection, time_received, pstate: State,
+                        base_state: State, equipment: IdContainer,
+                        inventory: IdContainer, skills: State,
+                        lexicon: IdContainer):
+    if network.peer.is_hosting():
+        new_pc = Character(pstate=pstate, cbstate=base_state,
+                         equipment=equipment, inventory=inventory, skills=skills,
+                         lexicon=lexicon)
+        new_pc.controller = MobController(new_pc)
+        # Could we handle this uuid business in on_connect?
+        new_pc.uuid = network.uuid_counter
+        network.uuid_counter += 1
+        network.uuid_to_char[new_pc.uuid] = new_pc
+        network.uuid_to_connection[new_pc.uuid] = connection
+        gs.chars.append(new_pc)
+        network.connection_to_char[connection] = new_pc
+        network.peer.remote_generate_world(connection, "demo.json")
+        # The new pc will be an npc for everybody else
+        new_pc_cbstate = State("npc_combat", new_pc)
+        for conn in network.peer.get_connections():
+            if conn == connection:
+                for ch in gs.chars:
+                    if ch is new_pc:
+                        pc_cbstate = State("pc_combat", new_pc)
+                        network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment,
+                                              inventory, skills, lexicon, pc_cbstate)
+                    else:
+                        npc_pstate = State("physical", ch)
+                        npc_cbstate = State("npc_combat", ch)
+                        network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
+            # Existing users just need new character
+            else:
+                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
+        network.peer.make_ui(connection)
+        # Send over instantiated item id's
+        inst_inventory = IdContainer({k: item.iiid for k, item
+                          in new_pc.inventory.items() if item is not None})
+        inst_equipment = IdContainer({k: item.iiid for k, item
+                          in new_pc.equipment.items() if item is not None})
+        network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
+        network.broadcast_cbstate_update(new_pc)
+
 
 # COMBAT
 @rpc(network.peer)

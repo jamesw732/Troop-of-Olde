@@ -22,9 +22,6 @@ thinking about.
 
 2. Remove usage of Numpy for movement.
 
-3. Refactor connect.py, it's easily the messiest file in the repository.
-
-
 
 
 

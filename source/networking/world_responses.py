@@ -5,9 +5,66 @@ of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
 from .network import network
+from ..character import Character
+from ..controllers import *
 from ..item import *
 from ..gamestate import gs
-from ..states.state import State
+from ..states import State, IdContainer
+from ..ui import UI, make_all_ui
+from ..world_gen import GenerateWorld
+
+# LOGIN
+@rpc(network.peer)
+def remote_generate_world(connection, time_received, zone:str):
+    """Remotely generate the world"""
+    gs.world = GenerateWorld(zone)
+
+@rpc(network.peer)
+def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: IdContainer,
+             inventory: IdContainer, skills: State, lexicon: IdContainer, cbstate: State):
+    gs.pc = Character(pstate=pstate, equipment=equipment,
+                      inventory=inventory, skills=skills,
+                      lexicon=lexicon, cbstate=cbstate)
+
+    gs.playercontroller = PlayerController(gs.pc)
+    gs.pc.controller = gs.playercontroller
+
+    gs.chars.append(gs.pc)
+    gs.pc.ignore_traverse = gs.chars
+
+    network.uuid_to_char[uuid] = gs.pc
+    gs.pc.uuid = uuid
+    network.my_uuid = uuid
+    network.server_connection = connection
+
+
+@rpc(network.peer)
+def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: IdContainer):
+    for k, iiid in inventory.items():
+        gs.pc.inventory[k].iiid = iiid
+        network.iiid_to_item[iiid] = gs.pc.inventory[k]
+    for k, iiid in equipment.items():
+        gs.pc.equipment[k].iiid = iiid
+        network.iiid_to_item[iiid] = gs.pc.equipment[k]
+
+@rpc(network.peer)
+def spawn_npc(connection, time_received, uuid: int,
+              phys_state: State, cbstate: State):
+    """Remotely spawn a character that isn't the client's player character (could also be other players)"""
+    if network.peer.is_hosting():
+        return
+    if uuid not in network.uuid_to_char:
+        char = Character(pstate=phys_state, cbstate=cbstate)
+        char.controller = NPCController(char)
+        gs.chars.append(char)
+        network.uuid_to_char[uuid] = char
+        char.uuid = uuid
+
+@rpc(network.peer)
+def make_ui(connection, time_received):
+    """Remotely tell a client to make the game UI"""
+    gs.ui = UI()
+    make_all_ui(gs.ui)
 
 # Combat
 @rpc(network.peer)
