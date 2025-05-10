@@ -20,7 +20,7 @@ empty element)
 (for example an equipment slot) into the dict, and then maps that back to an index. Probably clunky but worth
 thinking about.
 
-2. Remove usage of Numpy for movement.
+2. Remove use of __init__ as the bottom-level dependency. This is the opposite of how it's supposed to work.
 
 
 

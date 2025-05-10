@@ -1,7 +1,7 @@
 from ursina import *
-import numpy
 import json
 
+from . import *
 from .combat import *
 from .skills import *
 from .states import *
@@ -57,16 +57,16 @@ class PlayerController(Entity):
         self.adjust_camera_zoom()
         self.adjust_focus()
 
-        # Performance: probably don't need to use numpy here, just use 
         # Keyboard Movement
-        fwdback = held_keys['move_forward'] - held_keys['move_backward']
-        strafe = held_keys['strafe_right'] - held_keys['strafe_left']
-        movement_inputs = Vec3(strafe, 0, fwdback)
-        self.handle_keyboard_movement(movement_inputs)
+        fwdback = self.character.forward * (held_keys['move_forward'] - held_keys['move_backward'])
+        strafe = self.character.right * (held_keys['strafe_right'] - held_keys['strafe_left'])
+        keyboard_direction = Vec3(strafe + fwdback).normalized() 
+        char_speed = get_speed_modifier(self.character.speed)
+        self.character.velocity_components["keyboard"] = keyboard_direction * 10 * char_speed
         # Keyboard Rotation
         rotate_ud = held_keys['rotate_up'] - held_keys['rotate_down']
         rotate_lr = held_keys['rotate_right'] - held_keys['rotate_left']
-        self.handle_keyboard_rotation(rotate_ud, rotate_lr)
+        self.handle_keyboard_rotation(Vec3(rotate_ud, rotate_lr, 0))
         # Mouse Rotation
         if held_keys['right mouse']:
             self.handle_mouse_rotation()
@@ -99,10 +99,7 @@ class PlayerController(Entity):
 
     def adjust_camera_zoom(self):
         """Set camera zoom. Handles camera collision with entities"""
-        theta = numpy.radians(90 - self.focus.rotation_x)
-        phi = numpy.radians(-self.focus.rotation_y)
-        direction = Vec3(numpy.sin(theta) * numpy.sin(phi), numpy.cos(theta),
-                         -1 * numpy.sin(theta) * numpy.cos(phi))
+        direction = camera.world_position - self.focus.world_position
         ray = raycast(self.focus.position, direction=direction, distance=self.camdistance,
                       ignore=self.character.ignore_traverse)
         if ray.hit:
@@ -115,34 +112,19 @@ class PlayerController(Entity):
         """Called every frame, adjust player's focus to character's position"""
         self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
 
-    def handle_keyboard_movement(self, movement_inputs):
-        """Sets keyboard component of character velocity.
-        See Character.velocity_components.
-
-        movement_inputs: Vec3"""
-        if movement_inputs == Vec3(0, 0, 0):
-            self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-        else:
-            theta = numpy.radians(-1 * self.character.rotation_y)
-            rotation_matrix = numpy.array([[numpy.cos(theta), -1 * numpy.sin(theta)], [numpy.sin(theta), numpy.cos(theta)]])
-            move_direction = rotation_matrix @ numpy.array([movement_inputs[0], movement_inputs[2]])
-            move_direction = Vec3(move_direction[0], 0, move_direction[1]).normalized()
-            self.character.velocity_components["keyboard"] = move_direction * (12 * (1 + self.character.speed / 100))
-
-    def handle_keyboard_rotation(self, updown_rotation, leftright_rotation):
+    def handle_keyboard_rotation(self, rotation):
         """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
         # Keyboard Rotation
         # Slow down left/right rotation by multiplying by cos(x rotation)
-        self.focus.rotate((0, leftright_rotation * numpy.cos(numpy.radians(self.focus.rotation_x))
-                           * time.dt * 150, 0))
-        self.focus.rotate((updown_rotation * time.dt * 150, 0, 0))
+        rotation[1] = rotation[1] * math.cos(math.radians(self.focus.rotation_x))
+        self.focus.rotate(rotation * time.dt * 100)
         self.fix_camera_rotation()
 
     def handle_mouse_rotation(self):
         """Handles rotation from right clicking and dragging the mouse."""
         # Mouse rotation:
         diff = mouse.position - self.prev_mouse_position
-        vel = Vec3(-1 * diff[1], diff[0] * numpy.cos(numpy.radians(self.focus.rotation_x)), 0)
+        vel = Vec3(-1 * diff[1], diff[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
         self.focus.rotate(vel * 200)
         self.prev_mouse_position = mouse.position
         self.fix_camera_rotation()
@@ -153,10 +135,7 @@ class PlayerController(Entity):
         max_vert_rotation = 80
         self.focus.rotation_z = 0
         self.character.rotation_y = self.focus.rotation_y
-        if self.focus.rotation_x > max_vert_rotation:
-            self.focus.rotation_x = max_vert_rotation
-        if self.focus.rotation < -max_vert_rotation:
-            self.focus.rotation_x = -max_vert_rotation
+        self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
 
     def set_target(self, target):
         """Set character's target.
