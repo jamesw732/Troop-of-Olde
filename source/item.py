@@ -2,7 +2,7 @@ from ursina import *
 import json
 import copy
 
-from . import default_equipment, default_inventory
+from .base import default_equipment, default_inventory
 from .gamestate import gs
 # This import might be a problem eventually
 from .states.container import IdContainer, container_to_ids, ids_to_container

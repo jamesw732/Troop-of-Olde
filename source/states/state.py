@@ -1,7 +1,7 @@
 """A State is just a container used to represent a portion of a character. States may not
 be complete, in which case the undefined portion is ignored."""
 from ursina import Vec3, color
-from .. import all_skills
+from ..base import all_skills
 
 labl_to_attrs = {
     # Used for ground-up Character creation, stored by client and sent to server

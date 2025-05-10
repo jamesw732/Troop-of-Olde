@@ -1,7 +1,7 @@
 from ursina import *
 import json
 
-from . import *
+from .base import *
 from .combat import *
 from .skills import *
 from .states import *

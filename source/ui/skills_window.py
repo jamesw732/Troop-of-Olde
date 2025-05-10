@@ -1,8 +1,8 @@
 from ursina import *
 
 from .base import *
-from .. import all_skills
 from .header import *
+from ..base import all_skills
 from ..gamestate import gs
 
 class SkillsWindow(Entity):

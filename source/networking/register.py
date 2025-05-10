@@ -1,4 +1,4 @@
-from . import network
+from .network import network
 from ..states.state import State, serialize_state, deserialize_state
 from ..states.container import IdContainer, serialize_init_container, deserialize_init_container
 

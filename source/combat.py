@@ -2,7 +2,7 @@
 from ursina import *
 import random
 
-from . import sigmoid, sqdist, fists_base_dmg
+from .base import sigmoid, sqdist, fists_base_dmg
 
 
 # PUBLIC

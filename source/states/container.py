@@ -1,5 +1,5 @@
 from ..gamestate import gs
-from .. import default_equipment
+from ..base import default_equipment
 
 class IdContainer(dict):
     """This class represents any container whose positions/slots are encoded by strings,

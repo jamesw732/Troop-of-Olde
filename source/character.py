@@ -7,7 +7,7 @@ to the respective controllers in controllers.py.
 
 from ursina import *
 
-from . import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills, sqdist
+from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills, sqdist
 from .combat import get_wpn_range
 from .gamestate import gs
 from .item import Item, equip_many_items
