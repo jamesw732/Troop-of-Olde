@@ -20,30 +20,9 @@ empty element)
 (for example an equipment slot) into the dict, and then maps that back to an index. Probably clunky but worth
 thinking about.
 
-2. Figure out the kinks in the physics system, such as not being able to jump twice in a row or
-shooting up the wall. Also includes reducing usage of numpy.
+2. Remove usage of Numpy for movement.
 
-3. Change the split between character/npc/pc.
-Just have one Character class and delegate all differences to the classes
-PlayerController, NPCController, MobController
-
-- PlayerController will handle inputs and send them to the server, and
-eventually does client-side prediction for movement.
-- NPCController will control NPCs on the client side, which is a very
-restricted functionality. Will essentially just process inputs from the server 
-and handle LERPing.
-- MobController will control the character functionality on the server side.
-Should think of PlayerController as a remote interface into
-MobController that works through network requests. This means it will handle
-combat and (eventually) movement. NPC AI will be handled in another class,
-since that's supposed to represent the player's literal actions.
-
-4. Refactor connect.py, it's easily the messiest file in the repository.
-
-5. Clean up the repository enough to make it presentable. I think it should be public.
-This will involve cleaning up the big documentation article, or at least putting a disclaimer
-that it's incomplete, and fixing the README. I think it should be a tour of the repository rather than
-a pre-push checklist.
+3. Refactor connect.py, it's easily the messiest file in the repository.
 
 
 
