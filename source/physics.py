@@ -52,7 +52,7 @@ def set_jump_vel(char):
 def handle_grounding(char, velocity):
     """Determine whether character is on the ground or not. Kills y velocity if grounded."""
     ground = raycast(char.world_position + (0, char.height, 0), direction=char.down,
-                     ignore=char.ignore_traverse, debug=True)
+                     ignore=char.ignore_traverse)
     if not ground.hit:
         char.grounded = False
         return
