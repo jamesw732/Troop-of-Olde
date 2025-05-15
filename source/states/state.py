@@ -1,63 +1,9 @@
 """A State is just a container used to represent a portion of a character. States may not
 be complete, in which case the undefined portion is ignored."""
 from ursina import Vec3, color
-from ..base import all_skills
 
-labl_to_attrs = {
-    # Used for ground-up Character creation, stored by client and sent to server
-    "base_combat": { 
-        "statichealth": int,
-        "staticenergy": int,
-        "staticarmor": int,
+from .state_defs import state_defs
 
-        "str": int,
-        "dex": int,
-        "ref": int,
-        "hardy": int,
-
-        "haste": int,
-        "speed": int,
-        "casthaste": int,
-        "healmod": int
-    },
-    # Used to update Player Character's stats, sent by server
-    "pc_combat": {
-        "health": int,
-        "maxhealth": int,
-        "statichealth": int,
-        "energy": int,
-        "maxenergy": int,
-        "staticenergy": int,
-        "armor": int,
-        "maxarmor": int,
-        "staticarmor": int,
-
-        "str": int,
-        "dex": int,
-        "ref": int,
-        "hardy": int,
-
-        "haste": int,
-        "speed": int,
-        "casthaste": int,
-        "healmod": int
-    },
-    # Used to update NPC's stats, sent by server
-    "npc_combat": {
-        "health": int,
-        "maxhealth": int,
-    },
-    # Used to update character's physical state, sent to/by server
-    "physical": {
-        "model": str,
-        "scale": Vec3,
-        "position": Vec3,
-        "rotation": Vec3,
-        "color": str,
-        "cname": str,
-    },
-    "skills": {skill: int for skill in all_skills}
-}
 
 class State(dict):
     def __init__(self, state_type, src=None, **kwargs):
@@ -67,12 +13,12 @@ class State(dict):
         objects such as Characters. Developer is held responsible for knowing what type
         of state to create, the rest is handled automatically.
         If neither src nor kwargs is specified, will essentially create a blank dict.
-        state_type: one of the keys to labl_to_attrs
+        state_type: one of the keys to state_defs
         src: object to grab data from, optional
         **kwargs: alternative to grabbing attrs from character, optional
         """
         self.state_type = state_type
-        self.attrs = labl_to_attrs[self.state_type]
+        self.attrs = state_defs[self.state_type]
         # If a character was passed, take its attributes
         if src is not None:
             for attr in self.attrs:
@@ -105,14 +51,19 @@ class State(dict):
                 self._apply_attr(dst, attr, original_val + val)
 
     def _get_val_from_src(self, attr, src):
-        """Generic wrapper for getting attr from src
+        """Generic wrapper for getting attr from src that depends on state_type
         
-        Only nontrivial handling we need to do is for Dict objects, and also
-        some state attrs we need to assign names rather than objects
-        (because that's how Ursina works), rather than Entity/Mesh objects.
-        Depends on self.state_type to infer what kind of thing src is."""
-        if self.state_type == "skills":
-            val = src.get(attr, 1)
+        Some sources access by key, some by attribute, this function handles that magic.
+        Also, the primitive type may not be what we want to actually
+        encode in the state, for example colors.
+        When there is a missing attr/key, and we want to ignore it, return None
+        """
+        if isinstance(src, dict):
+            if self.state_type == "skills":
+                # is this really how we want to manage missing skills?
+                # even if skills states are only used for initialization?
+                default = 1
+            val = src.get(attr, default)
         else:
             if not hasattr(src, attr):
                 return None
@@ -148,7 +99,7 @@ def serialize_state(writer, state):
 
 def deserialize_state(reader):
     state_type = reader.read(str)
-    attrs = labl_to_attrs[state_type]
+    attrs = state_defs[state_type]
     state = State(state_type=state_type)
     while reader.iter.getRemainingSize() > 0:
         k = reader.read(str)

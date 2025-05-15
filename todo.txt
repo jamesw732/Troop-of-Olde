@@ -20,22 +20,15 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================RIGHT NOW===============================
+Convert equipment and inventory to use a list rather than a dict.
 
 
 
 
 ===================================NEXT================================================
-Consider changing the internal equipment and inventory containers to just be lists.
-Pros:
-- Sending dictionaries over the network is cumbersome, lists are easier.
-- A dict mapping ints casted to strs (as in the json) is just really smelly
-Cons:
-- Can't store incomplete states into disk, pretty much need the full list (and some way to encode an
-empty element)
-- Equipment slot naming becomes slightly less clear. Could just add a separate function that passes a key
-(for example an equipment slot) into the dict, and then maps that back to an index. Probably clunky but worth
-thinking about.
-
+Improve naming of item ids, new ones will be:
+Global Item Id (giid), these are the id's associated to items that live in the disk.
+Instantiated Item Id (iiid), these are the id's associated to items that live in memory.
 
 Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
 Client side prediction and server authoritative physics. Fixed timestep physics.
