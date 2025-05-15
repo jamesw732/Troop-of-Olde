@@ -106,6 +106,10 @@ class PlayerWindow(Entity):
         for window in [self.items, self.lex, self.skills, self.stats]:
             window.visible = False
 
+    def input(self, key):
+        if key in self.input_to_interface:
+            self.open_window(key)
+
     def open_window(self, key):
         new_active_tab = self.input_to_interface[key]
         new_active_button = self.input_to_button[key]

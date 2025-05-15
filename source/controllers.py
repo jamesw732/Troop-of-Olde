@@ -90,8 +90,6 @@ class PlayerController(Entity):
             self.prev_mouse_position = mouse.position
         elif key == "toggle_combat":
             gs.network.peer.request_toggle_combat(gs.network.server_connection)
-        elif key in gs.ui.playerwindow.input_to_interface:
-            gs.ui.playerwindow.open_window(key)
 
     def adjust_camera_zoom(self):
         """Set camera zoom. Handles camera collision with entities"""
