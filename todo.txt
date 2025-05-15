@@ -6,10 +6,13 @@ Distant - These are abstract ideas about things that will need to be done eventu
 
 
 ===========================RIGHT NOW===============================
-Clean up the code to a passable level. Remove all smells, and fix any buggy behavior. This involves everything
-below:
+Make UI more modular, remove dependence on existence of UI
 
-1. Consider changing the internal equipment and inventory containers to just be lists.
+
+
+
+===================================NEXT================================================
+Consider changing the internal equipment and inventory containers to just be lists.
 Pros:
 - Sending dictionaries over the network is cumbersome, lists are easier.
 - A dict mapping ints casted to strs (as in the json) is just really smelly
@@ -19,15 +22,6 @@ empty element)
 - Equipment slot naming becomes slightly less clear. Could just add a separate function that passes a key
 (for example an equipment slot) into the dict, and then maps that back to an index. Probably clunky but worth
 thinking about.
-
-2. Remove use of __init__ as the bottom-level dependency. This is the opposite of how it's supposed to work.
-
-
-
-
-
-===================================NEXT================================================
-Start making non-lateral moves.
 
 Rework task documentation/ideas. For now, I think the following files will suffice:
 - A todo list (this one)
@@ -40,8 +34,14 @@ more distant than "Backlog" and more specific than "Distant" belongs in a Github
 
 Test everything. Just some baseline functionality for every main feature. 
 
+Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
 Client side prediction and server authoritative physics. Fixed timestep physics.
 
+Optimize the UI, I think it's a big reason why performance can struggle.
+Maybe change to a paradigm that uses sequences instead of update functions?
+Also, may want to find a way to reduce the number of entities created by the UI, or at least the number
+of colliders.
+May want to check if collision detection is looking for UI elements as well, that would be bad.
 Make item movement smoother - maybe if mouse velocity is high or has moved sufficiently, start dragging the item
 immediately rather than waiting
 

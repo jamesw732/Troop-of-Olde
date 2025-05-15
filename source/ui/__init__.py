@@ -10,6 +10,7 @@ class UI:
         self.gamewindow = None
 
 def make_all_ui(ui):
+    # pass
     ui.bars = BarWindow()
     ui.playerwindow = PlayerWindow()
     ui.gamewindow = GameWindow()

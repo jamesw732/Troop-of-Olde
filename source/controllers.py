@@ -81,15 +81,11 @@ class PlayerController(Entity):
                 return
             if not tgt.has_ancestor(camera.ui):
                 self.camdistance = max(self.camdistance - 1, 0)
-            if tgt.has_ancestor(gs.ui.gamewindow.parent):
-                gs.ui.gamewindow.scrollbar.scroll_up()
         elif key == "scroll down":
             if tgt is None:
                 return
             if not tgt.has_ancestor(camera.ui):
                 self.camdistance = min(self.camdistance + 1, 75)
-            if tgt.has_ancestor(gs.ui.gamewindow.parent):
-                gs.ui.gamewindow.scrollbar.scroll_down()
         elif key == "right mouse down":
             self.prev_mouse_position = mouse.position
         elif key == "toggle_combat":
