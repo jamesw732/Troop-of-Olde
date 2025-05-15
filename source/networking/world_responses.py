@@ -71,16 +71,18 @@ def make_ui(connection, time_received):
 def toggle_combat(connection, time_received, toggle: bool):
     my_char = network.uuid_to_char.get(network.my_uuid)
     my_char.in_combat = toggle
-    msg = "Now entering combat" if toggle else "Now leaving combat"
-    gs.ui.gamewindow.add_message(msg)
+    if gs.ui.gamewindow:
+        msg = "Now entering combat" if toggle else "Now leaving combat"
+        gs.ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
     """Tell clients that a character died. Only to be called by host."""
     char = network.uuid_to_char.get(char_uuid)
     if char:
-        msg = f"{char.cname} perishes"
-        gs.ui.gamewindow.add_message(msg)
+        if gs.ui.gamewindow:
+            msg = f"{char.cname} perishes"
+            gs.ui.gamewindow.add_message(msg)
         char.die()
 
 @rpc(network.peer)
@@ -88,8 +90,9 @@ def remote_set_target(connection, time_received, uuid: int):
     """Update player character's target"""
     tgt = network.uuid_to_char[uuid]
     gs.pc.target = tgt
-    msg = f"Now targeting: {tgt.cname}"
-    gs.ui.gamewindow.add_message(msg)
+    if gs.ui.gamewindow:
+        msg = f"Now targeting: {tgt.cname}"
+        gs.ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def update_cbstate(connection, time_received, uuid: int, cbstate: State):
@@ -98,15 +101,18 @@ def update_cbstate(connection, time_received, uuid: int, cbstate: State):
         return
     cbstate.apply(char)
     if uuid is network.my_uuid:
-        gs.ui.bars.update_display()
-        gs.ui.playerwindow.stats.update_labels()
+        if gs.ui.bars:
+            gs.ui.bars.update_display()
+        if gs.ui.playerwindow:
+            gs.ui.playerwindow.stats.update_labels()
 
 # Skills
 @rpc(network.peer)
 def remote_update_skill(connection, time_received, skill: str, val: int):
     char = gs.pc
     char.skills[skill] = val
-    gs.ui.playerwindow.skills.set_label_text(skill)
+    if gs.ui.playerwindow:
+        gs.ui.playerwindow.skills.set_label_text(skill)
 
 # Items
 @rpc(network.peer)
@@ -125,7 +131,8 @@ def remote_update_container(connection, time_received, container_name: str, cont
         container[slot] = item
         auto_set_primary_option(item, container_name)
 
-    gs.ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
+    if gs.ui.playerwindow:
+        gs.ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
 
 # Physical
 @rpc(network.peer)
@@ -141,4 +148,5 @@ def update_lerp_pstate(connection, time_received, uuid: int,
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
     """Remotely print a message for another player"""
-    gs.ui.gamewindow.add_message(msg)
+    if gs.ui.gamewindow:
+        gs.ui.gamewindow.add_message(msg)
