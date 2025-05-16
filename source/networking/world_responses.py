@@ -40,15 +40,15 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
 
 @rpc(network.peer)
 def bind_pc_items(connection, time_received, inventory: list[int], equipment: list[int]):
-    for i, iiid in enumerate(inventory):
+    for i, inst_id in enumerate(inventory):
         # Item doesn't exist if negative
-        if iiid >= 0:
-            gs.pc.inventory[i].iiid = iiid
-            network.iiid_to_item[iiid] = gs.pc.inventory[i]
-    for i, iiid in enumerate(equipment):
-        if iiid >= 0:
-            gs.pc.equipment[i].iiid = iiid
-            network.iiid_to_item[iiid] = gs.pc.equipment[i]
+        if inst_id >= 0:
+            gs.pc.inventory[i].inst_id = inst_id
+            network.inst_id_to_item[inst_id] = gs.pc.inventory[i]
+    for i, inst_id in enumerate(equipment):
+        if inst_id >= 0:
+            gs.pc.equipment[i].inst_id = inst_id
+            network.inst_id_to_item[inst_id] = gs.pc.equipment[i]
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,

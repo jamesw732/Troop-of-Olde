@@ -82,14 +82,14 @@ class Item(dict):
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, item_id):
+    def __init__(self, item_id, inst_id=None):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
         item_id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs"""
-        item_id = str(item_id)
-        self.id = item_id
+        self.item_id = item_id
+        self.inst_id = inst_id
         self.icon = None
-        data = copy.deepcopy(items_dict[item_id])
+        data = copy.deepcopy(items_dict[str(item_id)])
 
         super().__init__(**data)
 
@@ -106,12 +106,11 @@ class Item(dict):
             self['functions'] = copy.copy(self.type_to_options.get(self["type"], []))
         if gs.network.peer.is_hosting():
             # Set the instantiated ID.
-            # Currently, instantiated item id's are only transmitted to
-            # the client upon connection, they will eventually need to be transmitted upon creation.
-            # This should probably be outside of this __init__, though.
-            self.iiid = gs.network.iiid_counter
-            gs.network.iiid_to_item[gs.network.iiid_counter] = self
-            gs.network.iiid_counter += 1
+            # Currently, instantiated item id's are only transmitted to the client upon player connection,
+            # they will eventually need to be transmitted upon creation.
+            self.inst_id = gs.network.item_inst_id_ct
+            gs.network.inst_id_to_item[self.inst_id] = self
+            gs.network.item_inst_id_ct += 1
 
 # Public functions
 def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):

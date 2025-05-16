@@ -281,12 +281,12 @@ class ItemIcon(Entity):
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
         conn = gs.network.server_connection
-        gs.network.peer.request_auto_equip(conn, self.item.iiid, self.parent.slot, self.parent.container_name)
+        gs.network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot, self.parent.container_name)
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
         conn = gs.network.server_connection
-        gs.network.peer.request_auto_unequip(conn, self.item.iiid, self.parent.slot)
+        gs.network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""

@@ -15,7 +15,6 @@ class Network(Entity):
         self.uuid_to_char = dict()
         self.connection_to_char = dict()
         self.uuid_to_connection = dict()
-        self.iiid_to_item = dict()
 
         self.server_connection = None
 
@@ -23,7 +22,8 @@ class Network(Entity):
         self.uuid_counter = 0
         self.my_uuid = None
 
-        self.iiid_counter = 0
+        self.inst_id_to_item = dict()
+        self.item_inst_id_ct = 0
 
     @every(UPDATE_RATE)
     def fixed_update(self):

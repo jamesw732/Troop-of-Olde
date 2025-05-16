@@ -22,8 +22,7 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 ===========================RIGHT NOW===============================
 Clean up the items code. Off the top of my head:
 - Improve id naming, should use "database id" and "runtime id", abbreviated "db_id" and "rt_id"
-- Another big one is having more normalized parameters for swaps, like "to_slot" rather than "slot1"
-- Why does Item inherit dict? Convenience I guess? Is the convenience worthwhile?
+- Remove the bind methods in world_responses, these probably need to be done immediately.
 
 
 
