@@ -2,7 +2,7 @@
 from ursina import *
 import random
 
-from .base import sigmoid, sqdist, fists_base_dmg
+from .base import sigmoid, sqdist, fists_base_dmg, slot_to_ind
 
 
 # PUBLIC
@@ -10,7 +10,7 @@ def tick_mh(char):
     """Increment combat timer by dt. Returns True if we exceeded the weapon's delay"""
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     char.mh_combat_timer += time.dt * get_haste_modifier(char.haste)
-    wep = char.equipment['mh']
+    wep = char.equipment[slot_to_ind['mh']]
     delay = get_wpn_delay(wep)
     if char.mh_combat_timer > delay:
         char.mh_combat_timer -= delay
@@ -22,7 +22,7 @@ def tick_oh(char):
     # Add time.dt to combat timer, if flows over max, attempt hit and subtract max
     # * dw_skill / rec_level if slot == oh else 1
     char.oh_combat_timer += time.dt * get_haste_modifier(char.haste)  / 1.5
-    wep = char.equipment['oh']
+    wep = char.equipment[slot_to_ind['oh']]
     delay = get_wpn_delay(wep)
     if char.oh_combat_timer > delay:
         char.oh_combat_timer -= delay
@@ -37,6 +37,8 @@ def attempt_attack(src, tgt, slot):
         hitstring = get_melee_hit_string(src, tgt, miss=True)
         hit = False
     else:
+        if isinstance(slot, str):
+            slot = slot_to_ind[slot]
         # If hit goes through, do some more fancy calculations to get damage
         wep = src.equipment[slot]
         if wep is not None and "info" not in wep:
