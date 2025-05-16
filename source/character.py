@@ -109,7 +109,8 @@ class Character(Entity):
         self.inventory = copy(default_inventory)
 
     def _init_powers(self):
-        self.lexicon = {}
+        # This will probably be smaller eventually
+        self.lexicon = [None] * 30
 
     def update(self):
         # This will eventually be moved to MobController, on a fixed

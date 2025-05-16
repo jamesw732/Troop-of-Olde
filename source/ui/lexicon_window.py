@@ -37,10 +37,10 @@ class LexiconWindow(Entity):
                      for i in range(page_grid_size[0])]
 
         self.boxes = [PowerBox(gs.pc.lexicon, i,
-                                            parent=self.page,
-                                            position=pos * box_scale * (1 + box_spacing),
-                                            scale=box_scale, color=slot_color)
-                            for i, pos in enumerate(positions)]
+                                parent=self.page,
+                                position=pos * box_scale * (1 + box_spacing),
+                                scale=box_scale, color=slot_color)
+                        for i, pos in enumerate(positions)]
         for slot in self.boxes:
             grid(slot, num_rows=1, num_cols=1, color=color.black)
 
@@ -56,12 +56,12 @@ class LexiconWindow(Entity):
                 box.icon.collision = False
 
 class PowerBox(Entity):
-    def __init__(self, page, slot, *args, **kwargs):
+    def __init__(self, lexicon, slot, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
-        self.page = page
-        self.slot = str(slot)
+        self.lexicon = lexicon
+        self.slot = slot
         self.icon = None
-        power = page.get(self.slot, None)
+        power = lexicon[self.slot]
         if power is not None:
             self.icon = PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
                       position=(0, 0, -2))
