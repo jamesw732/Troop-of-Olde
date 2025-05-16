@@ -2,10 +2,9 @@ from ursina import *
 import json
 import copy
 
-from .base import default_equipment, default_inventory
+from .base import default_equipment, default_inventory, slot_to_ind
 from .gamestate import gs
 # This import might be a problem eventually
-from .states.container import IdContainer, container_to_ids, ids_to_container
 from .states.state import State
 
 """
@@ -90,10 +89,17 @@ class Item(dict):
         item_id = str(item_id)
         self.id = item_id
         self.icon = None
-        data = items_dict[item_id]
+        data = copy.deepcopy(items_dict[item_id])
 
         super().__init__(**data)
-        # Need to be careful with assigning mutable objects
+
+        info = self["info"]
+        if "slot" in info:
+            info["slot"] = slot_to_ind[info["slot"]]
+        if "slots" in info:
+            for i, slot in enumerate(info["slots"]):
+                info["slots"][i] = slot_to_ind[slot]
+
         if self["type"] in ["weapon", "equipment"]:
             self["stats"] = State("pc_combat", **self.get("stats", {}))
         if "functions" not in self:
@@ -132,7 +138,7 @@ def internal_swap(char, container1, slot1, container2, slot2):
     handle_stat_updates(char, item2, container1, container2)
     # Save auto unequipping 2h for last, otherwise position gets screwed up
     if man_unequip_2h:
-        iauto_unequip(char, "mh")
+        iauto_unequip(char, slot_to_ind["mh"])
 
 def iauto_equip(char, old_container, old_slot):
     """Auto equips an item internally"""
@@ -147,16 +153,20 @@ def iauto_unequip(char, old_slot):
         return
     internal_swap(char, "equipment", old_slot, "inventory", new_slot)
 
-def equip_many_items(char, itemsdict, handle_stats=True):
+def equip_item(char, item, slot, handle_stats=True):
+    internal_move_item(char, item, "equipment", slot, from_container_n="nowhere")
+    update_primary_option(item, "unequip")
+    if handle_stats:
+        handle_stat_updates(char, item, "equipment", "nowhere")
+
+
+def equip_many_items(char, items, handle_stats=True):
     """Magically equips all items in itemsdict. Use this only when characters enter world.
     char: Character
     itemsdict: dict mapping equipment slots to Items
     handle_stats: bool, only True when called by server"""
-    for slot, item in itemsdict.items():
-        internal_move_item(char, item, "equipment", slot, from_container_n="nowhere")
-        update_primary_option(item, "unequip")
-        if handle_stats:
-            handle_stat_updates(char, item, "equipment", "nowhere")
+    for slot, item in enumerate(items):
+        equip_item(char, item, slot, handle_stats)
 
 def auto_set_primary_option(item, container_name):
     new_primary_option = get_primary_option_from_container(item, container_name)
@@ -223,9 +233,9 @@ def equipping_2h(item, tgt_container):
 def unequip_offhand(char):
     """Unequips the offhand, if there is one"""
     # Unequip the offhand too
-    offhand = char.equipment["oh"]
+    offhand = char.equipment[slot_to_ind["oh"]]
     if offhand is not None:
-        unequipped = iauto_unequip(char, "oh")
+        unequipped = iauto_unequip(char, slot_to_ind["oh"])
         if not unequipped:
             return False
     return True
@@ -234,11 +244,11 @@ def equipping_oh_wearing_2h(char, item, tgt_slot):
     """Equipping an offhand while wearing a 2h weapon. Note that based on how
     auto slot finding is written, this case is only possible if the slot was
     intentionally selected for this item."""
-    mh = char.equipment["mh"]
+    mh = char.equipment[slot_to_ind["mh"]]
     if mh is None:
         return False
     mh_is_2h = item_is_2h(mh)
-    return mh_is_2h and tgt_slot == "oh"
+    return mh_is_2h and tgt_slot == slot_to_ind["oh"]
 
 def item_is_2h(item):
     if item is None:
@@ -255,10 +265,11 @@ def find_first_empty_equip(item, char):
         # Might not have found, that's okay, just check for first empty in slots
         slots = iteminfo.get("slots", [])
         if not slots:
-            return ""
+            # This is guaranteed to not work right now
+            return -1
         for s in slots:
-            i_in_s = char.equipment[s]
-            if i_in_s is None or s == "mh" and item_is_2h(i_in_s):
+            cur_item = char.equipment[s]
+            if cur_item is None or s == slot_to_ind["mh"] and item_is_2h(cur_item):
                 slot = s
                 break
         # None empty, so just take the first
@@ -269,7 +280,7 @@ def find_first_empty_equip(item, char):
 def find_first_empty_inventory(char):
     """Find the first empty inventory slot"""
     invent = char.inventory
-    empty_slots = (str(slot) for slot in range(24) if invent[str(slot)] is None)
+    empty_slots = (slot for slot in range(28) if invent[slot] is None)
     try:
         return next(empty_slots)
     except StopIteration:

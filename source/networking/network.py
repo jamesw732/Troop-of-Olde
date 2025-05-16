@@ -10,7 +10,7 @@ class Network(Entity):
     """Represents a peer's interface into the network state"""
     def __init__(self):
         super().__init__()
-        self.peer = RPCPeer()
+        self.peer = RPCPeer(max_list_length=50)
 
         self.uuid_to_char = dict()
         self.connection_to_char = dict()

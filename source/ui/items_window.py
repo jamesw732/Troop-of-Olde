@@ -2,6 +2,8 @@ from ursina import *
 import copy
 
 from .base import *
+from ..base import equipment_slots
+from ..base import slot_to_ind
 from ..gamestate import gs
 from ..item import *
 
@@ -36,12 +38,12 @@ class ItemsWindow(Entity):
         # % of width of box used as spacing between boxes
         equip_box_spacing = 0.2
         # Where in the grid the gear slots go
-        equipped_positions = {
-            "armor": Vec3(1, -1, -1),
-            "ring": Vec3(2, -1, -1),
-            "mh": Vec3(0, -2, -1),
-            "oh": Vec3(2, -2, -1),
-        }
+        equipped_positions = [
+            Vec3(1, -1, -1),
+            Vec3(2, -1, -1),
+            Vec3(0, -2, -1),
+            Vec3(2, -2, -1),
+        ]
         # ============CODE=================
         grid_ratio = equip_grid_size[0] / equip_grid_size[1]
         # compute the height of the frame WRT window given width, grid size, and spacing
@@ -59,13 +61,14 @@ class ItemsWindow(Entity):
 
         equip_box_scale = Vec3(box_w, box_h, 1)
 
-        self.equipment_boxes = {
-            slot: ItemBox(text=slot, slot=slot, container_name="equipment",
+        self.equipment_boxes = [
+            ItemBox(text=equipment_slots[i], slot=i, container_name="equipment",
                            parent=self.equipped_frame,
                            position=pos * ((1 + equip_box_spacing) * equip_box_scale),
                            scale=equip_box_scale, color=slot_color)
-                for slot, pos in equipped_positions.items()
-        }
+                for i, pos in enumerate(equipped_positions)
+        ]
+
         # Make inventory subframe
         # ===========PARAMETERS=============
         # Width of the inventory frame relative to the window
@@ -89,15 +92,17 @@ class ItemsWindow(Entity):
 
         inventory_box_scale = Vec3(1 / inventory_grid_size[0], 1 / inventory_grid_size[1], 1)
 
-        self.inventory_boxes = {str(i): ItemBox(slot=str(i), container_name="inventory",
-                                                parent=self.inventory_subframe,
-                                                position=pos * inventory_box_scale,
-                                                scale=inventory_box_scale, color=slot_color)
-                                for i, pos in enumerate(self.inventory_positions)}
+        self.inventory_boxes = [
+            ItemBox(slot=i, container_name="inventory",
+                    parent=self.inventory_subframe,
+                    position=pos * inventory_box_scale,
+                    scale=inventory_box_scale, color=slot_color)
+            for i, pos in enumerate(self.inventory_positions)
+        ]
 
-        for slot in self.equipment_boxes.values():
+        for slot in self.equipment_boxes:
             grid(slot, num_rows=1, num_cols=1, color=color.black)
-        for slot in self.inventory_boxes.values():
+        for slot in self.inventory_boxes:
             grid(slot, num_rows=1, num_cols=1, color=color.black)
 
         self.item_icons = []
@@ -107,12 +112,12 @@ class ItemsWindow(Entity):
 
     def make_char_items(self):
         """Reads player inventory and equipment and outputs to UI"""
-        for i, item in self.player.inventory.items():
+        for i, item in enumerate(self.player.inventory):
             self.make_item_icon(item, self.inventory_boxes[i])
-        for k, item in self.player.equipment.items():
+        for i, item in enumerate(self.player.equipment):
             if item is not None:
-                self.equipment_boxes[k].label.text = ""
-            self.make_item_icon(item, self.equipment_boxes[k])
+                self.equipment_boxes[i].label.text = ""
+            self.make_item_icon(item, self.equipment_boxes[i])
 
     def make_item_icon(self, item, parent):
         """Creates an item icon and puts it in the UI.
@@ -135,32 +140,29 @@ class ItemsWindow(Entity):
         self.item_icons.append(icon)
 
     def enable_colliders(self):
-        for box in self.equipment_boxes.values():
+        for box in self.equipment_boxes:
             box.collision = True
-        for box in self.inventory_boxes.values():
+        for box in self.inventory_boxes:
             box.collision = True
         for icon in self.item_icons:
             icon.collision = True
 
     def disable_colliders(self):
-        for box in self.equipment_boxes.values():
+        for box in self.equipment_boxes:
             box.collision = False
-        for box in self.inventory_boxes.values():
+        for box in self.inventory_boxes:
             box.collision = False
         for icon in self.item_icons:
             icon.collision = False
 
-    def update_ui_icons(self, container_name, loop=None):
-        if loop is None:
-            loop = getattr(gs.pc, container_name).items()
+    def update_ui_icons(self, container_name):
         ui_container = getattr(self, container_name + "_boxes")
-        for slot, item in loop:
-            box = ui_container[slot]
+        for box in ui_container:
             box.refresh_icon()
 
 
 class ItemBox(Entity):
-    def __init__(self, *args, text="", container=None, slot=None, container_name="", **kwargs):
+    def __init__(self, *args, text="", slot=None, container_name="", **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
         if text:
             self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
@@ -175,7 +177,7 @@ class ItemBox(Entity):
         if item is None:
             self.itemicon = None
             if self.container_name == "equipment":
-                self.label.text = self.slot
+                self.label.text = equipment_slots[self.slot]
             return
         icon = item.icon
         self.itemicon = icon
@@ -274,12 +276,12 @@ class ItemIcon(Entity):
                 return False
 
         conn = gs.network.server_connection
-        gs.network.peer.request_swap_items(conn, my_container, str(my_slot), other_container, str(other_slot))
+        gs.network.peer.request_swap_items(conn, my_container, my_slot, other_container, other_slot)
 
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
         conn = gs.network.server_connection
-        gs.network.peer.request_auto_equip(conn, self.item.iiid, str(self.parent.slot), self.parent.container_name)
+        gs.network.peer.request_auto_equip(conn, self.item.iiid, self.parent.slot, self.parent.container_name)
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
@@ -291,8 +293,9 @@ class ItemIcon(Entity):
         iteminfo = self.item.get("info", {})
         slot = iteminfo.get("slot")
         if slot is not None:
-            return [slot]
-        return iteminfo.get("slots", [])
+            return [slot_to_ind[slot]]
+        slots = iteminfo.get("slots", [])
+        return [slot_to_ind[slot] for slot in slots]
 
     def on_click(self):
         self.clicked = True

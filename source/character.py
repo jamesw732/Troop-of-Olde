@@ -10,18 +10,17 @@ from ursina import *
 from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills, sqdist
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, equip_many_items
+from .item import Item, equip_item
 from .physics import *
 from .power import Power
 from .skills import *
 from .states.state import *
-from .states.container import IdContainer
 
 
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, 
                  pstate=None, cbstate=None,
-                 equipment={}, inventory={}, skills={}, lexicon={}):
+                 equipment=[], inventory=[], skills={}, lexicon=[]):
         """Initialize a Character. Generate parameters using
         states.get_character_states_from_json.
 
@@ -29,10 +28,10 @@ class Character(Entity):
         uuid: unique id. Used to encode which player you're talking about online.
         pstate: State; defines physical attrs, these are updated client-authoritatively
         base_state: State; used to build the character's stats from the ground up
-        equipment: dict of Items keyed by slot, or IdContainer of item id's keyed by slot
-        inventory: dict of Items keyed by index within inventory, 0-23, or IdContainer of item id's keyed by slot
+        equipment: list of Items or runtime item Ids
+        inventory: list of Items or runtime item Ids
         skills: State dict mapping str skill names to int skill levels
-        lexicon: IdContainer mapping slot to power id
+        lexicon: list of Powers or power Ids
         """
         self.cname = cname
         self.uuid = uuid
@@ -53,22 +52,36 @@ class Character(Entity):
         # Populate all attrs
         if pstate:
             pstate.apply(self)
-        if inventory:
-            for slot, item in inventory.items():
-                if isinstance(item, (int, str)):
-                    # handle it as an id
-                    self.inventory[slot] = Item(str(item))
-                else:
-                    self.inventory[slot] = item
-        if lexicon:
-            for i, power_id in lexicon.items():
-                self.lexicon[i] = Power(power_id)
         if cbstate:
             cbstate.apply(self)
+        if inventory:
+            for slot, item in enumerate(inventory):
+                if isinstance(item, int):
+                    # handle item as an id
+                    if item < 0:
+                        item = None
+                    else:
+                        item = Item(item)
+                self.inventory[slot] = item
         if equipment:
-            if isinstance(equipment, IdContainer):
-                equipment = {slot: Item(itemid) for slot, itemid in equipment.items()}
-            equip_many_items(self, equipment)
+            for slot, item in enumerate(equipment):
+                if isinstance(item, int):
+                    # handle item as an id
+                    if item < 0:
+                        item = None
+                    else:
+                        item = Item(item)
+                # need to be more careful about stat changes on client?
+                equip_item(self, item, slot)
+        if lexicon:
+            for i, power in enumerate(lexicon):
+                if isinstance(power, int):
+                    # Handle power as an id
+                    if power < 0:
+                        power = None
+                    else:
+                        power = Power(power)
+                self.lexicon[i] = power
 
         self.update_max_ratings()
         for attr in ["health", "energy", "armor"]:

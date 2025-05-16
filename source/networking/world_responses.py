@@ -9,7 +9,7 @@ from ..character import Character
 from ..controllers import *
 from ..item import *
 from ..gamestate import gs
-from ..states import State, IdContainer
+from ..states import State
 from ..ui import UI, make_all_ui
 from ..world_gen import GenerateWorld
 
@@ -20,8 +20,8 @@ def remote_generate_world(connection, time_received, zone:str):
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: IdContainer,
-             inventory: IdContainer, skills: State, lexicon: IdContainer, cbstate: State):
+def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: list[int],
+             inventory: list[int], skills: State, lexicon: list[int], cbstate: State):
     gs.pc = Character(pstate=pstate, equipment=equipment,
                       inventory=inventory, skills=skills,
                       lexicon=lexicon, cbstate=cbstate)
@@ -39,13 +39,16 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: IdC
 
 
 @rpc(network.peer)
-def bind_pc_items(connection, time_received, inventory: IdContainer, equipment: IdContainer):
-    for k, iiid in inventory.items():
-        gs.pc.inventory[k].iiid = iiid
-        network.iiid_to_item[iiid] = gs.pc.inventory[k]
-    for k, iiid in equipment.items():
-        gs.pc.equipment[k].iiid = iiid
-        network.iiid_to_item[iiid] = gs.pc.equipment[k]
+def bind_pc_items(connection, time_received, inventory: list[int], equipment: list[int]):
+    for i, iiid in enumerate(inventory):
+        # Item doesn't exist if negative
+        if iiid >= 0:
+            gs.pc.inventory[i].iiid = iiid
+            network.iiid_to_item[iiid] = gs.pc.inventory[i]
+    for i, iiid in enumerate(equipment):
+        if iiid >= 0:
+            gs.pc.equipment[i].iiid = iiid
+            network.iiid_to_item[iiid] = gs.pc.equipment[i]
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
@@ -116,23 +119,22 @@ def remote_update_skill(connection, time_received, skill: str, val: int):
 
 # Items
 @rpc(network.peer)
-def remote_update_container(connection, time_received, container_name: str, container: IdContainer):
+def remote_update_container(connection, time_received, container_name: str, container: list[int]):
     """Update internal containers and visual containers
 
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
     this will only be done by non-hosts"""
     if network.peer.is_hosting():
         return
-    internal_container = ids_to_container(container)
+    new_container = ids_to_container(container)
+    old_container = getattr(gs.pc, container_name)
 
-    loop = internal_container.items()
-    container = getattr(gs.pc, container_name)
-    for slot, item in loop:
-        container[slot] = item
+    for slot, item in enumerate(new_container):
+        old_container[slot] = item
         auto_set_primary_option(item, container_name)
 
     if gs.ui.playerwindow:
-        gs.ui.playerwindow.items.update_ui_icons(container_name, loop=loop)
+        gs.ui.playerwindow.items.update_ui_icons(container_name)
 
 # Physical
 @rpc(network.peer)

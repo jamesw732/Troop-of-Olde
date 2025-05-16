@@ -13,14 +13,14 @@ from ..controllers import *
 from ..item import *
 from ..gamestate import gs
 from ..power import Power
-from ..states.state import State
+from ..states import State, container_to_ids
 
 # LOGIN
 @rpc(network.peer)
 def request_enter_world(connection, time_received, pstate: State,
-                        base_state: State, equipment: IdContainer,
-                        inventory: IdContainer, skills: State,
-                        lexicon: IdContainer):
+                        base_state: State, equipment: list[int],
+                        inventory: list[int], skills: State,
+                        lexicon: list[int]):
     if network.peer.is_hosting():
         new_pc = Character(pstate=pstate, cbstate=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
@@ -52,11 +52,9 @@ def request_enter_world(connection, time_received, pstate: State,
                 network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
         network.peer.make_ui(connection)
         # Send over instantiated item id's
-        inst_inventory = IdContainer({k: item.iiid for k, item
-                          in new_pc.inventory.items() if item is not None})
-        inst_equipment = IdContainer({k: item.iiid for k, item
-                          in new_pc.equipment.items() if item is not None})
-        network.peer.bind_pc_items(connection, inst_inventory, inst_equipment)
+        inventory_ids = container_to_ids(new_pc.inventory)
+        equipment_ids = container_to_ids(new_pc.equipment)
+        network.peer.bind_pc_items(connection, inventory_ids, equipment_ids)
         network.broadcast_cbstate_update(new_pc)
 
 
@@ -87,7 +85,7 @@ def request_use_power(connection, time_received, power_id: int):
 
 # ITEMS
 @rpc(network.peer)
-def request_swap_items(connection, time_received, container1: str, slot1: str, container2: str, slot2: str):
+def request_swap_items(connection, time_received, container1: str, slot1: int, container2: str, slot2: int):
     """Request host to swap items internally, host will send back updated container states"""
     if not network.peer.is_hosting():
         return
@@ -99,7 +97,7 @@ def request_swap_items(connection, time_received, container1: str, slot1: str, c
         network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
-def request_auto_equip(connection, time_received, itemid: int, old_slot: str, old_container: str):
+def request_auto_equip(connection, time_received, itemid: int, old_slot: int, old_container: str):
     """Request host to automatically equip a given item."""
     char = network.connection_to_char[connection]
     iauto_equip(char, old_container, old_slot)
@@ -109,7 +107,7 @@ def request_auto_equip(connection, time_received, itemid: int, old_slot: str, ol
         network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
-def request_auto_unequip(connection, time_received, itemid: int, old_slot: str):
+def request_auto_unequip(connection, time_received, itemid: int, old_slot: int):
     """Request host to automatically unequip a given item."""
     char = network.connection_to_char[connection]
     iauto_unequip(char, old_slot)

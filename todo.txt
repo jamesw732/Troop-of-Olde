@@ -20,15 +20,15 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================RIGHT NOW===============================
-Convert equipment and inventory to use a list rather than a dict.
+Clean up the items code. Off the top of my head:
+- Improve id naming, should use "database id" and "runtime id", abbreviated "db_id" and "rt_id"
+- Another big one is having more normalized parameters for swaps, like "to_slot" rather than "slot1"
+- Why does Item inherit dict? Convenience I guess? Is the convenience worthwhile?
 
 
 
 
 ===================================NEXT================================================
-Improve naming of item ids, new ones will be:
-Global Item Id (giid), these are the id's associated to items that live in the disk.
-Instantiated Item Id (iiid), these are the id's associated to items that live in memory.
 
 Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
 Client side prediction and server authoritative physics. Fixed timestep physics.
