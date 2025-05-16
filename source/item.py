@@ -114,28 +114,26 @@ class Item(dict):
             gs.network.iiid_counter += 1
 
 # Public functions
-def internal_swap(char, container1, slot1, container2, slot2):
+def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
     """Handles all the magic necessary to swap two items. Main driving function
-    for moving items.
+    for moving items."""
 
-    It is important to treat container1 and slot1 as the source, as the
-    corresponding Item cannot be None"""
-    item1 = getattr(char, container1)[slot1]
-    item2 = getattr(char, container2)[slot2]
+    item1 = getattr(char, from_container_n)[from_slot]
+    item2 = getattr(char, to_container_n)[to_slot]
 
     # If we're intentionally equipping offhand, unequip 2h if wearing
-    man_unequip_2h = equipping_oh_wearing_2h(char, item1, slot2) \
-                     or equipping_oh_wearing_2h(char, item2, slot1)
+    man_unequip_2h = equipping_oh_wearing_2h(char, item1, to_slot) \
+                     or equipping_oh_wearing_2h(char, item2, from_slot)
     # If equipping 2h, also unequip offhand if wearing
-    if equipping_2h(item1, container2):
+    if equipping_2h(item1, to_container_n):
         unequip_offhand(char)
-    if equipping_2h(item2, container1):
+    if equipping_2h(item2, from_container_n):
         unequip_offhand(char)
 
-    internal_move_item(char, item1, container2, slot2, container1)
-    handle_stat_updates(char, item1, container2, container1)
-    internal_move_item(char, item2, container1, slot1, container2)
-    handle_stat_updates(char, item2, container1, container2)
+    internal_move_item(char, item1, to_container_n, to_slot, from_container_n)
+    handle_stat_updates(char, item1, to_container_n, from_container_n)
+    internal_move_item(char, item2, from_container_n, from_slot, to_container_n)
+    handle_stat_updates(char, item2, from_container_n, to_container_n)
     # Save auto unequipping 2h for last, otherwise position gets screwed up
     if man_unequip_2h:
         iauto_unequip(char, slot_to_ind["mh"])
