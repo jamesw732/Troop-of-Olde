@@ -34,6 +34,8 @@ def request_enter_world(connection, time_received, pstate: State,
         gs.chars.append(new_pc)
         network.connection_to_char[connection] = new_pc
         network.peer.remote_generate_world(connection, "demo.json")
+        inventory_ids = container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
+        equipment_ids = container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
         # The new pc will be an npc for everybody else
         new_pc_cbstate = State("npc_combat", new_pc)
         for conn in network.peer.get_connections():
@@ -41,8 +43,8 @@ def request_enter_world(connection, time_received, pstate: State,
                 for ch in gs.chars:
                     if ch is new_pc:
                         pc_cbstate = State("pc_combat", new_pc)
-                        network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment,
-                                              inventory, skills, lexicon, pc_cbstate)
+                        network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
+                                              inventory_ids, skills, lexicon, pc_cbstate)
                     else:
                         npc_pstate = State("physical", ch)
                         npc_cbstate = State("npc_combat", ch)
@@ -50,11 +52,6 @@ def request_enter_world(connection, time_received, pstate: State,
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
-        network.peer.make_ui(connection)
-        # Send over instantiated item id's
-        inventory_ids = container_to_ids(new_pc.inventory)
-        equipment_ids = container_to_ids(new_pc.equipment)
-        network.peer.bind_pc_items(connection, inventory_ids, equipment_ids)
         network.broadcast_cbstate_update(new_pc)
 
 
@@ -97,20 +94,20 @@ def request_swap_items(connection, time_received, container1: str, slot1: int, c
         network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
-def request_auto_equip(connection, time_received, itemid: int, old_slot: int, old_container: str):
-    """Request host to automatically equip a given item."""
+def request_auto_equip(connection, time_received, itemid: int, slot: int, container_name: str):
+    """Request host to automatically equip an item."""
     char = network.connection_to_char[connection]
-    iauto_equip(char, old_container, old_slot)
-    for name in set([old_container, "equipment"]):
+    iauto_equip(char, container_name, slot)
+    for name in set([container_name, "equipment"]):
         container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)
         network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
-def request_auto_unequip(connection, time_received, itemid: int, old_slot: int):
-    """Request host to automatically unequip a given item."""
+def request_auto_unequip(connection, time_received, itemid: int, slot: int):
+    """Request host to automatically unequip an item."""
     char = network.connection_to_char[connection]
-    iauto_unequip(char, old_slot)
+    iauto_unequip(char, slot)
     for name in ["equipment", "inventory"]:
         container = container_to_ids(getattr(char, name))
         network.peer.remote_update_container(connection, name, container)

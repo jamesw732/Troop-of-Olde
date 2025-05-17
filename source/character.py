@@ -10,7 +10,7 @@ from ursina import *
 from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills, sqdist
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, equip_item
+from .item import Item, equip_item, make_item_from_data
 from .physics import *
 from .power import Power
 from .skills import *
@@ -28,8 +28,8 @@ class Character(Entity):
         uuid: unique id. Used to encode which player you're talking about online.
         pstate: State; defines physical attrs, these are updated client-authoritatively
         base_state: State; used to build the character's stats from the ground up
-        equipment: list of Items or runtime item Ids
-        inventory: list of Items or runtime item Ids
+        equipment: list of Items or item ids or tuples of item ids and inst item ids
+        inventory: list of Items or item ids or tuples of item ids and inst item ids
         skills: State dict mapping str skill names to int skill levels
         lexicon: list of Powers or power Ids
         """
@@ -55,23 +55,12 @@ class Character(Entity):
         if cbstate:
             cbstate.apply(self)
         if inventory:
-            for slot, item in enumerate(inventory):
-                if isinstance(item, int):
-                    # handle item as an id
-                    if item < 0:
-                        item = None
-                    else:
-                        item = Item(item)
+            for slot, item_data in enumerate(inventory):
+                item = make_item_from_data(item_data)
                 self.inventory[slot] = item
         if equipment:
-            for slot, item in enumerate(equipment):
-                if isinstance(item, int):
-                    # handle item as an id
-                    if item < 0:
-                        item = None
-                    else:
-                        item = Item(item)
-                # need to be more careful about stat changes on client?
+            for slot, item_data in enumerate(equipment):
+                item = make_item_from_data(item_data)
                 equip_item(self, item, slot)
         if lexicon:
             for i, power in enumerate(lexicon):

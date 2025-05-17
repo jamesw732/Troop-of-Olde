@@ -22,6 +22,16 @@ def remote_generate_world(connection, time_received, zone:str):
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: list[int],
              inventory: list[int], skills: State, lexicon: list[int], cbstate: State):
+    """Does all the necessary steps to put the player character in the world, and makes the UI
+    
+    Parameters are typical, except for equipment and inventory. We need both the global
+    item id and instance id of each item, so the first half of the list is the global
+    id, the second half is the instance id.
+    """
+    inv_l = len(inventory)
+    inventory = zip(inventory[:inv_l//2], inventory[inv_l//2:])
+    equip_l = len(equipment)
+    equipment = zip(equipment[:equip_l//2], equipment[equip_l//2:])
     gs.pc = Character(pstate=pstate, equipment=equipment,
                       inventory=inventory, skills=skills,
                       lexicon=lexicon, cbstate=cbstate)
@@ -37,18 +47,8 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
     network.my_uuid = uuid
     network.server_connection = connection
 
-
-@rpc(network.peer)
-def bind_pc_items(connection, time_received, inventory: list[int], equipment: list[int]):
-    for i, inst_id in enumerate(inventory):
-        # Item doesn't exist if negative
-        if inst_id >= 0:
-            gs.pc.inventory[i].inst_id = inst_id
-            network.inst_id_to_item[inst_id] = gs.pc.inventory[i]
-    for i, inst_id in enumerate(equipment):
-        if inst_id >= 0:
-            gs.pc.equipment[i].inst_id = inst_id
-            network.inst_id_to_item[inst_id] = gs.pc.equipment[i]
+    gs.ui = UI()
+    make_all_ui(gs.ui)
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
@@ -62,12 +62,6 @@ def spawn_npc(connection, time_received, uuid: int,
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid
-
-@rpc(network.peer)
-def make_ui(connection, time_received):
-    """Remotely tell a client to make the game UI"""
-    gs.ui = UI()
-    make_all_ui(gs.ui)
 
 # Combat
 @rpc(network.peer)

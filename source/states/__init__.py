@@ -33,10 +33,11 @@ def container_to_ids(container, id_type="inst_id"):
     """Convert a container (Character attribute) to one sendable over the network
 
     container: list containing Items
-    id_type: the literal id attribute of the item"""
-    # if isinstance(id_type, tuple):
-    #     return [tuple(getattr(item, id_subtype) if hasattr(item, id_subtype) else -1 for id_subtype in id_type)
-    #             for item in container]
+    id_type: the literal id attribute of the item, or tuple of id attributes
+    In the latter case, returns a 1d list stacked in order of the id attributes"""
+    if isinstance(id_type, tuple):
+        return [getattr(item, id_subtype) if hasattr(item, id_subtype) else -1 for id_subtype in id_type
+                for item in container]
     return [getattr(item, id_type) if hasattr(item, id_type) else -1 for item in container]
 
 def ids_to_container(id_container):

@@ -82,12 +82,11 @@ class Item(dict):
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, item_id, inst_id=None):
+    def __init__(self, item_id, inst_id=-1):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
         item_id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs"""
         self.item_id = item_id
-        self.inst_id = inst_id
         self.icon = None
         data = copy.deepcopy(items_dict[str(item_id)])
 
@@ -109,10 +108,34 @@ class Item(dict):
             # Currently, instantiated item id's are only transmitted to the client upon player connection,
             # they will eventually need to be transmitted upon creation.
             self.inst_id = gs.network.item_inst_id_ct
-            gs.network.inst_id_to_item[self.inst_id] = self
             gs.network.item_inst_id_ct += 1
+        else:
+            self.inst_id = inst_id
+        if self.inst_id >= 0:
+            gs.network.inst_id_to_item[self.inst_id] = self
 
 # Public functions
+def make_item_from_data(item_data):
+    """Handles the possible cases for creating an item from id's
+
+    item_data: an item_id, if called by the server.
+    If called as an RPC for a client, item_data should be a tuple (item_id, instance_id)
+    Also allowed to be an Item, in which case just return item_data"""
+    if isinstance(item_data, int):
+        # item_data is an id
+        if item_data < 0:
+            return None
+        return Item(item_data)
+    elif isinstance(item_data, tuple):
+        # item_data is a tuple containing (item_id, inst_id)
+        # this is for items created by client, since the server tells the client what the instance id is
+        if item_data[0] < 0:
+            return None
+        return Item(*item_data)
+    # otherwise, assume it's an Item already
+    return item_data
+
+
 def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
     """Handles all the magic necessary to swap two items. Main driving function
     for moving items."""
