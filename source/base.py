@@ -4,6 +4,14 @@ import math
 
 fists_base_dmg = 2
 
+"""
+Plan to add:
+hardiness - ability to withstand non-physical damage (ie cold, fire, poison, etc). Alternatively,
+have an advanced elemental type system
+some stat that speeds up GCD/channeling, maybe
+some stat that scales power damage
+crit damage/rate
+"""
 default_cb_attrs = {
     "maxhealth": 0,
     "health": 100,
@@ -15,23 +23,18 @@ default_cb_attrs = {
     "armor": 0,
 
     "regenhealth": 0,
-    "regenmana": 0,
-    "regenstamina": 0,
+    "regenenergy": 0,
 
     "str": 0,
     "dex": 0,
     "ref": 0,
-    "hardy": 0,
 
     "haste": 0,
     "speed": 0,
-    "casthaste": 0,
-    "castdmg": 0,
-    "critdmg": 0,
-    "critrate": 0,
 
     "mh_combat_timer": 0,
     "oh_combat_timer": 0,
+    "gcd": 0,
     "attackrange": 3
 }
 

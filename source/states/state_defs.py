@@ -12,12 +12,9 @@ state_defs = {
         "str": int,
         "dex": int,
         "ref": int,
-        "hardy": int,
 
         "haste": int,
         "speed": int,
-        "casthaste": int,
-        "healmod": int
     },
     # Used to update Player Character's stats, sent by server
     "pc_combat": {
@@ -34,14 +31,11 @@ state_defs = {
         "str": int,
         "dex": int,
         "ref": int,
-        "hardy": int,
 
         "haste": int,
         "speed": int,
-        "casthaste": int,
-        "healmod": int
     },
-    # Used to update NPC's stats, sent by server
+    # Used to update NPC's stats, sent by server to client to represent non-player-characters
     "npc_combat": {
         "health": int,
         "maxhealth": int,

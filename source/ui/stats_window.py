@@ -31,15 +31,10 @@ class StatsWindow(Entity):
             ('str', 'Strength'),
             ('dex', 'Dexterity'),
             ('ref', 'Reflexes'),
-            ('hardy', 'Hardiness')
         ]
         self.mod_labels = [
             ('speed', 'Speed'),
             ('haste', 'Haste'),
-            ('casthaste', 'Casting Haste'),
-            ('castdmg', 'Casting Damage'),
-            ('critdmg', 'Crit Damage'),
-            ('critrate', 'Crit Rate')
         ]
 
         self.labels_out_of_max = [tup[0] for tup in self.rating_labels]
