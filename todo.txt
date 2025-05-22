@@ -1,42 +1,49 @@
 This file contains a heap-like todo list, with the following priorities:
 
-RIGHT NOW:
-These are things that I'm actively doing whenever I spend time developing. Things get popped
-off of here once they're done. Should really only have one thing on here at once.
+ACTIVE:
+This is whatever I'm spending active development time on. Should only really have one thing here.
 
 NEXT:
-These are things which I have a good idea of why I need to do it and how I need to do it.
-Things in here get pushed to "Right now" once I decide to spend active development time on it.
+These are basically "next steps" in whatever overarching task I'm working on.
+Things that are put here should not stay on here very long, either pushed into "ACTIVE" once
+I decide it's time to work on it, or pushed back to "BACKLOG" when I realize I'm farther away than
+I thought.
 
 BACKLOG:
-These are things that are either low priority, or I'm not sure how it's going to work yet, but
-I at least have some idea of what I want. Things in here get moved to "Next" or even "Right now"
-once I have a good idea of what I want. This section should be the most vast, and enough so that it
-makes sense to split things up by type.
+These are specific tasks that I'm not very close to accomplishing. Tasks on here might need to get
+split up substantially before being approachable, and might require more thought before I know how they work.
+Tasks in here get popped into "NEXT" or "RIGHT NOW" once I am ready to start implementing them.
+This section will get pretty vast, so some organization is helpful.
 
 DISTANT:
 These are abstract ideas about things that will need to be done eventually, but I haven't thought about.
 Generally, these are huge tasks that I need to seriously split up to be able to parse.
 
 
-===========================RIGHT NOW===============================
-Clean up the items code. Off the top of my head:
-- Improve id naming, should use "database id" and "runtime id", abbreviated "db_id" and "rt_id"
-- Remove the bind methods in world_responses, these probably need to be done immediately.
-
-
+===========================ACTIVE===============================
+Implement a global cooldown for powers.
 
 
 ===================================NEXT================================================
+Consolidate UI code to make creating new UI easier. 
+A more object-oriented design is probably a good idea.
+Remove lexicon, add an action bar.
 
-Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
-Client side prediction and server authoritative physics. Fixed timestep physics.
-
-
+Add more types of powers.
+Want one of each of the following:
+Instant enchantment (a heal spell),
+Persistent enchantment (a buff),
+Persistent curse (a debuff)
+Channeled enchantment (a channeled heal)
+Channeled curse (a channeled damage spell)
 
 
 
 =========================================BACKLOG=================================================
+Physics:
+Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
+Client side prediction and server authoritative physics. Fixed timestep physics.
+
 Combat/Character:
 Neglected formulas:
 - probability to upgrade skill
