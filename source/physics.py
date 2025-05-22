@@ -63,11 +63,13 @@ def handle_grounding(char, velocity):
         char.world_y = ground.world_point[1] + 1e-5
         velocity[1] = 0
     else:
-        # print("Falling")
         char.grounded = False
 
 def handle_collision(char, velocity, depth=0):
-    """Handles feet collision logic."""
+    """Handles feet collision logic.
+
+    If velocity hits a surface, "project" velocity along that surface, then recursively
+    check again."""
     # It's concave, don't try to handle it, just stop
     if depth > 3:
         return Vec3(0, 0, 0)
@@ -77,17 +79,21 @@ def handle_collision(char, velocity, depth=0):
         normal = collision_check.world_normal
         speed = distance(Vec3.zero, velocity)
         # It's a wall
-        if abs(normal.normalized()[1]) <= 0.2:
+        if abs(normal.normalized()[1]) <= 0.4:
+            # Do normal projection formula
             new_velocity = velocity - (numpy.dot(normal, velocity)) * normal
             new_velocity = new_velocity
         # It's a slope
         else:
             point1 = collision_check.world_point
             plane_const = numpy.dot(normal, point1)
+            # take new x and z coordinates as if the surface didn't exist
             x2 = velocity[0] * time.dt + point1[0]
             z2 = velocity[2] * time.dt + point1[2]
+            # find the expected y coordinate from the x and z
             y2 = (plane_const - x2 * normal[0] - z2 * normal[2]) / normal[1]
             point2 = Vec3(x2, y2, z2)
+            # new point is the right direction but wrong distance, re-scale
             new_velocity = (point2 - point1).normalized() * speed
         return handle_collision(char, new_velocity, depth + 1)
     else:
