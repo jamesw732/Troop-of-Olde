@@ -14,12 +14,7 @@ with open(effects_path) as effects_json:
 class Effect(Entity):
     """Represents the actual effect of things like powers and procs
 
-    Current implementation is very simplistic and needs expanding.
-    Basic usage flow of this class is as follows:
-    Create an Effect whenever needed, ie when the player tries to use a Power
-    Call get_hit to see whether the effect actually landed or not
-    Call apply_mods to modify the effect based on source and target's stats. This modifies the actual effect_data
-    Call apply_effect to actually apply the effect. Result will get sent back to client."""
+    Current implementation is very simplistic and needs expanding."""
     def __init__(self, effect_id):
         super().__init__()
         effect_id = str(effect_id)
@@ -30,6 +25,17 @@ class Effect(Entity):
 
         if self.effect_type == "persistent":
             self.timer = 0
+
+    def attempt_apply(self, src, tgt):
+        """Main driving method called by the server for applying an effect to a target"""
+        assert gs.network.peer.is_hosting()
+        hit = self.get_hit(src, tgt)
+        if hit:
+            self.apply_mods(src, tgt)
+            self.apply(src, tgt)
+        msg = self.get_msg(src, tgt)
+        gs.network.broadcast_cbstate_update(src)
+        gs.network.broadcast(gs.network.peer.remote_print, msg)
 
     def get_hit(self, src, tgt):
         self.hit = True
@@ -51,7 +57,7 @@ class Effect(Entity):
                 msg = f"{tgt.cname} is damaged for {dmg} damage!"
         return msg
 
-    def apply_to_char(self, src, tgt):
+    def apply(self, src, tgt):
         if not self.hit:
             return
         if self.effect_type == "instant":

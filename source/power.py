@@ -28,10 +28,8 @@ class Power(Entity):
 
     def client_use_power(self):
         assert not gs.network.peer.is_hosting()
-        if gs.pc.get_on_gcd():
-            gs.ui.gamewindow.add_message("Cannot use another power during global cooldown")
-            return
-        self.set_char_gcd(gs.pc)
+        if not gs.pc.get_on_gcd():
+            self.set_char_gcd(gs.pc)
         gs.network.peer.request_use_power(gs.network.server_connection, self.power_id)
 
     def set_char_gcd(self, char):
