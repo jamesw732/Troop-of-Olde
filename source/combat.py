@@ -29,9 +29,6 @@ def tick_oh(char):
         return True
     return False
 
-def tick_gcd(char):
-    char.gcd = max(char.gcd - time.dt, 0)
-
 def attempt_attack(src, tgt, slot):
     """Main auto attack function called by character upon timer reset."""
     # Do a bunch of fancy evasion and accuracy calculations to determine if hit goes through

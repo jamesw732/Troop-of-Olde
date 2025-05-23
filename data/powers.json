@@ -7,6 +7,7 @@
         "effect_id": 0,
         "cooldown": 10,
         "purpose": "harmful",
-        "target": "single"
+        "target": "single",
+        "gcd_duration": 5
     }
 }

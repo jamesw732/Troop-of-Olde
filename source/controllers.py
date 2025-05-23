@@ -71,6 +71,10 @@ class PlayerController(Entity):
         if held_keys['right mouse']:
             self.handle_mouse_rotation()
 
+        char = self.character
+        if char.get_on_gcd():
+            char.tick_gcd()
+
     def input(self, key):
         """Updates from single client inputs"""
         tgt = mouse.hovered_entity
@@ -251,6 +255,8 @@ class MobController(Entity):
         else:
             char.mh_combat_timer = 0
             char.oh_combat_timer = 0
+        if char.get_on_gcd():
+            char.tick_gcd()
 
 class NameLabel(Text):
     def __init__(self, char):

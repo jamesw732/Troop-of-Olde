@@ -205,3 +205,11 @@ class Character(Entity):
             conn = gs.network.uuid_to_connection[self.uuid]
             gs.network.peer.remote_print(conn, f"{self.target.cname} is out of range!")
             return False
+
+    def tick_gcd(self):
+        """Ticks up the global cooldown for powers"""
+        self.gcd_timer = min(self.gcd_timer + time.dt, self.gcd)
+
+    def get_on_gcd(self):
+        """Returns whether the character is currently on the global cooldown for powers"""
+        return self.gcd_timer < self.gcd
