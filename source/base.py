@@ -34,9 +34,11 @@ default_cb_attrs = {
 
     "mh_combat_timer": 0,
     "oh_combat_timer": 0,
+    "attackrange": 3,
+
     "gcd": 0,
     "gcd_timer": 0,
-    "attackrange": 3
+    "next_power": None,
 }
 
 default_phys_attrs = {

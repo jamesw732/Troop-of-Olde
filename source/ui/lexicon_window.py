@@ -73,4 +73,6 @@ class PowerIcon(Entity):
         self.power = power
 
     def on_click(self):
-        self.power.client_use_power()
+        tgt = self.power.get_target(gs.pc)
+        self.power.client_use_power(gs.pc, tgt)
+        gs.network.peer.request_use_power(gs.network.server_connection, self.power.power_id)

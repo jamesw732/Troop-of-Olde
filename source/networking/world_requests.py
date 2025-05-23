@@ -75,20 +75,15 @@ def request_set_target(connection, time_received, uuid: int):
 def request_use_power(connection, time_received, power_id: int):
     char = network.connection_to_char[connection]
     power = Power(power_id)
-    # If unknown power or character is on gcd, don't perform the power
-    # Will want some handling for when char is on gcd
-    # Tentative idea is to store a "next_power" which gets applied as soon as the gcd is done
     if power is None:
         return
     if char.get_on_gcd():
+        power.queue(char)
         return
-    power.set_char_gcd(char)
-
-    effect = power.get_effect()
-    # Would like some better logic here eventually, like auto-targetting based on beneficial
-    # or harmful
-    tgt = char.target
-    effect.attempt_apply(char, tgt)
+    tgt = power.get_target(char)
+    power.use(char, tgt)
+    # Eventually, may incorporate auto-targetting with power.get_target.
+    # Will want to send back the new target here
 
 # ITEMS
 @rpc(network.peer)

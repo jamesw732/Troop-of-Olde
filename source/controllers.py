@@ -257,6 +257,10 @@ class MobController(Entity):
             char.oh_combat_timer = 0
         if char.get_on_gcd():
             char.tick_gcd()
+        else:
+            if char.next_power is not None:
+                char.next_power.use(char)
+                char.next_power = None
 
 class NameLabel(Text):
     def __init__(self, char):

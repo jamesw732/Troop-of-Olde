@@ -26,12 +26,41 @@ class Power(Entity):
     def get_effect(self):
         return Effect(self.effect_id)
 
-    def client_use_power(self):
+    def get_target(self, char):
+        """Returns the correct target based on the type of power and character's target
+
+        Currently just returns the character's target, will be more complicated eventually"""
+        return char.target
+
+    def use(self, char, tgt):
+        """Does the server-side things involved with using a power.
+        Used by char on their active target."""
+        assert gs.network.peer.is_hosting()
+        if tgt is None:
+            return
+        self.set_char_gcd(char)
+
+        effect = self.get_effect()
+        # Would like some better logic here eventually, like auto-targetting based on beneficial
+        # or harmful
+        effect.attempt_apply(char, tgt)
+
+    def client_use_power(self, char, tgt):
+        """Does the client-side things involved with using a power.
+
+        Currently, just sets the GCD. Eventually, will also invoke animation."""
         assert not gs.network.peer.is_hosting()
-        if not gs.pc.get_on_gcd():
-            self.set_char_gcd(gs.pc)
-        gs.network.peer.request_use_power(gs.network.server_connection, self.power_id)
+        if char.get_on_gcd():
+            return
+        if tgt is None:
+            return
+        self.set_char_gcd(gs.pc)
 
     def set_char_gcd(self, char):
         char.gcd = self.gcd_duration
         char.gcd_timer = 0
+
+    def queue(self, char):
+        char.next_power = self
+
+

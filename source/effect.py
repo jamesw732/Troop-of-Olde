@@ -29,6 +29,8 @@ class Effect(Entity):
     def attempt_apply(self, src, tgt):
         """Main driving method called by the server for applying an effect to a target"""
         assert gs.network.peer.is_hosting()
+        if tgt is None:
+            return
         hit = self.get_hit(src, tgt)
         if hit:
             self.apply_mods(src, tgt)
