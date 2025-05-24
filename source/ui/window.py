@@ -22,7 +22,6 @@ class UIWindow(Entity):
                            position=(0, -self.header_ratio, -1), color=window_bg_color, model='quad')
 
         # Some attrs for dragging logic
-        self.dragging = False
         self.step = Vec2(0, 0)
         self.drag_sequence = Sequence(Func(self.move), Wait(1 / 60), loop=True)
 
@@ -32,13 +31,11 @@ class UIWindow(Entity):
             self.unfocus_window()
 
     def input(self, key):
-        if key == "left mouse up" and self.dragging:
-            self.dragging = False
+        if key == "left mouse up":
             self.drag_sequence.finish()
 
     def on_click(self):
         self.set_step()
-        self.dragging = True
         self.drag_sequence.start()
 
     def set_step(self):
