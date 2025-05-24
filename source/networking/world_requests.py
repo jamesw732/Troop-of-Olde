@@ -73,17 +73,27 @@ def request_set_target(connection, time_received, uuid: int):
 # POWERS
 @rpc(network.peer)
 def request_use_power(connection, time_received, power_id: int):
+    """Function called to use or queue a power.
+
+    This function is called when a player clicks a power button while their character is not on GCD.
+    If the character is on GCD, then it's better to not call this function, and instead let the client
+    handle it in case there's another input, until the GCD is over. This function is called upon GCD end.
+
+    Will eventually want to make the above more sophisticated with client-side prediction, but this is
+    good enough for now.
+    """
     char = network.connection_to_char[connection]
     power = Power(power_id)
-    if power is None:
-        return
     if char.get_on_gcd():
         power.queue(char)
         return
+    # Eventually, may incorporate auto-targetting with power.get_target.
     tgt = power.get_target(char)
     power.use(char, tgt)
-    # Eventually, may incorporate auto-targetting with power.get_target.
-    # Will want to send back the new target here
+    # Once auto-targetting is implemented, send back new target
+    # May also need to send back some info to help with client-side prediction
+    # Likewise in request_queue_power
+
 
 # ITEMS
 @rpc(network.peer)

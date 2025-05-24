@@ -74,6 +74,12 @@ class PlayerController(Entity):
         char = self.character
         if char.get_on_gcd():
             char.tick_gcd()
+        elif char.next_power is not None:
+            # Client-side power queueing basically just waits to request to use the power
+            power = char.next_power
+            tgt = power.get_target(gs.pc)
+            power.client_use_power(char, tgt)
+            gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
 
     def input(self, key):
         """Updates from single client inputs"""
@@ -257,10 +263,9 @@ class MobController(Entity):
             char.oh_combat_timer = 0
         if char.get_on_gcd():
             char.tick_gcd()
-        else:
-            if char.next_power is not None:
-                char.next_power.use(char)
-                char.next_power = None
+        elif char.next_power is not None:
+            tgt = char.next_power.get_target(char)
+            char.next_power.use(char, tgt)
 
 class NameLabel(Text):
     def __init__(self, char):

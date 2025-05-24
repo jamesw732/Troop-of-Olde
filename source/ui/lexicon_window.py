@@ -74,5 +74,12 @@ class PowerIcon(Entity):
 
     def on_click(self):
         tgt = self.power.get_target(gs.pc)
-        self.power.client_use_power(gs.pc, tgt)
-        gs.network.peer.request_use_power(gs.network.server_connection, self.power.power_id)
+        if gs.pc.get_on_gcd():
+            if gs.pc.next_power is self.power:
+                # Attempted to queue an already queued power, just remove it
+                gs.pc.next_power = None
+            else:
+                self.power.queue(gs.pc)
+        else:
+            self.power.client_use_power(gs.pc, tgt)
+            gs.network.peer.request_use_power(gs.network.server_connection, self.power.power_id)

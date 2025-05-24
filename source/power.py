@@ -39,6 +39,7 @@ class Power(Entity):
         if tgt is None:
             return
         self.set_char_gcd(char)
+        char.next_power = None
 
         effect = self.get_effect()
         # Would like some better logic here eventually, like auto-targetting based on beneficial
@@ -55,6 +56,7 @@ class Power(Entity):
         if tgt is None:
             return
         self.set_char_gcd(gs.pc)
+        char.next_power = None
 
     def set_char_gcd(self, char):
         char.gcd = self.gcd_duration
