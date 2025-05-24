@@ -50,7 +50,7 @@ class PlayerWindow(Entity):
         Text(parent=self.itemsbutton, text="Items", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Lexicon window/button
-        self.lex = LexiconWindow(parent=self, model='quad', origin=(-.5, .5),
+        self.lexicon = LexiconWindow(parent=self, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.lexbutton = Entity(
@@ -88,7 +88,7 @@ class PlayerWindow(Entity):
 
         self.input_to_interface = {
             "open items": self.items,
-            "open lexicon": self.lex,
+            "open lexicon": self.lexicon,
             "open skills": self.skills,
             "open stats": self.stats}
 
@@ -103,7 +103,7 @@ class PlayerWindow(Entity):
         self.active_button = None
         self.parent.visible = False
         self.disable_colliders()
-        for window in [self.items, self.lex, self.skills, self.stats]:
+        for window in [self.items, self.lexicon, self.skills, self.stats]:
             window.visible = False
 
     def input(self, key):

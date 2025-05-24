@@ -55,16 +55,34 @@ class LexiconWindow(Entity):
             if box.icon is not None:
                 box.icon.collision = False
 
+    def start_gcd_animation(self):
+        nonempty_boxes = (box for box in self.boxes if box.icon is not None)
+        for box in nonempty_boxes:
+            box.gcd_overlay = Timer(parent=box, origin=(-.5, .5), position=(0, 0, -2), size=(1, 1),
+                                    model='quad', color=color.gray, alpha=0.6,
+                                    scale_x = 1 - gs.pc.gcd_timer / gs.pc.gcd)
+
+class Timer(Entity):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def update(self):
+        self.scale_x = 1 - gs.pc.gcd_timer / gs.pc.gcd
+        if self.scale_x <= 0:
+            destroy(self)
+            self.parent.gcd_overlay = None
+
 class PowerBox(Entity):
     def __init__(self, lexicon, slot, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
         self.lexicon = lexicon
         self.slot = slot
         self.icon = None
+        self.gcd_overlay = None
         power = lexicon[self.slot]
         if power is not None:
             self.icon = PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
-                      position=(0, 0, -2))
+                      position=(0, 0, -1), alpha=0.4)
 
 
 class PowerIcon(Entity):

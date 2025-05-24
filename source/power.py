@@ -23,6 +23,8 @@ class Power(Entity):
         # ticks up if self.on_cooldown
         self.timer = 0
 
+        self.ui_elmnt = None
+
     def get_effect(self):
         return Effect(self.effect_id)
 
@@ -57,6 +59,7 @@ class Power(Entity):
             return
         self.set_char_gcd(gs.pc)
         char.next_power = None
+        gs.ui.playerwindow.lexicon.start_gcd_animation()
 
     def set_char_gcd(self, char):
         char.gcd = self.gcd_duration
