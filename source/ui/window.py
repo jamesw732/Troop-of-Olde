@@ -3,7 +3,8 @@ from ursina import *
 from .base import *
 
 class UIWindow(Entity):
-    def __init__(self, header_ratio=0.1, header_text="", scale=(0.4, 0.4), position=(0.2, 0.2)):
+    def __init__(self, header_ratio=0.1, header_text="", bg_alpha=100/255, scale=(0.4, 0.4),
+                 position=(0.2, 0.2)):
         # Invisible "canvas" entity
         super().__init__(origin=(-0.5, 0.5), scale=scale, position=position, parent=camera.ui, collider='box',
                          model='quad', alpha=0)
@@ -24,6 +25,9 @@ class UIWindow(Entity):
         self.dragging = False
         self.step = Vec2(0, 0)
         self.drag_sequence = Sequence(Func(self.move), Wait(1 / 60), loop=True)
+
+        # Hovered/not hovered transparency handling
+        self.bg_alpha = bg_alpha
         if self is not mouse.hovered_entity:
             self.unfocus_window()
 
@@ -54,7 +58,7 @@ class UIWindow(Entity):
 
 
     def unfocus_window(self):
-        set_alpha(self, 100 / 255, exclude=[self])
+        set_alpha(self, self.bg_alpha, exclude=[self])
 
     def focus_window(self):
         set_alpha(self, 1, exclude=[self])
