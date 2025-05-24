@@ -1,0 +1,51 @@
+from ursina import *
+
+from .base import *
+
+class Window(Entity):
+    def __init__(self, header_ratio=0.1, header_text="", scale=(0.4, 0.4), position=(0.2, 0.2)):
+        # Invisible "canvas" entity
+        super().__init__(origin=(-0.5, 0.5), scale=scale, position=position, parent=camera.ui, collider='box',
+                         model='quad')
+        self.header_ratio = header_ratio
+        self.body_ratio = 1 - self.header_ratio
+
+        # The top bar entity
+        self.header = Entity(parent=self, origin=(-0.5, 0.5), scale=(1, self.header_ratio),
+                             z=-1, color=header_color, model='quad')
+        self.header.text = Text(text=header_text, parent=self.header, origin=(0, 0),
+                                position=(0.5, -0.5, -1), world_scale=(20, 20))
+
+        # Everything except the header
+        self.body = Entity(parent=self, origin=(-0.5, 0.5), scale=(1, self.body_ratio),
+                           position=(0, -self.header_ratio, -1), color=window_bg_color, model='quad')
+
+        # Some attrs for dragging logic
+        self.dragging = False
+        self.step = Vec2(0, 0)
+        self.drag_sequence = Sequence(Func(self.move), Wait(1 / 60), loop=True)
+
+    def input(self, key):
+        if key == "left mouse up" and self.dragging:
+            self.dragging = False
+            self.drag_sequence.finish()
+
+    def on_click(self):
+        self.set_step()
+        self.dragging = True
+        self.drag_sequence.start()
+
+    def set_step(self):
+        self.step = self.position - mouse.position
+
+    def move(self):
+        if mouse.position:
+            max_x = window.right[0] - self.scale_x
+            min_x = window.left[0]
+            max_y = window.top[1]
+            min_y = window.bottom[1] + self.scale_y
+
+            self.position = mouse.position + self.step
+
+            self.x = clamp(self.x, min_x, max_x)
+            self.y = clamp(self.y, min_y, max_y)
