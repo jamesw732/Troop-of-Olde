@@ -13,13 +13,13 @@ class UIWindow(Entity):
 
         # The top bar entity
         self.header = Entity(parent=self, origin=(-0.5, 0.5), scale=(1, self.header_ratio),
-                             z=-1, color=header_color, model='quad')
+                             z=-0.1, color=header_color, model='quad')
         self.header.text = Text(text=header_text, parent=self.header, origin=(0, 0),
-                                position=(0.5, -0.5, -1), world_scale=(20, 20))
+                                position=(0.5, -0.5, -0.1), world_scale=(20, 20))
 
         # Everything except the header
         self.body = Entity(parent=self, origin=(-0.5, 0.5), scale=(1, self.body_ratio),
-                           position=(0, -self.header_ratio, -1), color=window_bg_color, model='quad')
+                           position=(0, -self.header_ratio, -0.1), color=window_bg_color, model='quad')
 
         # Some attrs for dragging logic
         self.step = Vec2(0, 0)

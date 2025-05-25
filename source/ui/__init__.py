@@ -1,7 +1,7 @@
 from .bars import BarWindow
 from .game_window import GameWindow
 from .player_window import PlayerWindow
-from .window import UIWindow
+from .action_bar import ActionBar
 
 
 class UI:
@@ -15,4 +15,4 @@ def make_all_ui(ui):
     ui.bars = BarWindow()
     ui.playerwindow = PlayerWindow()
     ui.gamewindow = GameWindow()
-    ui.window = UIWindow(header_text="Sample")
+    ui.actionbar = ActionBar()
