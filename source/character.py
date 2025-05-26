@@ -7,7 +7,8 @@ to the respective controllers in controllers.py.
 
 from ursina import *
 
-from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, all_skills, sqdist
+from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, \
+    all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
 from .item import Item, equip_item, make_item_from_data
@@ -20,7 +21,7 @@ from .states.state import *
 class Character(Entity):
     def __init__(self, cname="Player", uuid=None, 
                  pstate=None, cbstate=None,
-                 equipment=[], inventory=[], skills={}, lexicon=[]):
+                 equipment=[], inventory=[], skills={}, powers=[]):
         """Initialize a Character. Generate parameters using
         states.get_character_states_from_json.
 
@@ -31,7 +32,7 @@ class Character(Entity):
         equipment: list of Items or item ids or tuples of item ids and inst item ids
         inventory: list of Items or item ids or tuples of item ids and inst item ids
         skills: State dict mapping str skill names to int skill levels
-        lexicon: list of Powers or power Ids
+        powers: list of Powers or power Ids
         """
         self.cname = cname
         self.uuid = uuid
@@ -62,15 +63,15 @@ class Character(Entity):
             for slot, item_data in enumerate(equipment):
                 item = make_item_from_data(item_data)
                 equip_item(self, item, slot)
-        if lexicon:
-            for i, power in enumerate(lexicon):
+        if powers:
+            for i, power in enumerate(powers):
                 if isinstance(power, int):
                     # Handle power as an id
                     if power < 0:
                         power = None
                     else:
                         power = Power(power)
-                self.lexicon[i] = power
+                self.powers[i] = power
 
         self.update_max_ratings()
         for attr in ["health", "energy", "armor"]:
@@ -98,8 +99,8 @@ class Character(Entity):
         self.inventory = copy(default_inventory)
 
     def _init_powers(self):
-        # This will probably be smaller eventually
-        self.lexicon = [None] * 30
+        self.num_powers = default_num_powers
+        self.powers = [None] * self.num_powers
 
     def update(self):
         # This will eventually be moved to MobController, on a fixed

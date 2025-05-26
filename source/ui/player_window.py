@@ -3,7 +3,6 @@ from ursina import *
 from .base import *
 from .header import *
 from .items_window import *
-from .lexicon_window import *
 from .skills_window import *
 from .stats_window import *
 
@@ -49,18 +48,6 @@ class PlayerWindow(Entity):
         self.itemsbutton.on_click = lambda: self.open_window("open items")
         Text(parent=self.itemsbutton, text="Items", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
-        # Make Lexicon window/button
-        self.lexicon = LexiconWindow(parent=self, model='quad', origin=(-.5, .5),
-                                 scale=tab_scale, position=tab_pos,
-                                 color=window_fg_color)
-        self.lexbutton = Entity(
-            parent=self, model='quad', origin=(-.5, .5),
-            position=(0.18, -margin_length, -1), scale=(0.17, button_height),
-            color=header_color, collider="box"
-        )
-        self.lexbutton.on_click = lambda: self.open_window("open lexicon")
-        Text(parent=self.lexbutton, text="Lexicon", world_scale=(15, 15),
-             origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Skills window/button
         self.skills = SkillsWindow(parent=self, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
@@ -88,13 +75,11 @@ class PlayerWindow(Entity):
 
         self.input_to_interface = {
             "open items": self.items,
-            "open lexicon": self.lexicon,
             "open skills": self.skills,
             "open stats": self.stats}
 
         self.input_to_button = {
             "open items": self.itemsbutton,
-            "open lexicon": self.lexbutton,
             "open skills": self.skillsbutton,
             "open stats": self.statsbutton
         }
@@ -103,7 +88,7 @@ class PlayerWindow(Entity):
         self.active_button = None
         self.parent.visible = False
         self.disable_colliders()
-        for window in [self.items, self.lexicon, self.skills, self.stats]:
+        for window in [self.items, self.skills, self.stats]:
             window.visible = False
 
     def input(self, key):
@@ -144,7 +129,7 @@ class PlayerWindow(Entity):
             new_active_button.color = active_button_color
             self.active_button.color = header_color
             self.active_button = new_active_button
-            # Will likely need to add colliders for lexicon and inventory eventually
+            # Will likely need to add colliders for and inventory eventually
 
     def disable_colliders(self):
         self.collision = False
@@ -152,7 +137,6 @@ class PlayerWindow(Entity):
             child.disable_colliders()
         self.parent.collision = False
         self.itemsbutton.collision = False
-        self.lexbutton.collision = False
         self.skillsbutton.collision = False
         self.statsbutton.collision = False
 
@@ -160,6 +144,5 @@ class PlayerWindow(Entity):
         self.parent.collision = True
         self.collision = True
         self.itemsbutton.collision = True
-        self.lexbutton.collision = True
         self.skillsbutton.collision = True
         self.statsbutton.collision = True

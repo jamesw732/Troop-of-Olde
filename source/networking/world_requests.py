@@ -20,11 +20,11 @@ from ..states import State, container_to_ids
 def request_enter_world(connection, time_received, pstate: State,
                         base_state: State, equipment: list[int],
                         inventory: list[int], skills: State,
-                        lexicon: list[int]):
+                        powers: list[int]):
     if network.peer.is_hosting():
         new_pc = Character(pstate=pstate, cbstate=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
-                         lexicon=lexicon)
+                         powers=powers)
         new_pc.controller = MobController(new_pc)
         # Could we handle this uuid business in on_connect?
         new_pc.uuid = network.uuid_counter
@@ -44,7 +44,7 @@ def request_enter_world(connection, time_received, pstate: State,
                     if ch is new_pc:
                         pc_cbstate = State("pc_combat", new_pc)
                         network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
-                                              inventory_ids, skills, lexicon, pc_cbstate)
+                                              inventory_ids, skills, powers, pc_cbstate)
                     else:
                         npc_pstate = State("physical", ch)
                         npc_cbstate = State("npc_combat", ch)

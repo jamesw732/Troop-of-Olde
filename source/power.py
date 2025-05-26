@@ -48,18 +48,34 @@ class Power(Entity):
         # or harmful
         effect.attempt_apply(char, tgt)
 
-    def client_use_power(self, char, tgt):
+    def handle_power_input(self):
+        assert not gs.network.peer.is_hosting()
+        tgt = self.get_target(gs.pc)
+        if gs.pc.get_on_gcd():
+            if gs.pc.next_power is self:
+                # Attempted to queue an already queued power, just remove it
+                gs.pc.next_power = None
+            else:
+                # Queued powers are currently handled by PlayerController
+                self.queue(gs.pc)
+        else:
+            self.client_use_power()
+            gs.network.peer.request_use_power(gs.network.server_connection, self.power_id)
+
+    def client_use_power(self):
         """Does the client-side things involved with using a power.
 
         Currently, just sets the GCD. Eventually, will also invoke animation."""
         assert not gs.network.peer.is_hosting()
+        char = gs.pc
+        tgt = char.target
         if char.get_on_gcd():
             return
         if tgt is None:
             return
         self.set_char_gcd(gs.pc)
         char.next_power = None
-        gs.ui.playerwindow.lexicon.start_gcd_animation()
+        gs.ui.actionbar.start_gcd_animation()
 
     def set_char_gcd(self, char):
         char.gcd = self.gcd_duration

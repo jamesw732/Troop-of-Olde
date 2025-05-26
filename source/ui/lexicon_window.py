@@ -36,7 +36,7 @@ class LexiconWindow(Entity):
                      for j in range(page_grid_size[1])
                      for i in range(page_grid_size[0])]
 
-        self.boxes = [PowerBox(gs.pc.lexicon, i,
+        self.boxes = [PowerBox(gs.pc.powers, i,
                                 parent=self.page,
                                 position=pos * box_scale * (1 + box_spacing),
                                 scale=box_scale, color=slot_color)
@@ -73,13 +73,13 @@ class Timer(Entity):
             self.parent.gcd_overlay = None
 
 class PowerBox(Entity):
-    def __init__(self, lexicon, slot, *args, **kwargs):
+    def __init__(self, powers_list, slot, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
-        self.lexicon = lexicon
+        self.powers_list = powers_list
         self.slot = slot
         self.icon = None
         self.gcd_overlay = None
-        power = lexicon[self.slot]
+        power = powers_list[self.slot]
         if power is not None:
             self.icon = PowerIcon(power, parent=self, scale=(1, 1), texture=power.icon,
                       position=(0, 0, -1), alpha=0.4)

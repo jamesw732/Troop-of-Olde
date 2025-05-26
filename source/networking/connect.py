@@ -29,6 +29,6 @@ def on_connect(connection, time_connected):
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
         gs.pname = "Demo Player"
-        pstate, cbstate, equipment, inventory, skills, lexicon = \
+        pstate, cbstate, equipment, inventory, skills, powers = \
             get_character_states_from_json(gs.pname)
-        network.peer.request_enter_world(connection, pstate, cbstate, equipment, inventory, skills, lexicon)
+        network.peer.request_enter_world(connection, pstate, cbstate, equipment, inventory, skills, powers)

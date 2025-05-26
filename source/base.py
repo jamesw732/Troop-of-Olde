@@ -3,6 +3,7 @@ from ursina import *
 import math
 
 fists_base_dmg = 2
+default_num_powers = 10
 
 """
 Plan to add:

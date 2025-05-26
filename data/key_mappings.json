@@ -8,9 +8,19 @@
     "up arrow": "rotate_up",
     "down arrow": "rotate_down",
     "space": "jump",
-    "1": "toggle_combat",
+    "f": "toggle_combat",
     "i": "open items",
     "b": "open lexicon",
     "k": "open skills",
-    "c": "open stats"
+    "c": "open stats",
+    "1": "power_1",
+    "2": "power_2",
+    "3": "power_3",
+    "4": "power_4",
+    "5": "power_5",
+    "6": "power_6",
+    "7": "power_7",
+    "8": "power_8",
+    "9": "power_9",
+    "10": "power_10"
 }
