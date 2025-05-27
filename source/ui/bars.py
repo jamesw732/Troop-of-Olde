@@ -2,28 +2,18 @@ from ursina import *
 
 from .base import *
 from .header import *
+from .window import UIWindow
 
 from ..gamestate import gs
 
-class BarWindow(Entity):
+class BarWindow(UIWindow):
     def __init__(self):
         self.player = gs.pc
-        header = Header(
-            position=window.top_left,
-            scale=(.2, .02),
-            color=header_color,
-            ignore_key=lambda c: True
-        )
-        super().__init__(
-            parent=header, model='quad', origin=(-.5, .5),
-            position=(0, -1, 0), scale=(1, 2.5),
-            color=window_bg_color,
-            collider='box'
-        )
-        header.set_ui_scale(self)
+        # super().__init__(position=(0, -1, 0), scale=(1, 2.5))
+        super().__init__(position=(-0.495 * window.aspect_ratio, 0.49), scale=(0.2, 0.1), bg_alpha=220/255)
 
         self.bar_bg = Entity(
-            parent=self, model='quad', origin=(-.5, .5),
+            parent=self.body, model='quad', origin=(-.5, .5),
             position=(0.05, -0.05, -1), scale=(0.9, 0.9),
             color=window_bg_color)
 
@@ -40,6 +30,8 @@ class BarWindow(Entity):
             scale=(1, self.bar_height),
             color=color.hex("00cc00")
         )
+        self.healthbar.ignore_focus = True
+        self.energybar.ignore_focus = True
 
         grid(self.bar_bg, num_rows=2, num_cols=1, color=color.black)
 
