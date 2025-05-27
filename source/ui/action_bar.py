@@ -29,7 +29,7 @@ class ActionBar(UIWindow):
                 + self.world_position
         pbar_world_scale = camera.ui.scale * Vec3(self.total_slot_width, self.slot_height, 1)
         self.powerbar = PowerBar(parent=self, world_position=pbar_world_pos, origin=(-0.5, 0.5),
-                               world_scale=pbar_world_scale,
+                               world_scale=pbar_world_scale, collider='box',
                                color=window_fg_color, model='quad')
         
         grid(self.powerbar, 1, 10, color=color.black)
@@ -80,11 +80,26 @@ class PowerBar(Entity):
             return
         power.handle_power_input()
 
+    def on_click(self):
+        ui_mouse_x = mouse.x * camera.ui.scale_x
+        rel_mouse_x = ui_mouse_x - self.world_x
+        slot_world_scale_x = self.world_scale_x / self.parent.num_slots
+        slot = int(rel_mouse_x // slot_world_scale_x)
+
+        power = gs.pc.powers[slot]
+        if power is None:
+            return
+        power.handle_power_input()
+
+
+
 class Timer(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.ignore_focus = True
 
     def update(self):
+        self.alpha = 0.6
         self.scale_x = (1 - gs.pc.gcd_timer / gs.pc.gcd) / gs.pc.num_powers
         if self.scale_x <= 0:
             destroy(self)

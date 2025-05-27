@@ -5,6 +5,13 @@ from .base import *
 class UIWindow(Entity):
     def __init__(self, header_ratio=0.1, header_text="", bg_alpha=100/255, scale=(0.4, 0.4),
                  position=(0.2, 0.2)):
+        """Top-level UI window class, most UI elements should inherit this. Provides header and
+        dragging, focus/unfocus functionality
+
+        header_ratio: the amount of the window to allocate to the header
+        header_text: the text to put into the header
+        bg_alpha: the transparency of this window when not focused
+        """
         # Invisible "canvas" entity
         super().__init__(origin=(-0.5, 0.5), scale=scale, position=position, parent=camera.ui, collider='box',
                          model='quad', alpha=0)
@@ -53,12 +60,11 @@ class UIWindow(Entity):
             self.x = clamp(self.x, min_x, max_x)
             self.y = clamp(self.y, min_y, max_y)
 
-
     def unfocus_window(self):
-        set_alpha(self, self.bg_alpha, exclude=[self])
+        set_alpha(self, self.bg_alpha)
 
     def focus_window(self):
-        set_alpha(self, 1, exclude=[self])
+        set_alpha(self, 1)
 
     def on_mouse_enter(self):
         self.focus_window()
@@ -66,8 +72,10 @@ class UIWindow(Entity):
     def on_mouse_exit(self):
         self.unfocus_window()
 
-def set_alpha(entity, alpha, exclude=[]):
-    if entity not in exclude:
+def set_alpha(entity, alpha):
+    """Sets the transparency of an element and all its children, recursively
+    ignores any entity with attribute 'ignore_focus' set to True"""
+    if not (hasattr(entity, "ignore_focus") and entity.ignore_focus):
         entity.alpha = alpha
     for child in entity.children:
         set_alpha(child, alpha)

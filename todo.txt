@@ -21,11 +21,8 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Rewrite UI code using new UIWindow class.
-
-Make changes I've been thinking about making, like simplifying all the player window stuff and keeping it
-a fixed inventory/stats/skills window in the bottom right corner, like in OSRS.
-Remove lexicon, add an action bar.
+Rewrite UI code using new UIWindow class. Also incorporate new ideas for UI, like the inventory being
+persistent and in the corner. Also combine the inventory and equipment into just one collider.
 
 Along the way, may want to consolidate the game window as well.
 
