@@ -1,7 +1,6 @@
 from ursina import *
 
 from .base import *
-from .header import *
 from .window import UIWindow
 
 from ..gamestate import gs

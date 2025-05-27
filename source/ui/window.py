@@ -34,8 +34,10 @@ class UIWindow(Entity):
 
         # Hovered/not hovered transparency handling
         self.bg_alpha = bg_alpha
+        self.ignore_focus = True
         if self is not mouse.hovered_entity:
             self.unfocus_window()
+
 
     def input(self, key):
         if key == "left mouse up":
@@ -67,9 +69,14 @@ class UIWindow(Entity):
         set_alpha(self, 1)
 
     def on_mouse_enter(self):
+        # Currently some bugs with this when there's a collider on top of this entity.
+        # If the player hovers the other collider before this, then this won't work
         self.focus_window()
 
     def on_mouse_exit(self):
+        # If the other collider isn't of a child entity, this won't work
+        if mouse.hovered_entity is not None and mouse.hovered_entity.has_ancestor(self):
+            return
         self.unfocus_window()
 
 def set_alpha(entity, alpha):
