@@ -61,6 +61,8 @@ class PowerBar(Entity):
                                          position=((i + 0.05) / self.parent.num_slots, -.95, -2),
                                     origin=(-0.5, -0.5), color=color.white))
             cur_outlines = []
+            # This is a magic number that was found experimentally to minimze blur.
+            # Might depend on resolution of monitor and aspect ratio of the window.
             offset_amt = 0.00263
             for offset in [(offset_amt, 0), (offset_amt, offset_amt), (0, offset_amt),
                            (-offset_amt, offset_amt), (-offset_amt, 0), (-offset_amt, -offset_amt),
