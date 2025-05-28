@@ -9,7 +9,7 @@ class BarWindow(UIWindow):
     def __init__(self):
         self.player = gs.pc
         # super().__init__(position=(0, -1, 0), scale=(1, 2.5))
-        super().__init__(position=(-0.495 * window.aspect_ratio, 0.49), scale=(0.2, 0.1), bg_alpha=220/255)
+        super().__init__(position=(-0.495 * window.aspect_ratio, 0.49), scale=(0.2, 0.08), bg_alpha=220/255)
 
         self.bar_bg = Entity(
             parent=self.body, model='quad', origin=(-.5, .5),
