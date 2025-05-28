@@ -21,11 +21,10 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Rewrite UI code using new UIWindow class. Also incorporate new ideas for UI, like the inventory being
-persistent and in the corner. Also combine the inventory and equipment into just one collider.
+Rewrite UI code using new UIWindow class. 
 
-Currently working on reimplementing the game window.
-- implement variable scrollbar size
+Put player window in the corner and make it persistent. Also combine the inventory and equipment into just
+one collider.
 
 Make bars window bars smaller.
 
@@ -71,13 +70,22 @@ Incomplete stat implementations:
 - Hardiness
 
 UI:
-Hover and right click tooltips will be the primary visual guide for the UI, this is definitely something
-that could be implemented right away.
-Having lots of entities/colliders really slows down the game. Progress has been made on this, such
-as for the action bar. Planning to do this for the inventory as well.
+UI is quite incomplete, there is a lot of helpful information that should be tracked by the UI.
+Off the top of my head:
+- player's target
+- in combat/not
+- persistent effects (future)
 
-There are some bugs as well.
-Transparency handling for the game window is buggy since the scrollbar has its own collider.
+Also, hover and right click tooltips will be the primary visual guide for the UI. This will be a huge
+step, but probably doesn't need to wait too long.
+
+There are some bugs as well:
+- Transparency handling for the game window is buggy since the scrollbar has its own collider. Basically,
+the current handling for mouse enter/exit is fragile - entering on and exiting from a child entity
+with a collider doesn't correctly trigger the transparency change. Unclear how to fix this, worst case
+can remove the collider.
+- There's also a bug with new text entering the game window with the wrong transparency. I think text should
+probably be ignored by set_alpha altogether.
 
 
 Database:
