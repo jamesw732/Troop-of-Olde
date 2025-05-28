@@ -3,7 +3,7 @@ from ursina import *
 from .base import *
 
 class UIWindow(Entity):
-    def __init__(self, header_ratio=0.1, header_text="", bg_alpha=100/255, scale=(0.4, 0.4),
+    def __init__(self, header_ratio=0.1, header_text="", bg_alpha=150/255, scale=(0.4, 0.4),
                  position=(0.2, 0.2)):
         """Top-level UI window class, most UI elements should inherit this. Provides header and
         dragging, focus/unfocus functionality
@@ -37,7 +37,6 @@ class UIWindow(Entity):
         self.ignore_focus = True
         if self is not mouse.hovered_entity:
             self.unfocus_window()
-
 
     def input(self, key):
         if key == "left mouse up":

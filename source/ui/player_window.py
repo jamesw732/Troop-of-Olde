@@ -1,32 +1,19 @@
 from ursina import *
 
 from .base import *
-from .header import *
 from .items_window import *
 from .skills_window import *
 from .stats_window import *
+from .window import UIWindow
 
 from ..gamestate import gs
 
-class PlayerWindow(Entity):
+class PlayerWindow(UIWindow):
     def __init__(self):
         self.player = gs.pc
         # Make Header
-        header = Header(
-            position=(0.2, 0.2),
-            scale=(.44, .033),
-            color=header_color,
-            text=self.player.cname,
-            ignore_key=lambda c: isinstance(c, Text)
-        )
         # Make outer window
-        super().__init__(
-            parent=header, model='quad', origin=(-.5, .5),
-            position=(0, -1), scale=(1, 12),
-            color=window_bg_color,
-            collider='box'
-        )
-        header.set_ui_scale(self)
+        super().__init__(position=(0.46, -0.03), scale=(0.4, 0.45))
 
         margin_length = 0.025
         button_height = 0.08
@@ -37,36 +24,36 @@ class PlayerWindow(Entity):
         tab_pos = (.025, -subheader_height + margin_length, -1)
 
         # Make Items window/button
-        self.items = ItemsWindow(parent=self, model='quad', origin=(-.5, .5),
+        self.items = ItemsWindow(parent=self.body, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.itemsbutton = Entity(
-            parent=self, model='quad', origin=(-.5, .5),
-            position=(0.025, -margin_length, -1), scale=(0.13, button_height),
+            parent=self.body, model='quad', origin=(-.5, .5),
+            position=(margin_length, -margin_length, -1), scale=(0.13, button_height),
             color=header_color, collider="box"
         )
         self.itemsbutton.on_click = lambda: self.open_window("open items")
         Text(parent=self.itemsbutton, text="Items", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Skills window/button
-        self.skills = SkillsWindow(parent=self, model='quad', origin=(-.5, .5),
+        self.skills = SkillsWindow(parent=self.body, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.skillsbutton = Entity(
-            parent=self, model='quad', origin=(-.5, .5),
-            position=(0.375, -margin_length, -1), scale=(0.12, button_height),
+            parent=self.body, model='quad', origin=(-.5, .5),
+            position=(0.18, -margin_length, -1), scale=(0.13, button_height),
             color=header_color, collider="box"
         )
         self.skillsbutton.on_click = lambda: self.open_window("open skills")
         Text(parent=self.skillsbutton, text="Skills", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Stats window/button
-        self.stats = StatsWindow(parent=self, model='quad', origin=(-.5, .5),
+        self.stats = StatsWindow(parent=self.body, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.statsbutton = Entity(
-            parent=self, model='quad', origin=(-.5, .5),
-            position=(0.52, -margin_length, -1), scale=(0.12, button_height),
+            parent=self.body, model='quad', origin=(-.5, .5),
+            position=(0.335, -margin_length, -1), scale=(0.12, button_height),
             color=header_color, collider="box"
         )
         self.statsbutton.on_click = lambda: self.open_window("open stats")
@@ -84,14 +71,13 @@ class PlayerWindow(Entity):
             "open stats": self.statsbutton
         }
 
-        self.active_tab = None
-        self.active_button = None
-        self.parent.visible = False
-        self.disable_colliders()
-        for window in [self.items, self.skills, self.stats]:
+        self.active_tab = self.items
+        self.active_button = self.itemsbutton
+        for window in [self.skills, self.stats]:
             window.visible = False
 
     def input(self, key):
+        super().input(key)
         if key in self.input_to_interface:
             self.open_window(key)
 
