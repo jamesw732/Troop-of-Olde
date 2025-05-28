@@ -24,9 +24,10 @@ class GameWindow(UIWindow):
                          model='quad', color=color.yellow, alpha=1/5)
 
 
-        self.scrollbar = ScrollBar(self, parent=self.body, origin=(-.5, .5),
-                                    position=(.925, -.1, -1), scale=(0.05, 0.8),
-                                    collider='box', model='quad', alpha=0)
+        self.scrollbar = ScrollBar(self, self.text_bottom, self.text_top, self.text_bottom.world_y,
+                                   parent=self.body,
+                                   origin=(-.5, .5), position=(.925, -.1, -1), scale=(0.05, 0.8),
+                                   collider='box', model='quad', alpha=0)
         self.scrollbar.ignore_focus = True
 
         grid(self.scrollbar, num_rows=1, num_cols=1, color=color.gray)
@@ -43,7 +44,7 @@ class GameWindow(UIWindow):
         self.messages.append(Text(text=msg, parent=self.text_top, world_scale=self.font_size,
                                   world_position=self.text_bottom.world_position, origin=(-0.5, -0.5),
                                   color=text_color, wordwrap=wordwrap))
-
+        self.update_text_visibility()
 
     def get_word_wrap(self, txt, max_width):
         cur_width = 0
@@ -66,11 +67,28 @@ class GameWindow(UIWindow):
             return min(word_wraps)
         return len(txt) + 2
 
+    def update_text_visibility(self):
+        for msg in self.messages:
+            if msg.world_y + Text.size * self.font_size[1] >= self.textbox.world_y \
+                    or msg.world_y < self.text_bottom.world_y:
+                msg.visible = False
+            else:
+                msg.visible = True
 
 class ScrollBar(Entity):
-    def __init__(self, window, **kwargs):
+    def __init__(self, window, bottom_marker, top_marker, bottom_start, **kwargs):
+        """General scroll bar class. Could theoretically be used outside of this file
+
+        window: the scope entity which, if hovered, enables scrollwheel scrolling of the scrollbar
+        also assumed that window has `update_text_visibility`, eventually this should be a shader
+        bottom_marker: entity defining the variable bottom of the block to scroll over
+        top_marker: entity defining the variable top of the block to scroll over
+        bottom_start: y value of the initial posiiton of bottom_marker"""
         super().__init__(**kwargs)
         self.window = window
+        self.bottom_marker = bottom_marker
+        self.top_marker = top_marker
+        self.bottom_start = bottom_start
         self.scroller = Entity(parent=self, origin=(-0.5, -0.5), scale=(1, 0.25), position=(0, -1),
                                model='quad', color=color.gray)
         self.drag_sequence = Sequence(Func(self.match_mouse), loop=True)
@@ -93,10 +111,21 @@ class ScrollBar(Entity):
     def match_mouse(self):
         self.scroller.world_y = mouse.y * camera.ui.scale_y - self.scroller.world_scale_y / 2
         self.scroller.y = clamp(self.scroller.y, -1, -self.scroller.scale_y)
+        self.match_markers_to_scrollbar()
 
     def scroll_up(self):
         self.scroller.y = clamp(self.scroller.y + 0.05, -1, -self.scroller.scale_y)
+        self.match_markers_to_scrollbar()
 
     def scroll_down(self):
         self.scroller.y = clamp(self.scroller.y - 0.05, -1, -self.scroller.scale_y)
+        self.match_markers_to_scrollbar()
 
+    def match_markers_to_scrollbar(self):
+        min_scroll_y = -1
+        max_scroll_y = -self.scroller.scale_y
+        scrollbar_ratio = (self.scroller.y - min_scroll_y) / (max_scroll_y - min_scroll_y)
+        dist = self.top_marker.world_y - self.bottom_marker.world_y
+        self.bottom_marker.world_y = self.bottom_start - dist * scrollbar_ratio
+        self.top_marker.world_y = self.bottom_marker.world_y + dist
+        self.window.update_text_visibility()

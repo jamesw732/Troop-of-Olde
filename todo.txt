@@ -24,7 +24,10 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 Rewrite UI code using new UIWindow class. Also incorporate new ideas for UI, like the inventory being
 persistent and in the corner. Also combine the inventory and equipment into just one collider.
 
-Along the way, may want to consolidate the game window as well.
+Currently working on reimplementing the game window.
+- implement variable scrollbar size
+
+Make bars window bars smaller.
 
 
 ===================================NEXT================================================
@@ -68,17 +71,13 @@ Incomplete stat implementations:
 - Hardiness
 
 UI:
-In general, a lot of the UI will be reconsidered as I get a better idea of what the final product will
-look like. The current UI is very much a baseline. Current UI could be more optimized, primarily by
-changing to a paradigm that uses Sequences and fixed updates rather than the update function, but
-this is very low priority unless it affects performance. If it affects performance, it could be a bottleneck
-to using Ursina.
-
-Otherwise, there are some definite changes:
 Hover and right click tooltips will be the primary visual guide for the UI, this is definitely something
 that could be implemented right away.
-Having lots of entities/colliders really slows down the game. It would be better to group the colliders
-together.
+Having lots of entities/colliders really slows down the game. Progress has been made on this, such
+as for the action bar. Planning to do this for the inventory as well.
+
+There are some bugs as well.
+Transparency handling for the game window is buggy since the scrollbar has its own collider.
 
 
 Database:
