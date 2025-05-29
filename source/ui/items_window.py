@@ -205,39 +205,57 @@ class ItemIcon(Entity):
         self.drag_threshold = 0.2
         self.dragging = False
         self.step = Vec3(0, 0, 0)
+        # self.drag_sequence = Sequence(
+
+    def input(self, key):
+        if key == "left mouse up":
+            pass
+
+    def on_click(self):
+        self.clicked = True
+        self.step = self.get_position(camera.ui) - mouse.position
 
     def update(self):
         if self.clicked:
             if held_keys["left mouse"]:
-                # Wait until we're sure the player is dragging
-                if self.clicked_time < self.drag_threshold:
-                    self.clicked_time += time.dt
-                # When we are sure, start dragging
-                elif not self.dragging:
-                    self.dragging = True
-                    self.collision = False
+                self.handle_hold()
             else:
-                self.clicked_time = 0
-                self.clicked = False
-                # Item was being dragged but was just released
-                if self.dragging:
-                    self.dragging = False
-                    drop_to = mouse.hovered_entity
-                    if isinstance(drop_to, ItemBox):
-                        self.swap_locs(other_box=drop_to)
-                    elif isinstance(drop_to, ItemIcon):
-                        self.swap_locs(other_icon=drop_to)
-                    else:
-                        self.position = Vec3(0, 0, -1)
-                    self.collision = True
-                # Item was not being dragged, execute its top function
-                else:
-                    option = self.item["functions"][0]
-                    meth = Item.option_to_meth[option]
-                    getattr(self, meth)()
+                self.handle_drop()
             if self.dragging:
-                if mouse.position:
-                    self.set_position(mouse.position + self.step, camera.ui)
+                self.move_to_mouse()
+
+    def handle_hold(self):
+        # Wait until we're sure the player is dragging
+        if self.clicked_time < self.drag_threshold:
+            self.clicked_time += time.dt
+        # When we are sure, start dragging
+        elif not self.dragging:
+            self.dragging = True
+            self.collision = False
+
+    def handle_drop(self):
+        self.clicked_time = 0
+        self.clicked = False
+        # Item was being dragged but was just released
+        if self.dragging:
+            self.dragging = False
+            drop_to = mouse.hovered_entity
+            if isinstance(drop_to, ItemBox):
+                self.swap_locs(other_box=drop_to)
+            elif isinstance(drop_to, ItemIcon):
+                self.swap_locs(other_icon=drop_to)
+            else:
+                self.position = Vec3(0, 0, -1)
+            self.collision = True
+        # Item was not being dragged, execute its top function
+        else:
+            option = self.item["functions"][0]
+            meth = Item.option_to_meth[option]
+            getattr(self, meth)()
+
+    def move_to_mouse(self):
+        if mouse.position:
+            self.set_position(mouse.position + self.step, camera.ui)
 
     def swap_locs(self, other_icon=None, other_box=None):
         """Swaps the contents of two ItemBoxes. Main driving function of inventory movement.
@@ -300,6 +318,3 @@ class ItemIcon(Entity):
         slots = iteminfo.get("slots", [])
         return slots
 
-    def on_click(self):
-        self.clicked = True
-        self.step = self.get_position(camera.ui) - mouse.position

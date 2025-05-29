@@ -28,6 +28,11 @@ one collider.
 
 Make bars window bars smaller.
 
+There's a discrepancy between the action bar and items UI which might need fixing for
+whenever I allow swapping of powers in the action bar. Items keeps invisible boxes that the icons can
+be parented to and just have unit scale and zero position, while action bar deduces the right
+position and scale. Items is more convenient to use, but action bar may be more clear about what's happening.
+
 
 ===================================NEXT================================================
 Add individual cooldowns for powers, and animations for cooldowns/gcd
@@ -69,6 +74,11 @@ Incomplete stat implementations:
 - Regeneration
 - Hardiness
 
+Items:
+I don't really like that items are just dicts. Could probably stand to rethink the entire way items
+are stored and represented.
+
+
 UI:
 UI is quite incomplete, there is a lot of helpful information that should be tracked by the UI.
 Off the top of my head:
@@ -78,6 +88,7 @@ Off the top of my head:
 
 Also, hover and right click tooltips will be the primary visual guide for the UI. This will be a huge
 step, but probably doesn't need to wait too long.
+
 
 There are some bugs as well:
 - Transparency handling for the game window is buggy since the scrollbar has its own collider. Basically,
