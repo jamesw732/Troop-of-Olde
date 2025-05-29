@@ -25,7 +25,7 @@ class ItemsWindow(Entity):
         # length relative to the width
         window_wh_ratio = self.world_scale_x / self.world_scale_y
         # How far away from the edge to put the subcontainers
-        edge_margin = 0.05
+        edge_margin = 0.025
 
         # Make equipment subframe
         # ============PARAMETERS==================
@@ -34,26 +34,29 @@ class ItemsWindow(Entity):
         # The second dimension is only used for spacing
         equip_frame_width = 0.4
         # Number of boxes in the grid
-        equip_grid_size = Vec2(3, 3)
+        equip_grid_size = Vec2(2, 2)
         # % of width of box used as spacing between boxes
-        equip_box_spacing = 0.2
+        equip_box_spacing = 0
         # Where in the grid the gear slots go
         equipped_positions = [
+            Vec3(0, 0, -1),
+            Vec3(1, 0, -1),
+            Vec3(0, -1, -1),
             Vec3(1, -1, -1),
-            Vec3(2, -1, -1),
-            Vec3(0, -2, -1),
-            Vec3(2, -2, -1),
         ]
         # ============CODE=================
         grid_ratio = equip_grid_size[0] / equip_grid_size[1]
         # compute the height of the frame WRT window given width, grid size, and spacing
+        # x is the width of a single box WRT the window
         x = equip_frame_width / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
+        # y is the height of a single box WRT the window
         y = x * window_wh_ratio
         equip_frame_height = y * (equip_grid_size[1] + equip_box_spacing * (equip_grid_size[1] - 1))
         # height of equip frame relative to the width
         equip_frame_scale = Vec3(equip_frame_width, equip_frame_height, 1)
+        equip_frame_pos = ((1 - equip_frame_width) / 2, equip_frame_height + edge_margin - 1)
         self.equipped_frame = Entity(parent=self, origin=(-.5, .5),
-                                        position=(edge_margin, -edge_margin, -1),
+                                        position=equip_frame_pos,
                                         scale=equip_frame_scale)
         # Compure the scale of the boxes with respect to the frame
         box_w = 1 / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
@@ -72,11 +75,11 @@ class ItemsWindow(Entity):
         # Make inventory subframe
         # ===========PARAMETERS=============
         # Width of the inventory frame relative to the window
-        inventory_frame_width = 0.4
+        inventory_frame_width = 1 - 8 * edge_margin
         # Dimensions of the inventory slots
-        inventory_grid_size = (4, 7)
+        inventory_grid_size = (4, 5)
         # Position of the subframe
-        inventory_position = (3 * edge_margin + equip_frame_scale[0], -edge_margin, -1)
+        inventory_position = (4 * edge_margin, -edge_margin, -1)
         # ===========CODE==============
         grid_ratio = inventory_grid_size[0] / inventory_grid_size[1]
         inventory_frame_height = inventory_frame_width / grid_ratio * window_wh_ratio

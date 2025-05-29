@@ -70,7 +70,7 @@ default_equipment = [None] * 4
 equipment_slots = ["armor", "ring", "mh", "oh"]
 slot_to_ind = {"armor": 0, "ring": 1, "mh": 2, "oh": 3}
 
-default_inventory = [None] * 28
+default_inventory = [None] * 20
 
 all_skills = [    # Melee styles
     "1h melee",

@@ -11,9 +11,10 @@ from ..gamestate import gs
 class PlayerWindow(UIWindow):
     def __init__(self):
         self.player = gs.pc
-        # Make Header
-        # Make outer window
-        super().__init__(position=(0.46, -0.03), scale=(0.4, 0.45))
+        scale = (0.24, 0.45)
+        global window
+        super().__init__(position=(0.5 * window.aspect_ratio - 0.01 - scale[0], scale[1] - 0.49), scale=scale,
+                         bg_alpha = 200/255, header_ratio=0.05)
 
         margin_length = 0.025
         button_height = 0.08
@@ -73,6 +74,7 @@ class PlayerWindow(UIWindow):
 
         self.active_tab = self.items
         self.active_button = self.itemsbutton
+        self.active_button.color = active_button_color
         for window in [self.skills, self.stats]:
             window.visible = False
 
@@ -84,25 +86,22 @@ class PlayerWindow(UIWindow):
     def open_window(self, key):
         new_active_tab = self.input_to_interface[key]
         new_active_button = self.input_to_button[key]
-
         if new_active_tab == self.active_tab:
             # Close the window
-            self.parent.visible = False
+            self.visible = False
             self.active_tab.visible = False
             self.active_tab.disable_colliders()
             self.disable_colliders()
             self.active_tab = None
-
             self.active_button.color = header_color
             self.active_button = None
-        elif not self.parent.visible:
+        elif not self.visible:
             # Open player window and specified tab, add collider
-            self.parent.visible = True
+            self.visible = True
             new_active_tab.visible = True
             self.active_tab = new_active_tab
             self.active_tab.enable_colliders()
             self.enable_colliders()
-
             new_active_button.color = active_button_color
             self.active_button = new_active_button
         else:
