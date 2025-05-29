@@ -296,9 +296,9 @@ class ItemIcon(Entity):
         iteminfo = self.item.get("info", {})
         slot = iteminfo.get("slot")
         if slot is not None:
-            return [slot_to_ind[slot]]
+            return [slot]
         slots = iteminfo.get("slots", [])
-        return [slot_to_ind[slot] for slot in slots]
+        return slots
 
     def on_click(self):
         self.clicked = True
