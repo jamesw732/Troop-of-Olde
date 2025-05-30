@@ -37,3 +37,14 @@ def grid(entity, num_rows, num_cols, margin_x=0, margin_y=0, color=color.white):
                       -10)]
         Entity(parent=entity, model=Mesh(vertices=vertices, mode="line"), color=color)
 
+def get_grid_height(width, grid_size, spacing=0, window_wh_ratio=1):
+    """Computes the necessary height for a grid of squares with a given width, grid size, and spacing
+    width: the total width of the UI element with the grid structure
+    grid_size: tuple containing number of rows and columns in the grid
+    spacing: amount to space the grid squares by
+    window_wh_ratio: height to width ratio of the parent of the grid"""
+    # x is the width of a single box WRT the window
+    x = width / (grid_size[0] + spacing * (grid_size[0] - 1))
+    # y is the height of a single box WRT the window
+    y = x * window_wh_ratio
+    return y * (grid_size[1] + spacing * (grid_size[1] - 1))

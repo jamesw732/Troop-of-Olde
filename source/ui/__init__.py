@@ -9,6 +9,7 @@ class UI:
         self.bars = None
         self.playerwindow = None
         self.gamewindow = None
+        self.item_frames = {}
 
 def make_all_ui(ui):
     # pass

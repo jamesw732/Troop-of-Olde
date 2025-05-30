@@ -28,40 +28,27 @@ class ItemsWindow(Entity):
         edge_margin = 0.025
 
         # Make equipment subframe
-        # ============PARAMETERS==================
-        # For minor changes, these are the numbers to tweak
-        # How much of the window should the equipped subframe take up
-        # The second dimension is only used for spacing
         equip_frame_width = 0.4
-        # Number of boxes in the grid
         equip_grid_size = Vec2(2, 2)
-        # % of width of box used as spacing between boxes
         equip_box_spacing = 0
-        # ============CODE=================
-        # compute the height of the frame WRT window given width, grid size, and spacing
-        # x is the width of a single box WRT the window
-        x = equip_frame_width / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
-        # y is the height of a single box WRT the window
-        y = x * window_wh_ratio
-        equip_frame_height = y * (equip_grid_size[1] + equip_box_spacing * (equip_grid_size[1] - 1))
-        # height of equip frame relative to the width
+
+        equip_frame_height = get_grid_height(equip_frame_width, equip_grid_size, spacing=equip_box_spacing,
+                                             window_wh_ratio=window_wh_ratio)
         equip_frame_scale = Vec3(equip_frame_width, equip_frame_height, 1)
         equip_frame_pos = ((1 - equip_frame_width) / 2, equip_frame_height + edge_margin - 1, -1)
+
         self.equipment_frame = ItemFrame(equip_grid_size, "equipment", self.player.equipment,
                                         slot_labels=equipment_slots,
                                         parent=self, position=equip_frame_pos, scale=equip_frame_scale)
 
         # Make inventory subframe
-        # ===========PARAMETERS=============
-        # Width of the inventory frame relative to the window
         inventory_frame_width = 1 - 8 * edge_margin
-        # Dimensions of the inventory slots
         inventory_grid_size = (4, 5)
-        # Position of the subframe
+        inventory_box_spacing = 0
+
+        inventory_frame_height = get_grid_height(inventory_frame_width, inventory_grid_size,
+                                                 spacing=inventory_box_spacing, window_wh_ratio=window_wh_ratio)
         inventory_position = (4 * edge_margin, -edge_margin, -1)
-        # ===========CODE==============
-        grid_ratio = inventory_grid_size[0] / inventory_grid_size[1]
-        inventory_frame_height = inventory_frame_width / grid_ratio * window_wh_ratio
         inventory_frame_scale = Vec2(inventory_frame_width, inventory_frame_height)
 
         self.inventory_frame = ItemFrame(inventory_grid_size, "inventory", self.player.inventory,
@@ -79,15 +66,13 @@ class ItemsWindow(Entity):
         self.inventory_frame.collision = False
         self.equipment_frame.collision = False
 
-    def update_ui_icons(self, container_name):
-        frame = self.container_to_frame[container_name]
-        for box in frame.boxes:
-            box.refresh_icon()
 
 class ItemFrame(Entity):
     def __init__(self, grid_size, container_name, items, slot_labels=[], **kwargs):
         self.grid_size = grid_size
         self.container_name = container_name
+        # store this frame by name so that the server can easily update it from item movements
+        gs.ui.item_frames[container_name] = self
         # pad the slot labels with empty strings
         self.slot_labels = slot_labels + ([""] * (len(items) - len(slot_labels)))
 
@@ -121,24 +106,26 @@ class ItemFrame(Entity):
         self.drag_threshold = 0.2
         self.drag_sequence = Sequence(Func(self.move_icon_to_mouse), loop=True)
 
+    def update_ui_icons(self):
+        """Public function which refreshes all icons in whole UI element"""
+        for box in self.boxes:
+            box.refresh_icon()
 
-    def make_item_icon(self, item, parent):
+    def make_item_icon(self, item, box):
         """Creates an item icon and puts it in the UI.
-        Assumes the internals are already taken care of.
-        item: Item
-        ui_container: list of ItemSlots
-        internal_container: list of Items
-        slot: str or int; key or index to containers"""
+        item: Item to make the icon for
+        box: ItemBox to put the ItemIcon in
+        """
         if item is None:
             return None
         if "icon" in item:
             texture = os.path.join(effect_icons_dir, item["icon"])
             load_texture(texture)
-            icon = ItemIcon(item, parent=parent, scale=(1, 1),
+            icon = ItemIcon(item, parent=box, scale=(1, 1),
                             position=(0, 0, -2), texture=item["icon"])
-            parent.text = ""
+            box.text = ""
         else:
-            icon = ItemIcon(item, parent=parent, scale=(1, 1),
+            icon = ItemIcon(item, parent=box, scale=(1, 1),
                             position=(0, 0, -2), color=color.gray)
         return icon
 
@@ -158,8 +145,7 @@ class ItemFrame(Entity):
         slot_world_pos = Vec2(self.world_scale_x, self.world_scale_y) / self.grid_size
         slot = Vec2(rel_mouse_pos[0], rel_mouse_pos[1]) / slot_world_pos
         slot = (int(slot[0]), int(slot[1]))
-        # There's a bug in Vec2/3 that causes an automatic casting to float, recast to account for it
-        return int(slot[0] - slot[1] * self.grid_size[0])
+        return slot[0] - slot[1] * int(self.grid_size[0])
 
     def input(self, key):
         if key == "left mouse up" and self.dragging_icon is not None:
@@ -217,18 +203,16 @@ class ItemBox(Entity):
         self.parent.item_icons[self.slot] = self.itemicon
 
 class ItemIcon(Entity):
-    """UI Representation of an Item. Logically, above Item. The reason for this is that
-    it makes sense for an Item to not have an ItemIcon, but it does not make sense for an ItemIcon
-    to not have an Item. Reversing the dependence would make the rest of this module harder to implement."""
+    """UI Representation of an Item."""
     def __init__(self, item, *args, **kwargs):
         super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
         self.item = item
         self.item.icon = self
 
     def swap_locs(self, other_box):
-        """Swaps the contents of two ItemBoxes. Main driving function of visual inventory movement.
-        Sends network request to have the items moved internally, and receives a response which updates the
-        UI."""
+        """Move this ItemIcon to the target ItemBox, and moves the contents of the ItemBox to the old
+        ItemBox. Sends network request to have the items moved internally, and receives a response which
+        updates the UI."""
         if other_box is None:
             return
         other_icon = other_box.itemicon

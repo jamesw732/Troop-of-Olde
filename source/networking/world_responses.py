@@ -127,8 +127,9 @@ def remote_update_container(connection, time_received, container_name: str, cont
         old_container[slot] = item
         auto_set_primary_option(item, container_name)
 
-    if gs.ui.playerwindow:
-        gs.ui.playerwindow.items.update_ui_icons(container_name)
+    item_frame = gs.ui.item_frames.get(container_name)
+    if item_frame:
+        item_frame.update_ui_icons()
 
 # Physical
 @rpc(network.peer)
