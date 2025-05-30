@@ -167,7 +167,8 @@ def iauto_equip(char, old_container, old_slot):
     """Auto equips an item internally"""
     item = getattr(char, old_container)[old_slot]
     new_slot = find_first_empty_equip(item, char)
-    internal_swap(char, old_container, old_slot, "equipment", new_slot)
+    if new_slot > 0:
+        internal_swap(char, old_container, old_slot, "equipment", new_slot)
 
 def iauto_unequip(char, old_slot):
     """Auto unequips an item internally"""
@@ -280,6 +281,9 @@ def item_is_2h(item):
 
 def find_first_empty_equip(item, char):
     """Find the correct spot to equip this item to"""
+    # may need to test this more carefully, item being None causes crashes rarely when double clicking items
+    if item is None:
+        return -1
     iteminfo = item.get("info", {})
     if not iteminfo:
         return
