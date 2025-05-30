@@ -37,15 +37,7 @@ class ItemsWindow(Entity):
         equip_grid_size = Vec2(2, 2)
         # % of width of box used as spacing between boxes
         equip_box_spacing = 0
-        # Where in the grid the gear slots go
-        equipped_positions = [
-            Vec3(0, 0, -1),
-            Vec3(1, 0, -1),
-            Vec3(0, -1, -1),
-            Vec3(1, -1, -1),
-        ]
         # ============CODE=================
-        grid_ratio = equip_grid_size[0] / equip_grid_size[1]
         # compute the height of the frame WRT window given width, grid size, and spacing
         # x is the width of a single box WRT the window
         x = equip_frame_width / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
@@ -54,23 +46,10 @@ class ItemsWindow(Entity):
         equip_frame_height = y * (equip_grid_size[1] + equip_box_spacing * (equip_grid_size[1] - 1))
         # height of equip frame relative to the width
         equip_frame_scale = Vec3(equip_frame_width, equip_frame_height, 1)
-        equip_frame_pos = ((1 - equip_frame_width) / 2, equip_frame_height + edge_margin - 1)
-        self.equipped_frame = Entity(parent=self, origin=(-.5, .5),
-                                        position=equip_frame_pos,
-                                        scale=equip_frame_scale)
-        # Compure the scale of the boxes with respect to the frame
-        box_w = 1 / (equip_grid_size[0] + equip_box_spacing * (equip_grid_size[0] - 1))
-        box_h = 1 / (equip_grid_size[1] + equip_box_spacing * (equip_grid_size[1] - 1))
-
-        equip_box_scale = Vec3(box_w, box_h, 1)
-
-        self.equipment_boxes = [
-            ItemBox(text=equipment_slots[i], slot=i, container_name="equipment",
-                           parent=self.equipped_frame,
-                           position=pos * ((1 + equip_box_spacing) * equip_box_scale),
-                           scale=equip_box_scale, color=slot_color)
-                for i, pos in enumerate(equipped_positions)
-        ]
+        equip_frame_pos = ((1 - equip_frame_width) / 2, equip_frame_height + edge_margin - 1, -1)
+        self.equipment_frame = ItemFrame(equip_grid_size, "equipment", self.player.equipment,
+                                        slot_labels=equipment_slots,
+                                        parent=self, position=equip_frame_pos, scale=equip_frame_scale)
 
         # Make inventory subframe
         # ===========PARAMETERS=============
@@ -85,42 +64,63 @@ class ItemsWindow(Entity):
         inventory_frame_height = inventory_frame_width / grid_ratio * window_wh_ratio
         inventory_frame_scale = Vec2(inventory_frame_width, inventory_frame_height)
 
-        self.inventory_positions = [Vec3(i, -j, -1)
-                                    for j in range(inventory_grid_size[1])
-                                    for i in range(inventory_grid_size[0])]
+        self.inventory_frame = ItemFrame(inventory_grid_size, "inventory", self.player.inventory,
+                                         parent=self, position=inventory_position, scale=inventory_frame_scale)
 
-        self.inventory_subframe = Entity(parent=self, origin=(-.5, .5),
-                                        position=inventory_position,
-                                        scale=inventory_frame_scale)
-
-        inventory_box_scale = Vec3(1 / inventory_grid_size[0], 1 / inventory_grid_size[1], 1)
-
-        self.inventory_boxes = [
-            ItemBox(slot=i, container_name="inventory",
-                    parent=self.inventory_subframe,
-                    position=pos * inventory_box_scale,
-                    scale=inventory_box_scale, color=slot_color)
-            for i, pos in enumerate(self.inventory_positions)
-        ]
-
-        for slot in self.equipment_boxes:
-            grid(slot, num_rows=1, num_cols=1, color=color.black)
-        for slot in self.inventory_boxes:
-            grid(slot, num_rows=1, num_cols=1, color=color.black)
-
-        self.item_icons = []
-
-        self.make_char_items()
+        self.container_to_frame = {"equipment": self.equipment_frame,
+                                   "inventory": self.inventory_frame}
 
 
-    def make_char_items(self):
-        """Reads player inventory and equipment and outputs to UI"""
-        for i, item in enumerate(self.player.inventory):
-            self.make_item_icon(item, self.inventory_boxes[i])
-        for i, item in enumerate(self.player.equipment):
-            if item is not None:
-                self.equipment_boxes[i].label.text = ""
-            self.make_item_icon(item, self.equipment_boxes[i])
+    def enable_colliders(self):
+        self.inventory_frame.collision = True
+        self.equipment_frame.collision = True
+
+    def disable_colliders(self):
+        self.inventory_frame.collision = False
+        self.equipment_frame.collision = False
+
+    def update_ui_icons(self, container_name):
+        frame = self.container_to_frame[container_name]
+        for box in frame.boxes:
+            box.refresh_icon()
+
+class ItemFrame(Entity):
+    def __init__(self, grid_size, container_name, items, slot_labels=[], **kwargs):
+        self.grid_size = grid_size
+        self.container_name = container_name
+        # pad the slot labels with empty strings
+        self.slot_labels = slot_labels + ([""] * (len(items) - len(slot_labels)))
+
+        self.items = items
+        self.boxes = [None] * len(items)
+        self.item_icons = [None] * len(items)
+
+        super().__init__(collider="box", origin=(-0.5, 0.5), model='quad', color=slot_color, **kwargs)
+        box_spacing = 0
+        box_w = 1 / (grid_size[0] + box_spacing * (grid_size[0] - 1))
+        box_h = 1 / (grid_size[1] + box_spacing * (grid_size[1] - 1))
+
+        box_scale = Vec3(box_w, box_h, 1)
+
+        positions = [(i, -j, -1) for j in range(int(self.grid_size[1])) for i in range(int(self.grid_size[0]))]
+
+        for i, pos in enumerate(positions):
+            self.boxes[i] = ItemBox(text=self.slot_labels[i], slot=i, container_name=container_name,
+                               parent=self, position=pos * ((1 + box_spacing) * box_scale),
+                               scale=box_scale)
+            icon = self.make_item_icon(items[i], self.boxes[i])
+            self.boxes[i].icon = icon
+            self.item_icons[i] = icon
+
+        grid(self, int(grid_size[1]), int(grid_size[0]), color=color.black)
+
+        self.dragging_icon = None
+        self.dragging_box = None
+        self.step = Vec3(0, 0, 0)
+        self.click_start_time = time.time()
+        self.drag_threshold = 0.2
+        self.drag_sequence = Sequence(Func(self.move_icon_to_mouse), loop=True)
+
 
     def make_item_icon(self, item, parent):
         """Creates an item icon and puts it in the UI.
@@ -130,43 +130,69 @@ class ItemsWindow(Entity):
         internal_container: list of Items
         slot: str or int; key or index to containers"""
         if item is None:
-            return
+            return None
         if "icon" in item:
             texture = os.path.join(effect_icons_dir, item["icon"])
             load_texture(texture)
             icon = ItemIcon(item, parent=parent, scale=(1, 1),
                             position=(0, 0, -2), texture=item["icon"])
+            parent.text = ""
         else:
             icon = ItemIcon(item, parent=parent, scale=(1, 1),
                             position=(0, 0, -2), color=color.gray)
-        parent.itemicon = icon
-        self.item_icons.append(icon)
+        return icon
 
-    def enable_colliders(self):
-        for box in self.equipment_boxes:
-            box.collision = True
-        for box in self.inventory_boxes:
-            box.collision = True
-        for icon in self.item_icons:
-            icon.collision = True
+    def on_click(self):
+        hovered_slot = self.get_hovered_slot()
+        self.dragging_icon = self.item_icons[hovered_slot]
+        self.dragging_box = self.boxes[hovered_slot]
+        if self.dragging_icon is None:
+            return
+        self.step = self.dragging_box.get_position(camera.ui) - mouse.position
+        self.click_start_time = time.time()
+        self.drag_sequence.start()
 
-    def disable_colliders(self):
-        for box in self.equipment_boxes:
-            box.collision = False
-        for box in self.inventory_boxes:
-            box.collision = False
-        for icon in self.item_icons:
-            icon.collision = False
+    def get_hovered_slot(self):
+        ui_mouse_pos = mouse.position * camera.ui.scale
+        rel_mouse_pos = ui_mouse_pos - self.world_position
+        slot_world_pos = Vec2(self.world_scale_x, self.world_scale_y) / self.grid_size
+        slot = Vec2(rel_mouse_pos[0], rel_mouse_pos[1]) / slot_world_pos
+        slot = (int(slot[0]), int(slot[1]))
+        # There's a bug in Vec2/3 that causes an automatic casting to float, recast to account for it
+        return int(slot[0] - slot[1] * self.grid_size[0])
 
-    def update_ui_icons(self, container_name):
-        ui_container = getattr(self, container_name + "_boxes")
-        for box in ui_container:
-            box.refresh_icon()
+    def input(self, key):
+        if key == "left mouse up" and self.dragging_icon is not None:
+            self.drag_sequence.finish()
+            self.handle_drop()
+
+    def handle_drop(self):
+        # Item was being dragged but was just released
+        other_container = mouse.hovered_entity
+        if not isinstance(other_container, ItemFrame):
+            self.dragging_icon.position = Vec3(0, 0, -1)
+        else:
+            hovered_slot = other_container.get_hovered_slot()
+            drop_box = other_container.boxes[hovered_slot]
+            # Clicked and released quickly without moving out of this box
+            if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
+                option = self.dragging_icon.item["functions"][0]
+                meth = Item.option_to_meth[option]
+                getattr(self.dragging_icon, meth)()
+            # Clicked and released on another box
+            else:
+                self.dragging_icon.swap_locs(drop_box)
+        self.dragging_icon = None
+        self.dragging_box = None
+
+    def move_icon_to_mouse(self):
+        if mouse.position:
+            self.dragging_icon.set_position(mouse.position + self.step, camera.ui)
 
 
 class ItemBox(Entity):
     def __init__(self, *args, text="", slot=None, container_name="", **kwargs):
-        super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
+        super().__init__(*args, origin=(-.5, .5), **kwargs)
         if text:
             self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
                              world_scale=(11, 11), color=window_fg_color)
@@ -181,91 +207,37 @@ class ItemBox(Entity):
             self.itemicon = None
             if self.container_name == "equipment":
                 self.label.text = equipment_slots[self.slot]
-            return
-        icon = item.icon
-        self.itemicon = icon
-        icon.parent = self
-        icon.position = Vec3(0, 0, -1)
-        if self.container_name == "equipment":
-            self.label.text = ""
+        else:
+            icon = item.icon
+            self.itemicon = icon
+            icon.parent = self
+            icon.position = Vec3(0, 0, -1)
+            if self.container_name == "equipment":
+                self.label.text = ""
+        self.parent.item_icons[self.slot] = self.itemicon
 
 class ItemIcon(Entity):
     """UI Representation of an Item. Logically, above Item. The reason for this is that
     it makes sense for an Item to not have an ItemIcon, but it does not make sense for an ItemIcon
     to not have an Item. Reversing the dependence would make the rest of this module harder to implement."""
     def __init__(self, item, *args, **kwargs):
-        super().__init__(*args, origin=(-.5, .5), model='quad', collider='box', **kwargs)
+        super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
         self.item = item
         self.item.icon = self
-        self.window = self.parent.parent.parent
 
-        self.previous_parent = None
-        self.dragging = False
-        self.step = Vec3(0, 0, 0)
-        self.click_start_time = time.time()
-        self.drag_threshold = 0.2
-        self.drag_sequence = Sequence(Func(self.move_to_mouse), loop=True)
-
-    def on_click(self):
-        self.dragging = True
-        self.collision = False
-        self.step = self.get_position(camera.ui) - mouse.position
-        self.click_start_time = time.time()
-        self.drag_sequence.start()
-
-    def input(self, key):
-        if key == "left mouse up" and self.dragging:
-            self.handle_drop()
-            self.drag_sequence.finish()
-
-    def handle_drop(self):
-        # Item was being dragged but was just released
-        self.dragging = False
-        drop_to = mouse.hovered_entity
-        # Clicked and released quickly without moving out of this box
-        if drop_to is self.parent and time.time() - self.click_start_time < self.drag_threshold:
-            option = self.item["functions"][0]
-            meth = Item.option_to_meth[option]
-            getattr(self, meth)()
-        # Clicked and released in a different box
-        elif isinstance(drop_to, ItemBox):
-            self.swap_locs(other_box=drop_to)
-        # Clicked and released on another icon
-        elif isinstance(drop_to, ItemIcon):
-            self.swap_locs(other_icon=drop_to)
-        # Note a valid target to drop on
-        else:
-            self.position = Vec3(0, 0, -1)
-        self.collision = True
-
-    def move_to_mouse(self):
-        if mouse.position:
-            self.set_position(mouse.position + self.step, camera.ui)
-
-    def swap_locs(self, other_icon=None, other_box=None):
-        """Swaps the contents of two ItemBoxes. Main driving function of inventory movement.
-
-        Must specify one of other_icon or other_box. General process after determining the
-        relevant inputs is this (only by main client):
-        1. Check if the items can go to the new locations
-        2. Remove/add text to equipment slots, if applicable
-        3. Swap box contents
-        4. Swap icon parents, and reposition to (0, 0, 0)
-        5. Update primary options (if moved between inventory and equipment, for example)
-        6. Do function call for the internal move
-        other_icon: ItemIcon
-        other_box: ItemSlot"""
-        if other_icon is None and other_box is None:
-            return
+    def swap_locs(self, other_box):
+        """Swaps the contents of two ItemBoxes. Main driving function of visual inventory movement.
+        Sends network request to have the items moved internally, and receives a response which updates the
+        UI."""
         if other_box is None:
-            other_box = other_icon.parent
-        elif other_icon is None:
-            other_icon = other_box.itemicon
+            return
+        other_icon = other_box.itemicon
         other_container = other_box.container_name
         other_slot = other_box.slot
-        other_item = other_icon.item if isinstance(other_icon, ItemIcon) else None
+
         my_container = self.parent.container_name
         my_slot = self.parent.slot
+
         equipping_mine = other_container == "equipment"
         equipping_other = my_container == "equipment"
 

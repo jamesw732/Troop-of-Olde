@@ -21,17 +21,11 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Rewrite UI code using new UIWindow class. 
+Rewrite UI code using new UIWindow class:
+Tighten up new items window code
+Clean up other player window tabs
 
-Put player window in the corner and make it persistent. Also combine the inventory and equipment into just
-one collider.
-
-Make bars window bars smaller.
-
-There's a discrepancy between the action bar and items UI which might need fixing for
-whenever I allow swapping of powers in the action bar. Items keeps invisible boxes that the icons can
-be parented to and just have unit scale and zero position, while action bar deduces the right
-position and scale. Items is more convenient to use, but action bar may be more clear about what's happening.
+Remove UI elements from physics raycasts
 
 
 ===================================NEXT================================================
@@ -74,6 +68,7 @@ Incomplete stat implementations:
 - Regeneration
 - Hardiness
 
+
 Items:
 I don't really like that items are just dicts. Could probably stand to rethink the entire way items
 are stored and represented.
@@ -85,10 +80,12 @@ Off the top of my head:
 - player's target
 - in combat/not
 - persistent effects (future)
+- Enemy drops (future)
 
-Also, hover and right click tooltips will be the primary visual guide for the UI. This will be a huge
-step, but probably doesn't need to wait too long.
-
+Current UI functionality is also quite lacking.
+- Hover and right click tooltips, which will be the primary visual guide for the UI
+- Allow swapping of action bar slots
+- Allow destroying items
 
 There are some bugs as well:
 - Transparency handling for the game window is buggy since the scrollbar has its own collider. Basically,

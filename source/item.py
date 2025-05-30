@@ -114,6 +114,9 @@ class Item(dict):
         if self.inst_id >= 0:
             gs.network.inst_id_to_item[self.inst_id] = self
 
+    def __str__(self):
+        return self["name"]
+
 # Public functions
 def make_item_from_data(item_data):
     """Handles the possible cases for creating an item from id's
