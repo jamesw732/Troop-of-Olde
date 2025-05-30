@@ -104,7 +104,7 @@ class ItemFrame(Entity):
         self.step = Vec3(0, 0, 0)
         self.click_start_time = time.time()
         self.drag_threshold = 0.2
-        self.drag_sequence = Sequence(Func(self.move_icon_to_mouse), loop=True)
+        self.drag_sequence = Sequence(Func(self.drag_icon), loop=True)
 
     def update_ui_icons(self):
         """Public function which refreshes all icons in whole UI element"""
@@ -129,16 +129,8 @@ class ItemFrame(Entity):
         """
         if item is None:
             return None
-        if "icon" in item:
-            texture = os.path.join(effect_icons_dir, item["icon"])
-            load_texture(texture)
-            icon = ItemIcon(item, parent=box, scale=(1, 1),
-                            position=(0, 0, -2), texture=item["icon"])
-            box.text = ""
-        else:
-            icon = ItemIcon(item, parent=box, scale=(1, 1),
-                            position=(0, 0, -2), color=color.gray)
-        return icon
+        return ItemIcon(item, parent=box, scale=(1, 1),
+                        position=(0, 0, -2))
 
     def on_click(self):
         hovered_slot = self.get_hovered_slot()
@@ -178,11 +170,48 @@ class ItemFrame(Entity):
                 getattr(self.dragging_icon, meth)()
             # Clicked and released on another box
             else:
-                self.dragging_icon.swap_locs(drop_box)
+                self.move_icon(self.dragging_icon, drop_box)
         self.dragging_icon = None
         self.dragging_box = None
 
-    def move_icon_to_mouse(self):
+
+    def move_icon(self, my_icon, other_box):
+        """Performs the visual move of an item from the mouse to another frame/slot.
+
+        Note that this is ONLY called when the client user manually drags an item with their mouse.
+        In this case, we trust that the source/target locations are what the user says they are.
+        With auto equipping/unequipping, we don't assume that the client can accurately compute the correct
+        locations, so we just wait for the server to give us the entire new states.
+        This might be wrong, we can probably just trust the client.
+        Assumes that other_box is an ItemBox, invalid moves are handled here."""
+        other_icon = other_box.itemicon
+        other_container = other_box.container_name
+        other_slot = other_box.slot
+
+        my_container = self.container_name
+        my_slot = my_icon.parent.slot
+
+        # Should eventually make this handling more general, maybe give ItemBoxes knowledge
+        # of what valid items can go in them rather than hardcoding equipment.
+        equipping_mine = other_container == "equipment"
+        equipping_other = my_container == "equipment"
+
+        # Make sure items can go to new locations if being equipped
+        if equipping_other and other_icon is not None:
+            other_item_slots = other_icon.get_item_slots()
+            if my_slot not in other_item_slots:
+                my_slot.position = Vec3(0, 0, -1)
+                return
+        if equipping_mine:
+            my_item_slots = my_icon.get_item_slots()
+            if other_slot not in my_item_slots:
+                self.position = Vec3(0, 0, -1)
+                return
+
+        conn = gs.network.server_connection
+        gs.network.peer.request_swap_items(conn, my_container, my_slot, other_container, other_slot)
+
+    def drag_icon(self):
         if mouse.position:
             self.dragging_icon.set_position(mouse.position + self.step, camera.ui)
 
@@ -201,40 +230,12 @@ class ItemBox(Entity):
 class ItemIcon(Entity):
     """UI Representation of an Item."""
     def __init__(self, item, *args, **kwargs):
-        super().__init__(*args, origin=(-.5, .5), model='quad', **kwargs)
         self.item = item
+        texture = item["icon"]
+        texture_path = os.path.join(item_icons_dir, item["icon"])
+        load_texture(texture_path)
         self.item.icon = self
-
-    def swap_locs(self, other_box):
-        """Move this ItemIcon to the target ItemBox, and moves the contents of the ItemBox to the old
-        ItemBox. Sends network request to have the items moved internally, and receives a response which
-        updates the UI."""
-        if other_box is None:
-            return
-        other_icon = other_box.itemicon
-        other_container = other_box.container_name
-        other_slot = other_box.slot
-
-        my_container = self.parent.container_name
-        my_slot = self.parent.slot
-
-        equipping_mine = other_container == "equipment"
-        equipping_other = my_container == "equipment"
-
-        # Make sure items can go to new locations if being equipped
-        if equipping_other and other_icon is not None:
-            other_item_slots = other_icon.get_item_slots()
-            if my_slot not in other_item_slots:
-                self.position = Vec3(0, 0, -1)
-                return False
-        if equipping_mine:
-            my_item_slots = self.get_item_slots()
-            if other_slot not in my_item_slots:
-                self.position = Vec3(0, 0, -1)
-                return False
-
-        conn = gs.network.server_connection
-        gs.network.peer.request_swap_items(conn, my_container, my_slot, other_container, other_slot)
+        super().__init__(*args, origin=(-.5, .5), model='quad', texture=texture, **kwargs)
 
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
