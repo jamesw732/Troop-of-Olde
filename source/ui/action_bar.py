@@ -94,7 +94,6 @@ class PowerBar(Entity):
         power.handle_power_input()
 
 
-
 class Timer(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -108,8 +108,19 @@ class ItemFrame(Entity):
 
     def update_ui_icons(self):
         """Public function which refreshes all icons in whole UI element"""
-        for box in self.boxes:
-            box.refresh_icon()
+        for slot, box in enumerate(self.boxes):
+            item = self.items[slot]
+            if item is None:
+                box.itemicon = None
+                box.label.text = self.slot_labels[slot]
+                icon = None
+            else:
+                icon = item.icon
+                box.itemicon = icon
+                icon.parent = box
+                icon.position = Vec3(0, 0, -1)
+                box.label.text = ""
+            self.item_icons[slot] = icon
 
     def make_item_icon(self, item, box):
         """Creates an item icon and puts it in the UI.
@@ -179,28 +190,13 @@ class ItemFrame(Entity):
 class ItemBox(Entity):
     def __init__(self, *args, text="", slot=None, container_name="", **kwargs):
         super().__init__(*args, origin=(-.5, .5), **kwargs)
-        if text:
-            self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
-                             world_scale=(11, 11), color=window_fg_color)
+        self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
+                          world_scale=(11, 11), color=window_fg_color)
         self.container_name = container_name
         self.container = getattr(gs.pc, container_name)
         self.slot = slot
         self.itemicon = None
 
-    def refresh_icon(self):
-        item = self.container[self.slot]
-        if item is None:
-            self.itemicon = None
-            if self.container_name == "equipment":
-                self.label.text = equipment_slots[self.slot]
-        else:
-            icon = item.icon
-            self.itemicon = icon
-            icon.parent = self
-            icon.position = Vec3(0, 0, -1)
-            if self.container_name == "equipment":
-                self.label.text = ""
-        self.parent.item_icons[self.slot] = self.itemicon
 
 class ItemIcon(Entity):
     """UI Representation of an Item."""
