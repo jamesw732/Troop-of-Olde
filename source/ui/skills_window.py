@@ -1,7 +1,6 @@
 from ursina import *
 
 from .base import *
-from .header import *
 from ..base import all_skills
 from ..gamestate import gs
 
