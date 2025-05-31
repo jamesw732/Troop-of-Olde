@@ -21,6 +21,7 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
+Fixed timestep physics and client side prediction.
 
 
 ===================================NEXT================================================
@@ -44,7 +45,6 @@ This is much more robust and doesn't necessitate calling update unnecessarily.
 =========================================BACKLOG=================================================
 Physics:
 Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
-Client side prediction and server authoritative physics. Fixed timestep physics.
 
 Combat/Character:
 Neglected formulas:

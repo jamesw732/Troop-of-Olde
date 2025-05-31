@@ -102,11 +102,6 @@ class Character(Entity):
         self.num_powers = default_num_powers
         self.powers = [None] * self.num_powers
 
-    def update(self):
-        # This will eventually be moved to MobController, on a fixed
-        # update rate
-        handle_movement(self)
-
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a staet update."""
         self.maxhealth = self.statichealth

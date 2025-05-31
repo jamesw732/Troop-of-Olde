@@ -26,10 +26,10 @@ class PlayerController(Entity):
     def bind_character(self, character):
         self.character = character
         self.focus = Entity(
-            visible_self=False,
-            position=self.character.position
-                + Vec3(0, 0.5 * self.character.height),
-            rotation = (1, 0, 0))
+            parent=self.character,
+            world_scale = (1, 1, 1),
+            position = Vec3(0, 0.75, 0)
+        )
         self.namelabel = NameLabel(character)
         self.fix_namelabel()
 
@@ -42,9 +42,7 @@ class PlayerController(Entity):
     def fix_namelabel(self):
         """Simplify player character's namelabel"""
         self.namelabel.parent = self.focus
-        self.namelabel.position = Vec3(0, self.character.height, 0)
-        # self.character.namelabel.fix_rotation = lambda: None
-        # self.character.namelabel.fix_position = lambda: None
+        self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
 
     def bind_keys(self):
         """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
@@ -54,16 +52,17 @@ class PlayerController(Entity):
                 input_handler.bind(k, v)
 
     def update(self):
+        char = self.character
+        handle_movement(char)
         # Performance: This probably doesn't need to happen every frame, just when we move.
         self.adjust_camera_zoom()
-        self.adjust_focus()
 
         # Keyboard Movement
-        fwdback = self.character.forward * (held_keys['move_forward'] - held_keys['move_backward'])
-        strafe = self.character.right * (held_keys['strafe_right'] - held_keys['strafe_left'])
+        fwdback = char.forward * (held_keys['move_forward'] - held_keys['move_backward'])
+        strafe = char.right * (held_keys['strafe_right'] - held_keys['strafe_left'])
         keyboard_direction = Vec3(strafe + fwdback).normalized() 
-        char_speed = get_speed_modifier(self.character.speed)
-        self.character.velocity_components["keyboard"] = keyboard_direction * 10 * char_speed
+        char_speed = get_speed_modifier(char.speed)
+        char.velocity_components["keyboard"] = keyboard_direction * 10 * char_speed
         # Keyboard Rotation
         rotate_ud = held_keys['rotate_up'] - held_keys['rotate_down']
         rotate_lr = held_keys['rotate_right'] - held_keys['rotate_left']
@@ -72,7 +71,6 @@ class PlayerController(Entity):
         if held_keys['right mouse']:
             self.handle_mouse_rotation()
 
-        char = self.character
         if char.get_on_gcd():
             char.tick_gcd()
         elif char.next_power is not None:
@@ -105,24 +103,23 @@ class PlayerController(Entity):
     def adjust_camera_zoom(self):
         """Set camera zoom. Handles camera collision with entities"""
         direction = camera.world_position - self.focus.world_position
-        ray = raycast(self.focus.position, direction=direction, distance=self.camdistance,
+        ray = raycast(self.focus.world_position, direction=direction, distance=self.camdistance,
                       ignore=self.character.ignore_traverse)
         if ray.hit:
-            dist = math.dist(ray.world_point, self.focus.position)
+            dist = math.dist(ray.world_point, self.focus.world_position)
             camera.z = -1 * min(self.camdistance, dist)
         else:
             camera.z = -1 * self.camdistance
-
-    def adjust_focus(self):
-        """Called every frame, adjust player's focus to character's position"""
-        self.focus.position = self.character.position + Vec3(0, 0.5 * self.character.height, 0)
 
     def handle_keyboard_rotation(self, rotation):
         """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
         # Keyboard Rotation
         # Slow down left/right rotation by multiplying by cos(x rotation)
         rotation[1] = rotation[1] * math.cos(math.radians(self.focus.rotation_x))
-        self.focus.rotate(rotation * time.dt * 100)
+        char_rotation = Vec3(0, rotation[1] * 100, 0)
+        focus_rotation = Vec3(rotation[0] * 100, 0, 0)
+        self.character.rotate(char_rotation * time.dt)
+        self.focus.rotate(focus_rotation * time.dt)
         self.fix_camera_rotation()
 
     def handle_mouse_rotation(self):
@@ -130,7 +127,10 @@ class PlayerController(Entity):
         # Mouse rotation:
         diff = mouse.position - self.prev_mouse_position
         vel = Vec3(-1 * diff[1], diff[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
-        self.focus.rotate(vel * 200)
+        char_rotation = Vec3(0, vel[1] * 200, 0)
+        focus_rotation = Vec3(vel[0] * 200, 0, 0)
+        self.character.rotate(char_rotation)
+        self.focus.rotate(focus_rotation)
         self.prev_mouse_position = mouse.position
         self.fix_camera_rotation()
 
@@ -138,8 +138,9 @@ class PlayerController(Entity):
         """Handles all the problems that results from the camera rotating.
         Caps vertical rotation, removes z rotation, rotates character."""
         max_vert_rotation = 80
-        self.focus.rotation_z = 0
-        self.character.rotation_y = self.focus.rotation_y
+        self.character.world_rotation_x = 0
+        self.character.world_rotation_z = 0
+        self.focus.world_rotation_z = 0
         self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
 
     def set_target(self, target):
@@ -169,6 +170,7 @@ class NPCController(Entity):
         self.namelabel = NameLabel(character)
 
     def update(self):
+        handle_movement(self.character)
         self.namelabel.adjust_position()
         self.namelabel.adjust_rotation()
 
