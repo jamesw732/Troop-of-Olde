@@ -17,7 +17,9 @@ class PlayerWindow(UIWindow):
                          bg_alpha = 200/255, header_ratio=0.05)
 
         margin_length = 0.025
+        button_width = 0.3
         button_height = 0.08
+        button_scale = (button_width, button_height)
         # tab_scale = (.95, .8725)
         # tab_pos = (.025, -.1, -1)
         subheader_height = 3 * margin_length + button_height
@@ -30,7 +32,7 @@ class PlayerWindow(UIWindow):
                                  color=window_fg_color)
         self.itemsbutton = Entity(
             parent=self.body, model='quad', origin=(-.5, .5),
-            position=(margin_length, -margin_length, -1), scale=(0.13, button_height),
+            position=(margin_length, -margin_length, -1), scale=button_scale,
             color=header_color, collider="box"
         )
         self.itemsbutton.on_click = lambda: self.open_window("open items")
@@ -42,7 +44,7 @@ class PlayerWindow(UIWindow):
                                  color=window_fg_color)
         self.skillsbutton = Entity(
             parent=self.body, model='quad', origin=(-.5, .5),
-            position=(0.18, -margin_length, -1), scale=(0.13, button_height),
+            position=(button_width + 2 * margin_length, -margin_length, -1), scale=button_scale,
             color=header_color, collider="box"
         )
         self.skillsbutton.on_click = lambda: self.open_window("open skills")
@@ -54,7 +56,7 @@ class PlayerWindow(UIWindow):
                                  color=window_fg_color)
         self.statsbutton = Entity(
             parent=self.body, model='quad', origin=(-.5, .5),
-            position=(0.335, -margin_length, -1), scale=(0.12, button_height),
+            position=(2 * button_width + 3 * margin_length, -margin_length, -1), scale=button_scale,
             color=header_color, collider="box"
         )
         self.statsbutton.on_click = lambda: self.open_window("open stats")
