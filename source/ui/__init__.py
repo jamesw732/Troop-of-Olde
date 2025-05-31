@@ -10,6 +10,7 @@ class UI:
         self.playerwindow = None
         self.gamewindow = None
         self.item_frames = {}
+        self.colliders = []
 
 def make_all_ui(ui):
     # pass

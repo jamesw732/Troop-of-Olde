@@ -2,6 +2,7 @@ from ursina import *
 
 from .base import *
 from .window import UIWindow
+from ..gamestate import gs
 
 class GameWindow(UIWindow):
     def __init__(self):
@@ -90,6 +91,7 @@ class ScrollBar(Entity):
         top_marker: entity defining the variable top of the block to scroll over
         bottom_start: y value of the initial posiiton of bottom_marker"""
         super().__init__(**kwargs)
+        gs.ui.colliders.append(self)
         self.window = window
         self.frame = frame
         self.bottom_marker = bottom_marker

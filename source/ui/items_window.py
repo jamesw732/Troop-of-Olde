@@ -81,6 +81,7 @@ class ItemFrame(Entity):
         self.item_icons = [None] * len(items)
 
         super().__init__(collider="box", origin=(-0.5, 0.5), model='quad', color=slot_color, **kwargs)
+        gs.ui.colliders.append(self)
         box_spacing = 0
         box_w = 1 / (grid_size[0] + box_spacing * (grid_size[0] - 1))
         box_h = 1 / (grid_size[1] + box_spacing * (grid_size[1] - 1))

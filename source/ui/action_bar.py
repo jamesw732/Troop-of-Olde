@@ -47,6 +47,7 @@ class ActionBar(UIWindow):
 class PowerBar(Entity):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        gs.ui.colliders.append(self)
         self.power_icons = [None] * self.parent.num_slots
         self.labels = []
         outlines = []

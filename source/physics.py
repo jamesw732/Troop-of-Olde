@@ -2,6 +2,8 @@
 from ursina import *
 import numpy
 
+from .gamestate import gs
+
 
 # PUBLIC
 def handle_movement(char):
@@ -51,8 +53,12 @@ def set_jump_vel(char):
 
 def handle_grounding(char, velocity):
     """Determine whether character is on the ground or not. Kills y velocity if grounded."""
+    ignore_traverse = char.ignore_traverse
+    # This doesn't seem to provide any sort of performance improvement
+    # if gs.ui:
+    #     ignore_traverse += gs.ui.colliders
     ground = raycast(char.world_position + (0, char.height, 0), direction=char.down,
-                     ignore=char.ignore_traverse)
+                     ignore=ignore_traverse)
     if not ground.hit:
         char.grounded = False
         return

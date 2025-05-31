@@ -21,11 +21,6 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Rewrite UI code using new UIWindow class:
-Tighten up new items window code
-Clean up other player window tabs
-
-Remove UI elements from physics raycasts
 
 
 ===================================NEXT================================================
