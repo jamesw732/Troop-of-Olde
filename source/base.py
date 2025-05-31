@@ -72,6 +72,7 @@ slot_to_ind = {"armor": 0, "ring": 1, "mh": 2, "oh": 3}
 
 default_inventory = [None] * 20
 
+# List containing all the stats displayed by the skills window
 all_skills = [    # Melee styles
     "1h melee",
     "2h melee",
@@ -92,6 +93,19 @@ all_skills = [    # Melee styles
     # "necromancy",
     # "transformation",
 ]
+
+# List containing all the stats displayed by the stats window, excluding max stats like maxhealth
+all_stats = [
+    "health",
+    "energy",
+    "armor",
+    "str",
+    "ref",
+    "dex",
+    "haste",
+    "speed"
+]
+
 
 def get_speed_modifier(speed):
     return 1 + speed
