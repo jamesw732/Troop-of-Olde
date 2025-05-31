@@ -76,21 +76,21 @@ all_skills = [    # Melee styles
     "1h melee",
     "2h melee",
     "fists",
-    "maul",
-    # Defensive
-    "parry",
-    "dodge",
-    "shields",
-    "riposte",
-    # Melee "extra"
-    "critical hit",
-    "flurry",
-    "dual wield",
-    # Casting styles
-    "enchantment",
-    "curse",
-    "necromancy",
-    "transformation",
+    # "maul",
+    # # Defensive
+    # "parry",
+    # "dodge",
+    # "shields",
+    # "riposte",
+    # # Melee "extra"
+    # "critical hit",
+    # "flurry",
+    # "dual wield",
+    # # Casting styles
+    # "enchantment",
+    # "curse",
+    # "necromancy",
+    # "transformation",
 ]
 
 def get_speed_modifier(speed):
