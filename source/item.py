@@ -7,75 +7,16 @@ from .gamestate import gs
 # This import might be a problem eventually
 from .states.state import State
 
-"""
-JSON Structure:
-{
-    id: {
-        "name": name,
-        "type": type
-        "info": {
-            "info1": val1
-            "info2": val2, etc
-        }
-        "stats": {
-            "stat1": val1,
-            "stat2": val2, etc
-        }
-        "functions": [funcname1, funcname2, etc]
-    }
-}
-Eventual attrs: on_use (an Effect id), model (a str), texture (a str)
-
-name is required
-
-type is a descriptor of what kind of item this is, tells the code what kind of info to look for. Required. Currently the options are:
-weapon
-equipment
-
-info is not meant to be directly interoperable with a Character but are essential data about the item. Info depends on the type of item.
-(equippable; weapons or equipment)
-slot
-slots
-(weapons)
-dmg
-delay
-
-stats are attributes that will be copied into an Item object which will be copied directly to a Character object. There should be 100% interoperability between the two, anything that doesn't make sense to be assigned directly as an attribute of a character should go in info. Required for any equippable item. Valid stats are character attributes, a comprehensive list here:
-statichealth
-staticmana
-staticstamina
-spellshield
-armor
-maxspellshield # If spellshield or armor is set, the max must also be set.
-maxarmor
-bdy
-str
-dex
-ref
-int
-afire
-acold
-aelec
-apois
-adis
-haste
-speed
-casthaste
-healmod
-
-functions: Names of functions this item has access to. Optional, if not specified the options are inferred from the type.
-"""
-
-# Probably better to have this somewhere else
+# Eventually, this will be a database connection rather than a json stored in memory
 items_file = os.path.join(os.path.dirname(__file__), "..", "data", "items.json")
 with open(items_file) as items:
     items_dict = json.load(items)
 
 
-class Item(dict):
+class Item:
     type_to_options = {
-        "weapon": ["equip", "expunge"],
-        "equipment": ["equip", "expunge"]
+        "weapon": ["equip"],
+        "equipment": ["equip"]
     }
     option_to_meth = {
         "equip": "auto_equip",
@@ -87,22 +28,25 @@ class Item(dict):
         item_id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs"""
         self.item_id = item_id
-        self.icon = None
         data = copy.deepcopy(items_dict[str(item_id)])
 
-        super().__init__(**data)
+        self.name = data.get("name", "")
+        self.type = data.get("type", "")
+        self.info = data.get("info", {})
+        self.stats = data.get("stats", {})
+        self.stats = State("pc_combat", **self.stats)
+        self.functions = copy.copy(self.type_to_options.get(self.type, []))
+        self.icon_path = data.get("icon", "")
+        self.icon = None
 
-        info = self["info"]
-        if "slot" in info:
-            info["slot"] = slot_to_ind[info["slot"]]
-        if "slots" in info:
-            for i, slot in enumerate(info["slots"]):
-                info["slots"][i] = slot_to_ind[slot]
+        # remove "slot", when there's just one make "slots" a singleton list
+        if "slot" in self.info:
+            if isinstance(self.info["slot"], str):
+                self.info["slot"] = slot_to_ind[self.info["slot"]]
+        if "slots" in self.info:
+            self.info["slots"] = [slot_to_ind[slot] if isinstance(slot, str) else slot
+                                  for slot in self.info["slots"]]
 
-        if self["type"] in ["weapon", "equipment"]:
-            self["stats"] = State("pc_combat", **self.get("stats", {}))
-        if "functions" not in self:
-            self['functions'] = copy.copy(self.type_to_options.get(self["type"], []))
         if gs.network.peer.is_hosting():
             # Set the instantiated ID.
             # Currently, instantiated item id's are only transmitted to the client upon player connection,
@@ -115,7 +59,7 @@ class Item(dict):
             gs.network.inst_id_to_item[self.inst_id] = self
 
     def __str__(self):
-        return self["name"]
+        return self.name
 
 # Public functions
 def make_item_from_data(item_data):
@@ -222,9 +166,9 @@ def handle_stat_updates(char, item, to_container_n, from_container_n):
     if to_container_n == "equipment":
         # Only apply stat change if not swapping between equipment
         if from_container_n != "equipment":
-            item["stats"].apply_diff(char)
+            item.stats.apply_diff(char)
     elif from_container_n == "equipment":
-        item["stats"].apply_diff(char, remove=True)
+        item.stats.apply_diff(char, remove=True)
     char.update_max_ratings()
 
 # Lower level private functions
@@ -235,7 +179,7 @@ def get_primary_option_from_container(item, container):
     if container == "equipment":
         return "unequip"
     elif container == "inventory":
-        if item["type"] in ["weapon", "equipment"]:
+        if item.type in ["weapon", "equipment"]:
             return "equip"
 
 def update_primary_option(item, funcname):
@@ -244,12 +188,9 @@ def update_primary_option(item, funcname):
     funcname: str, name of function to replace the top option"""
     if item is None:
         return
-    if "functions" not in item:
-        item["functions"] = [funcname]
-        return
-    # This seems really bad. Definitely want to work something better out once
-    # item tooltips are a thing
-    item["functions"][0] = funcname
+    # This is really bad. Definitely want to work something better out once items have multiple options
+    # and item tooltips are a thing
+    item.functions = [funcname]
 
 def equipping_2h(item, tgt_container):
     return tgt_container == "equipment" and item_is_2h(item)
@@ -265,32 +206,30 @@ def unequip_offhand(char):
     return True
 
 def equipping_oh_wearing_2h(char, item, tgt_slot):
-    """Equipping an offhand while wearing a 2h weapon. Note that based on how
+    """Returns whether we're equipping an offhand while wearing a 2h weapon. Note that based on how
     auto slot finding is written, this case is only possible if the slot was
     intentionally selected for this item."""
     mh = char.equipment[slot_to_ind["mh"]]
     if mh is None:
         return False
-    mh_is_2h = item_is_2h(mh)
-    return mh_is_2h and tgt_slot == slot_to_ind["oh"]
+    return item_is_2h(mh) and tgt_slot == slot_to_ind["oh"]
 
 def item_is_2h(item):
     if item is None:
         return False
-    return item.get("type") == "weapon" and item.get("info", {}).get("style", "")[:2] == "2h"
+    return item.type == "weapon" and item.info.get("style", "")[:2] == "2h"
 
 def find_first_empty_equip(item, char):
     """Find the correct spot to equip this item to"""
     # may need to test this more carefully, item being None causes crashes rarely when double clicking items
     if item is None:
         return -1
-    iteminfo = item.get("info", {})
-    if not iteminfo:
+    if not item.info:
         return
-    slot = iteminfo.get("slot", "")
+    slot = item.info.get("slot", "")
     if not slot:
         # Might not have found, that's okay, just check for first empty in slots
-        slots = iteminfo.get("slots", [])
+        slots = item.info.get("slots", [])
         if not slots:
             # This is guaranteed to not work right now
             return -1
@@ -306,8 +245,7 @@ def find_first_empty_equip(item, char):
 
 def find_first_empty_inventory(char):
     """Find the first empty inventory slot"""
-    invent = char.inventory
-    empty_slots = (slot for slot in range(28) if invent[slot] is None)
+    empty_slots = (slot for slot in range(28) if char.inventory[slot] is None)
     try:
         return next(empty_slots)
     except StopIteration:

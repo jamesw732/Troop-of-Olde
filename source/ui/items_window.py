@@ -166,7 +166,7 @@ class ItemFrame(Entity):
             drop_box = other_container.boxes[hovered_slot]
             # Clicked and released quickly without moving out of this box
             if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
-                option = self.dragging_icon.item["functions"][0]
+                option = self.dragging_icon.item.functions[0]
                 meth = Item.option_to_meth[option]
                 getattr(self.dragging_icon, meth)()
             # Clicked and released on another box
@@ -232,8 +232,8 @@ class ItemIcon(Entity):
     """UI Representation of an Item."""
     def __init__(self, item, *args, **kwargs):
         self.item = item
-        texture = item["icon"]
-        texture_path = os.path.join(item_icons_dir, item["icon"])
+        texture = item.icon_path
+        texture_path = os.path.join(item_icons_dir, texture)
         load_texture(texture_path)
         self.item.icon = self
         super().__init__(*args, origin=(-.5, .5), model='quad', texture=texture, **kwargs)
@@ -250,7 +250,7 @@ class ItemIcon(Entity):
 
     def get_item_slots(self):
         """Unified way to get the available slots of an equippable item"""
-        iteminfo = self.item.get("info", {})
+        iteminfo = self.item.info
         slot = iteminfo.get("slot")
         if slot is not None:
             return [slot]

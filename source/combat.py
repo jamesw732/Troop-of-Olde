@@ -41,8 +41,6 @@ def attempt_attack(src, tgt, slot):
             slot = slot_to_ind[slot]
         # If hit goes through, do some more fancy calculations to get damage
         wep = src.equipment[slot]
-        if wep is not None and "info" not in wep:
-            return f"Try hitting {tgt.cname} with something else."
         base_dmg = get_wpn_dmg(wep)
         style = get_wpn_style(wep)
 
@@ -70,28 +68,26 @@ def get_haste_modifier(haste):
     return max(0, 1 + haste / 100)
 
 def get_wpn_dmg(wpn):
+    """Wrapper for wpn.info['dmg']"""
     if wpn is None:
         return 1
-    info = wpn.get('info', {})
-    return info.get('dmg', 1)
+    return wpn.info.get('dmg', 1)
 
 def get_wpn_style(wpn):
+    """Wrapper for wpn.info['style']"""
     if wpn is None:
         return 'fists'
-    info = wpn.get('info', {})
-    return info.get('style', 'fists')
+    return wpn.info.get('style', 'fists')
 
 def get_wpn_range(wpn):
-    """Equivalent to wpn['info']['range'] with some precautions"""
+    """Wrapper for wpn.info['range']"""
     if wpn is None:
         return 1
-    info = wpn.get('info', {})
-    return info.get('range', 1)
+    return wpn.info.get('range', 1)
 
 def get_wpn_delay(wpn):
-    """Equivalent to wpn['info']['delay'] with some precautions"""
+    """Wrapper for wpn.info['delay']"""
     if wpn is None:
         return 1
-    info = wpn.get('info', {})
-    return info.get('delay', 1)
+    return wpn.info.get('delay', 1)
 

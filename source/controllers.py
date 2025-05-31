@@ -3,10 +3,11 @@ import json
 
 from .base import *
 from .combat import *
+from .gamestate import gs
+from .item import item_is_2h
+from .physics import handle_movement
 from .skills import *
 from .states import *
-from .gamestate import gs
-from .physics import handle_movement
 
 class PlayerController(Entity):
     """Handles player inputs and eventually client-side interpolation"""
@@ -242,12 +243,11 @@ class MobController(Entity):
                     gs.network.broadcast_cbstate_update(char.target)
             # See if we should progress offhand timer too
             # (if has skill dw):
-            mh_is_1h = char.equipment[mh_slot] is None \
-                or char.equipment[mh_slot]["info"]["style"][:2] == "1h"
+            mh_is_1h = not item_is_2h(char.equipment[mh_slot])
             oh_slot = slot_to_ind["oh"]
             offhand = char.equipment[oh_slot]
             # basically just check if not wearing a shield
-            dual_wielding =  mh_is_1h and (offhand is None or offhand.get("type") == "weapon")
+            dual_wielding =  mh_is_1h and (offhand is None or offhand.type == "weapon")
             if dual_wielding and tick_oh(char)\
             and char.get_target_hittable(char.equipment[oh_slot]):
                 hit, msg = attempt_attack(char, char.target, "oh")
