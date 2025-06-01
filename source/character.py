@@ -11,7 +11,7 @@ from .base import default_cb_attrs, default_phys_attrs, default_equipment, defau
     all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, equip_item, make_item_from_data
+from .item import Item, make_item_from_data, internal_move_item
 from .physics import *
 from .power import Power
 from .skills import *
@@ -58,11 +58,11 @@ class Character(Entity):
         if inventory:
             for slot, item_data in enumerate(inventory):
                 item = make_item_from_data(item_data)
-                self.inventory[slot] = item
+                internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
         if equipment:
             for slot, item_data in enumerate(equipment):
                 item = make_item_from_data(item_data)
-                equip_item(self, item, slot)
+                internal_move_item(self, item, "equipment", slot, "nowhere")
         if powers:
             for i, power in enumerate(powers):
                 if isinstance(power, int):

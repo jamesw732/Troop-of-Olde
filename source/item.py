@@ -84,8 +84,8 @@ def make_item_from_data(item_data):
 
 
 def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
-    """Handles all the magic necessary to swap two items. Main driving function
-    for moving items."""
+    """Handles all the magic necessary to swap the contents of two item locations.
+    Main driving function for moving items."""
     item1 = getattr(char, from_container_n)[from_slot]
     item2 = getattr(char, to_container_n)[to_slot]
 
@@ -99,9 +99,7 @@ def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
         unequip_offhand(char)
 
     internal_move_item(char, item1, to_container_n, to_slot, from_container_n)
-    handle_stat_updates(char, item1, to_container_n, from_container_n)
     internal_move_item(char, item2, from_container_n, from_slot, to_container_n)
-    handle_stat_updates(char, item2, from_container_n, to_container_n)
     # Save auto unequipping 2h for last, otherwise position gets screwed up
     if man_unequip_2h:
         iauto_unequip(char, slot_to_ind["mh"])
@@ -120,41 +118,30 @@ def iauto_unequip(char, old_slot):
         return
     internal_swap(char, "equipment", old_slot, "inventory", new_slot)
 
-def equip_item(char, item, slot, handle_stats=True):
-    internal_move_item(char, item, "equipment", slot, from_container_n="nowhere")
-    update_primary_option(item, "unequip")
-    if handle_stats:
-        handle_stat_updates(char, item, "equipment", "nowhere")
-
-
-def equip_many_items(char, items, handle_stats=True):
-    """Magically equips all items in itemsdict. Use this only when characters enter world.
-    char: Character
-    itemsdict: dict mapping equipment slots to Items
-    handle_stats: bool, only True when called by server"""
-    for slot, item in enumerate(items):
-        equip_item(char, item, slot, handle_stats)
-
-def auto_set_primary_option(item, container_name):
-    new_primary_option = get_primary_option_from_container(item, container_name)
-    update_primary_option(item, new_primary_option)
-
-# Private functions
-def internal_move_item(char, item, to_container_n, to_slot, from_container_n="inventory"):
-    """Move an item internally from from_container_n to to_container_n. Does not update stats.
+def internal_move_item(char, item, to_container_n, to_slot, from_container_n, handle_stats=True):
+    """Internally overwrite an item slot with item.
 
     char: Character
     item: Item
     to_container_n: str, name of target container
     to_slot: str or int, key or index of target container
     from_container_n: str, name of source container
+    handle_stats: whether or not to compute stat changes. Generally, True for server, False for client.
     """
     to_container = getattr(char, to_container_n)
     to_container[to_slot] = item
     auto_set_primary_option(item, to_container_n)
+    if handle_stats:
+        handle_stat_updates(char, item, to_container_n, from_container_n)
+
+# Private functions
+def auto_set_primary_option(item, container_name):
+    new_primary_option = get_primary_option_from_container(item, container_name)
+    update_primary_option(item, new_primary_option)
 
 def handle_stat_updates(char, item, to_container_n, from_container_n):
-    """Updates stats for an item being equipped or unequipped
+    """Essentially a wrapper for item.stats.apply_diff(char) with logic for
+    whether the item is getting equipped or not.
 
     char: Character
     item: Item

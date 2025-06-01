@@ -121,11 +121,9 @@ def remote_update_container(connection, time_received, container_name: str, cont
     if network.peer.is_hosting():
         return
     new_container = ids_to_container(container)
-    old_container = getattr(gs.pc, container_name)
 
     for slot, item in enumerate(new_container):
-        old_container[slot] = item
-        auto_set_primary_option(item, container_name)
+        internal_move_item(gs.pc, item, container_name, slot, "nowhere", handle_stats=False)
 
     item_frame = gs.ui.item_frames.get(container_name)
     if item_frame:

@@ -52,7 +52,6 @@ def request_enter_world(connection, time_received, pstate: State,
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
-        network.broadcast_cbstate_update(new_pc)
 
 
 # COMBAT
