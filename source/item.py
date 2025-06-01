@@ -86,13 +86,12 @@ def make_item_from_data(item_data):
 def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
     """Handles all the magic necessary to swap two items. Main driving function
     for moving items."""
-
     item1 = getattr(char, from_container_n)[from_slot]
     item2 = getattr(char, to_container_n)[to_slot]
 
     # If we're intentionally equipping offhand, unequip 2h if wearing
-    man_unequip_2h = equipping_oh_wearing_2h(char, item1, to_slot) \
-                     or equipping_oh_wearing_2h(char, item2, from_slot)
+    man_unequip_2h = equipping_oh_wearing_2h(char, item1, to_container_n, to_slot) \
+                     or equipping_oh_wearing_2h(char, item2, from_container_n, from_slot)
     # If equipping 2h, also unequip offhand if wearing
     if equipping_2h(item1, to_container_n):
         unequip_offhand(char)
@@ -205,10 +204,12 @@ def unequip_offhand(char):
             return False
     return True
 
-def equipping_oh_wearing_2h(char, item, tgt_slot):
+def equipping_oh_wearing_2h(char, item, tgt_container_n, tgt_slot):
     """Returns whether we're equipping an offhand while wearing a 2h weapon. Note that based on how
     auto slot finding is written, this case is only possible if the slot was
     intentionally selected for this item."""
+    if tgt_container_n != "equipment":
+        return
     mh = char.equipment[slot_to_ind["mh"]]
     if mh is None:
         return False
