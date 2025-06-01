@@ -104,10 +104,9 @@ class ItemFrame(Entity):
 
         self.dragging_icon = None
         self.dragging_box = None
-        self.step = Vec3(0, 0, 0)
-        self.click_start_time = time.time()
         self.drag_threshold = 0.2
-        self.drag_sequence = Sequence(Func(self.drag_icon), loop=True)
+        self.click_start_time = time.time()
+        self.step = Vec3(0, 0, 0)
 
     def update_ui_icons(self):
         """Public function which refreshes all icons in whole UI element"""
@@ -143,7 +142,6 @@ class ItemFrame(Entity):
             return
         self.step = self.dragging_box.get_position(camera.ui) - mouse.position
         self.click_start_time = time.time()
-        self.drag_sequence.start()
 
     def get_hovered_slot(self):
         ui_mouse_pos = mouse.position * camera.ui.scale
@@ -155,30 +153,25 @@ class ItemFrame(Entity):
 
     def input(self, key):
         if key == "left mouse up" and self.dragging_icon is not None:
-            self.drag_sequence.finish()
-            self.handle_drop()
-
-    def handle_drop(self):
-        # Item was being dragged but was just released
-        other_container = mouse.hovered_entity
-        if not isinstance(other_container, ItemFrame):
-            self.dragging_icon.position = Vec3(0, 0, -1)
-        else:
-            hovered_slot = other_container.get_hovered_slot()
-            drop_box = other_container.boxes[hovered_slot]
-            # Clicked and released quickly without moving out of this box
-            if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
-                option = self.dragging_icon.item.functions[0]
-                meth = Item.option_to_meth[option]
-                getattr(self.dragging_icon, meth)()
-            # Clicked and released on another box
+            # Item was being dragged and was just released
+            other_container = mouse.hovered_entity
+            if not isinstance(other_container, ItemFrame):
+                self.dragging_icon.position = Vec3(0, 0, -1)
             else:
-                self.move_icon(self.dragging_icon, drop_box)
-        self.dragging_icon = None
-        self.dragging_box = None
+                hovered_slot = other_container.get_hovered_slot()
+                drop_box = other_container.boxes[hovered_slot]
+                # Clicked and released quickly without moving out of this box
+                if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
+                    option = self.dragging_icon.item.functions[0]
+                    meth = Item.option_to_meth[option]
+                    getattr(self.dragging_icon, meth)()
+                # Clicked and released on another box
+                else:
+                    self.move_icon_to_box(self.dragging_icon, drop_box)
+            self.dragging_icon = None
+            self.dragging_box = None
 
-
-    def move_icon(self, my_icon, other_box):
+    def move_icon_to_box(self, my_icon, other_box):
         """Performs the visual move of an item from the mouse to another frame/slot.
 
         Note that this is ONLY called when the client user manually drags an item with their mouse.
@@ -214,10 +207,9 @@ class ItemFrame(Entity):
         conn = gs.network.server_connection
         gs.network.peer.request_swap_items(conn, my_container, my_slot, other_container, other_slot)
 
-    def drag_icon(self):
-        if mouse.position:
+    def update(self):
+        if self.dragging_icon is not None and mouse.position:
             self.dragging_icon.set_position(mouse.position + self.step, camera.ui)
-
 
 class ItemBox(Entity):
     def __init__(self, *args, text="", slot=None, container_name="", **kwargs):

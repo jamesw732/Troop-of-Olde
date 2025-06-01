@@ -100,7 +100,7 @@ class ScrollBar(Entity):
         scroller_scale_y = self.get_scroller_scale_y()
         self.scroller = Entity(parent=self, origin=(-0.5, -0.5), scale=(1, scroller_scale_y), position=(0, -1),
                                model='quad', color=color.gray)
-        self.drag_sequence = Sequence(Func(self.match_mouse), loop=True)
+        self.dragging = False
 
     def get_scroller_scale_y(self):
         if self.top_marker.world_y == self.bottom_marker.world_y:
@@ -110,24 +110,26 @@ class ScrollBar(Entity):
     def update_scroller_scale_y(self):
         self.scroller.scale_y = self.get_scroller_scale_y()
 
+    def update(self):
+        if self.dragging:
+            self.scroller.world_y = mouse.y * camera.ui.scale_y - self.scroller.world_scale_y / 2
+            self.scroller.y = clamp(self.scroller.y, -1, -self.scroller.scale_y)
+            self.match_markers_to_scrollbar()
+
     def input(self, key):
         tgt = mouse.hovered_entity
         if tgt is None or tgt not in (self, self.window):
             return
         if tgt is self:
             if key == "left mouse down":
-                self.drag_sequence.start()
+                self.dragging = True
         if key == "left mouse up":
-            self.drag_sequence.finish()
+            self.dragging = False
         if key == "scroll up":
             self.scroll_up()
         elif key == "scroll down":
             self.scroll_down()
 
-    def match_mouse(self):
-        self.scroller.world_y = mouse.y * camera.ui.scale_y - self.scroller.world_scale_y / 2
-        self.scroller.y = clamp(self.scroller.y, -1, -self.scroller.scale_y)
-        self.match_markers_to_scrollbar()
 
     def scroll_up(self):
         self.scroller.y = clamp(self.scroller.y + 0.05, -1, -self.scroller.scale_y)

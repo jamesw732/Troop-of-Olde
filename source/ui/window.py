@@ -32,7 +32,7 @@ class UIWindow(Entity):
 
         # Some attrs for dragging logic
         self.step = Vec2(0, 0)
-        self.drag_sequence = Sequence(Func(self.move), Wait(1 / 60), loop=True)
+        self.dragging = False
 
         # Hovered/not hovered transparency handling
         self.bg_alpha = bg_alpha
@@ -42,17 +42,14 @@ class UIWindow(Entity):
 
     def input(self, key):
         if key == "left mouse up":
-            self.drag_sequence.finish()
+            self.dragging = False
 
     def on_click(self):
-        self.set_step()
-        self.drag_sequence.start()
-
-    def set_step(self):
         self.step = self.position - mouse.position
+        self.dragging = True
 
-    def move(self):
-        if mouse.position:
+    def update(self):
+        if self.dragging and mouse.position:
             max_x = window.right[0] - self.scale_x
             min_x = window.left[0]
             max_y = window.top[1]
