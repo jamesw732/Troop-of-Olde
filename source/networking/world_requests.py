@@ -53,6 +53,19 @@ def request_enter_world(connection, time_received, pstate: State,
             else:
                 network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
 
+# PHYSICS
+@rpc(network.peer)
+def request_move(connection, time_received, kb_direction: Vec2, kb_rotation: int):
+    """Request server to process keyboard inputs for movement and rotation"""
+    char = network.connection_to_char[connection]
+    char_speed = get_speed_modifier(char.speed)
+    vel = (char.right * kb_direction[0] + char.forward * kb_direction[1]).normalized() * 10 * char_speed
+    char.velocity_components["keyboard"] = vel
+    # char_rotation = Vec3(0, kb_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
+    char_rotation = Vec3(0, kb_rotation * 100, 0)
+    dt = PHYSICS_UPDATE_RATE
+    char.rotate(char_rotation * dt)
+
 
 # COMBAT
 @rpc(network.peer)

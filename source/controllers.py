@@ -64,25 +64,19 @@ class PlayerController(Entity):
             gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
 
     @every(PHYSICS_UPDATE_RATE)
-    def tick_physics(self):
+    def handle_movement_inputs(self):
         char = self.character
-        handle_movement(char)
         # Keyboard Movement
-        fwdback = char.forward * (held_keys['move_forward'] - held_keys['move_backward'])
-        strafe = char.right * (held_keys['strafe_right'] - held_keys['strafe_left'])
-        keyboard_direction = Vec3(strafe + fwdback).normalized() 
-        char_speed = get_speed_modifier(char.speed)
-        char.velocity_components["keyboard"] = keyboard_direction * 10 * char_speed
+        fwdback = held_keys['move_forward'] - held_keys['move_backward']
+        strafe = held_keys['strafe_right'] - held_keys['strafe_left']
+        keyboard_direction = Vec2(strafe, fwdback)
         # Keyboard Rotation
-        rotate_ud = held_keys['rotate_up'] - held_keys['rotate_down']
-        rotate_lr = held_keys['rotate_right'] - held_keys['rotate_left']
-        self.handle_keyboard_rotation(Vec3(rotate_ud, rotate_lr, 0))
-        # Mouse Rotation
-        if held_keys['right mouse']:
-            self.handle_mouse_rotation()
-
-        self.fix_camera_rotation()
-        self.adjust_camera_zoom()
+        # updown = held_keys['rotate_up'] - held_keys['rotate_down']
+        rightleft = held_keys['rotate_right'] - held_keys['rotate_left']
+        # Mouse Rotation, figure this out later
+        # if held_keys['right mouse']:
+        #     self.handle_mouse_rotation()
+        gs.network.peer.request_move(gs.network.server_connection, keyboard_direction, rightleft)
 
     def handle_keyboard_rotation(self, rotation):
         """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
@@ -171,10 +165,6 @@ class NPCController(Entity):
     def bind_character(self, character):
         self.character = character
         self.namelabel = NameLabel(character)
-
-    @every(PHYSICS_UPDATE_RATE)
-    def tick_physics(self):
-        handle_movement(self.character)
 
     def update(self):
         self.namelabel.adjust_position()
@@ -274,6 +264,15 @@ class MobController(Entity):
         elif char.next_power is not None:
             tgt = char.next_power.get_target(char)
             char.next_power.use(char, tgt)
+
+    @every(PHYSICS_UPDATE_RATE)
+    def tick_physics(self):
+        handle_movement(self.character)
+        pstate = State("physical", src=self.character)
+        for conn in gs.network.peer.get_connections():
+            # For other clients, this should be update_lerp_pstate
+            gs.network.peer.update_pstate(conn, self.character.uuid, pstate)
+
 
 class NameLabel(Text):
     def __init__(self, char):

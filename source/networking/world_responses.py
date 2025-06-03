@@ -131,13 +131,20 @@ def remote_update_container(connection, time_received, container_name: str, cont
 
 # Physical
 @rpc(network.peer)
-def update_lerp_pstate(connection, time_received, uuid: int,
-                       phys_state: State):
+def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
     """Remotely call char.update_lerp_state"""
     npc = network.uuid_to_char.get(uuid)
     if npc is None:
         return
     npc.controller.update_lerp_state(phys_state, time_received)
+
+@rpc(network.peer)
+def update_pstate(connection, time_received, uuid: int, phys_state: State):
+    char = network.uuid_to_char.get(uuid)
+    if char is None:
+        return
+    phys_state.apply(char)
+             
 
 # Generic
 @rpc(network.peer)
