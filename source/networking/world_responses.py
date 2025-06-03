@@ -139,11 +139,12 @@ def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
     npc.controller.update_lerp_state(phys_state, time_received)
 
 @rpc(network.peer)
-def update_pstate(connection, time_received, uuid: int, phys_state: State):
+def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
     char = network.uuid_to_char.get(uuid)
     if char is None:
         return
-    phys_state.apply(char)
+    char.position = pos
+    char.rotation = rot
              
 
 # Generic

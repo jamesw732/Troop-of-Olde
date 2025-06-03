@@ -268,10 +268,10 @@ class MobController(Entity):
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):
         handle_movement(self.character)
-        pstate = State("physical", src=self.character)
         for conn in gs.network.peer.get_connections():
             # For other clients, this should be update_lerp_pstate
-            gs.network.peer.update_pstate(conn, self.character.uuid, pstate)
+            gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,
+                                           self.character.rotation)
 
 
 class NameLabel(Text):
