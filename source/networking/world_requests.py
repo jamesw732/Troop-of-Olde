@@ -60,11 +60,13 @@ def request_move(connection, time_received, kb_direction: Vec2, kb_rotation: int
     char = network.connection_to_char[connection]
     char_speed = get_speed_modifier(char.speed)
     vel = (char.right * kb_direction[0] + char.forward * kb_direction[1]).normalized() * 10 * char_speed
-    char.velocity_components["keyboard"] = vel
+    if "keyboard" not in char.velocity_components:
+        char.velocity_components["keyboard"] = vel
+    char.velocity_components["keyboard"] += vel
     # char_rotation = Vec3(0, kb_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
-    char_rotation = Vec3(0, kb_rotation * 100, 0)
-    dt = PHYSICS_UPDATE_RATE
-    char.rotate(char_rotation * dt)
+    char_rotation = Vec3(0, kb_rotation * 100, 0) * PHYSICS_UPDATE_RATE
+    char.rotate(char_rotation)
+    char.controller.rotated = True
 
 
 # COMBAT

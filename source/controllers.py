@@ -5,7 +5,7 @@ from .base import *
 from .combat import *
 from .gamestate import gs
 from .item import item_is_2h
-from .physics import handle_movement
+from .physics import set_gravity_vel, set_jump_vel, handle_movement
 from .skills import *
 from .states import *
 
@@ -219,6 +219,8 @@ class MobController(Entity):
         assert gs.network.peer.is_hosting()
         super().__init__()
         self.character = character
+        # Used to tell whether the character was rotated or not
+        self.rotated = True
 
     def update(self):
         char = self.character
@@ -267,11 +269,22 @@ class MobController(Entity):
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):
-        handle_movement(self.character)
-        for conn in gs.network.peer.get_connections():
-            # For other clients, this should be update_lerp_pstate
-            gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,
-                                           self.character.rotation)
+        # Assumed that keyboard component gets set by a client
+        set_gravity_vel(self.character)
+        set_jump_vel(self.character)
+
+        velocity = sum(list(self.character.velocity_components.values()))
+        if velocity != Vec3.zero:
+            handle_movement(self.character, velocity)
+            self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
+            for conn in gs.network.peer.get_connections():
+                # For other clients, this should be update_lerp_pstate
+                gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,
+                                               self.character.rotation)
+        elif self.rotated:
+            for conn in gs.network.peer.get_connections():
+                gs.network.peer.update_rotation(conn, self.character.uuid, self.character.rotation)
+        self.rotated = False
 
 
 class NameLabel(Text):

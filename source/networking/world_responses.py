@@ -146,6 +146,12 @@ def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
     char.position = pos
     char.rotation = rot
              
+@rpc(network.peer)
+def update_rotation(connection, time_received, uuid: int, rot: Vec3):
+    char = network.uuid_to_char.get(uuid)
+    if char is None:
+        return
+    char.rotation = rot
 
 # Generic
 @rpc(network.peer)

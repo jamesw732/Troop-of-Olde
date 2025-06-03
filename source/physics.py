@@ -8,25 +8,6 @@ from .gamestate import gs
 dt = PHYSICS_UPDATE_RATE
 
 # PUBLIC
-def handle_movement(char):
-    """Main physics method which combines all character velocities into one
-    vector, then handles collision and grounding and updates position"""
-    set_gravity_vel(char)
-    set_jump_vel(char)
-
-    velocity = sum(list(char.velocity_components.values()))
-
-    if velocity[1] <= 0:
-        handle_grounding(char, velocity)
-
-    if velocity != Vec3.zero:
-        velocity = handle_collision(char, velocity)
-        velocity = handle_upward_collision(char, velocity)
-
-    char.position += velocity * dt
-
-
-# PRIVATE
 def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
@@ -52,7 +33,19 @@ def set_jump_vel(char):
         jump_vel = Vec3(0, 0, 0)
     char.velocity_components["jump"] = jump_vel
 
+def handle_movement(char, velocity):
+    """Main physics method which combines all character velocities into one
+    vector, then handles collision and grounding and updates position"""
+    if velocity[1] <= 0:
+        handle_grounding(char, velocity)
 
+    velocity = handle_collision(char, velocity)
+    velocity = handle_upward_collision(char, velocity)
+
+    char.position += velocity * dt
+
+
+# PRIVATE
 def handle_grounding(char, velocity):
     """Determine whether character is on the ground or not. Kills y velocity if grounded."""
     ignore_traverse = char.ignore_traverse
