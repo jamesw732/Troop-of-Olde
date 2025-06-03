@@ -21,7 +21,13 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Fixed timestep physics and client side prediction.
+Fixed physics timestep and client side prediction.
+
+For this, need to:
+- Move physics functions to a fixed-timestep tick function
+- Move physics computations to be done on the server, with movement requests made by the clien
+- Implement client-side prediction
+- (optional) improve movement mechanics
 
 
 ===================================NEXT================================================

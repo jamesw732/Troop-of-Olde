@@ -4,6 +4,7 @@ import math
 
 fists_base_dmg = 2
 default_num_powers = 10
+PHYSICS_UPDATE_RATE = 1 / 20
 
 """
 Plan to add:

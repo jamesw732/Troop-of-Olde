@@ -2,8 +2,10 @@
 from ursina import *
 import numpy
 
+from .base import PHYSICS_UPDATE_RATE
 from .gamestate import gs
 
+dt = PHYSICS_UPDATE_RATE
 
 # PUBLIC
 def handle_movement(char):
@@ -21,7 +23,7 @@ def handle_movement(char):
         velocity = handle_collision(char, velocity)
         velocity = handle_upward_collision(char, velocity)
 
-    char.position += velocity * time.dt
+    char.position += velocity * dt
 
 
 # PRIVATE
@@ -29,7 +31,7 @@ def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
     if not char.grounded and not char.jumping:
-        grav -= Vec3(0, 75 * time.dt, 0)
+        grav -= Vec3(0, 75 * dt, 0)
     elif char.grounded:
         grav = Vec3(0, 0, 0)
     char.velocity_components["gravity"] = grav
@@ -40,11 +42,11 @@ def set_jump_vel(char):
     # Meant to simulate the actual act of jumping, ie feet still touching ground
     if char.jumping:
         speed = char.max_jump_height / char.max_jump_time
-        if char.rem_jump_height - speed * time.dt <= 0:
+        if char.rem_jump_height - speed * dt <= 0:
             speed = char.rem_jump_height / char.max_jump_time
             char.cancel_jump()
         else:
-            char.rem_jump_height -= speed * time.dt
+            char.rem_jump_height -= speed * dt
         jump_vel = Vec3(0, speed, 0)
     else:
         jump_vel = Vec3(0, 0, 0)
@@ -63,7 +65,7 @@ def handle_grounding(char, velocity):
         char.grounded = False
         return
     # If ground is within next timestep, we're grounded.
-    if ground.distance <= char.height + max(0.01, abs(velocity[1] * time.dt)):
+    if ground.distance <= char.height + max(0.01, abs(velocity[1] * dt)):
         # print("Grounding")
         char.grounded = True
         char.world_y = ground.world_point[1] + 1e-5
@@ -79,7 +81,7 @@ def handle_collision(char, velocity, depth=0):
     # It's concave, don't try to handle it, just stop
     if depth > 3:
         return Vec3(0, 0, 0)
-    dist = distance((0, 0, 0), velocity) * time.dt
+    dist = distance((0, 0, 0), velocity) * dt
     collision_check = raycast(char.position, direction=velocity, distance=dist, ignore=char.ignore_traverse)
     if collision_check.hit:
         normal = collision_check.world_normal
@@ -94,8 +96,8 @@ def handle_collision(char, velocity, depth=0):
             point1 = collision_check.world_point
             plane_const = numpy.dot(normal, point1)
             # take new x and z coordinates as if the surface didn't exist
-            x2 = velocity[0] * time.dt + point1[0]
-            z2 = velocity[2] * time.dt + point1[2]
+            x2 = velocity[0] * dt + point1[0]
+            z2 = velocity[2] * dt + point1[2]
             # find the expected y coordinate from the x and z
             y2 = (plane_const - x2 * normal[0] - z2 * normal[2]) / normal[1]
             point2 = Vec3(x2, y2, z2)
@@ -112,7 +114,7 @@ def handle_upward_collision(char, velocity):
         return velocity
     # Cast ray from top of model, rather than bottom like in handle_collision
     pos = char.position + Vec3(0, char.height, 0)
-    ceiling = raycast(pos, direction=(0, 1, 0), distance=velocity[1] * time.dt,
+    ceiling = raycast(pos, direction=(0, 1, 0), distance=velocity[1] * dt,
                       ignore=char.ignore_traverse)
     if ceiling.hit:
         velocity[1] = 0

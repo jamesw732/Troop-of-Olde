@@ -53,10 +53,20 @@ class PlayerController(Entity):
 
     def update(self):
         char = self.character
-        handle_movement(char)
         # Performance: This probably doesn't need to happen every frame, just when we move.
-        self.adjust_camera_zoom()
+        if char.get_on_gcd():
+            char.tick_gcd()
+        elif char.next_power is not None:
+            # Client-side power queueing basically just waits to request to use the power
+            power = char.next_power
+            tgt = power.get_target(gs.pc)
+            power.client_use_power()
+            gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
 
+    @every(PHYSICS_UPDATE_RATE)
+    def tick_physics(self):
+        char = self.character
+        handle_movement(char)
         # Keyboard Movement
         fwdback = char.forward * (held_keys['move_forward'] - held_keys['move_backward'])
         strafe = char.right * (held_keys['strafe_right'] - held_keys['strafe_left'])
@@ -71,14 +81,50 @@ class PlayerController(Entity):
         if held_keys['right mouse']:
             self.handle_mouse_rotation()
 
-        if char.get_on_gcd():
-            char.tick_gcd()
-        elif char.next_power is not None:
-            # Client-side power queueing basically just waits to request to use the power
-            power = char.next_power
-            tgt = power.get_target(gs.pc)
-            power.client_use_power()
-            gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
+        self.fix_camera_rotation()
+        self.adjust_camera_zoom()
+
+    def handle_keyboard_rotation(self, rotation):
+        """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
+        # Keyboard Rotation
+        # Slow down left/right rotation by multiplying by cos(x rotation)
+        rotation[1] = rotation[1] * math.cos(math.radians(self.focus.rotation_x))
+        char_rotation = Vec3(0, rotation[1] * 100, 0)
+        focus_rotation = Vec3(rotation[0] * 100, 0, 0)
+        dt = PHYSICS_UPDATE_RATE
+        self.character.rotate(char_rotation * dt)
+        self.focus.rotate(focus_rotation * dt)
+
+    def handle_mouse_rotation(self):
+        """Handles rotation from right clicking and dragging the mouse."""
+        # Mouse rotation:
+        diff = mouse.position - self.prev_mouse_position
+        vel = Vec3(-1 * diff[1], diff[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
+        char_rotation = Vec3(0, vel[1] * 200, 0)
+        focus_rotation = Vec3(vel[0] * 200, 0, 0)
+        self.character.rotate(char_rotation)
+        self.focus.rotate(focus_rotation)
+        self.prev_mouse_position = mouse.position
+
+    def fix_camera_rotation(self):
+        """Handles all the problems that results from the camera rotating.
+        Caps vertical rotation, removes z rotation, rotates character."""
+        max_vert_rotation = 80
+        self.character.world_rotation_x = 0
+        self.character.world_rotation_z = 0
+        self.focus.world_rotation_z = 0
+        self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
+
+    def adjust_camera_zoom(self):
+        """Set camera zoom. Handles camera collision with entities"""
+        direction = camera.world_position - self.focus.world_position
+        ray = raycast(self.focus.world_position, direction=direction, distance=self.camdistance,
+                      ignore=self.character.ignore_traverse)
+        if ray.hit:
+            dist = math.dist(ray.world_point, self.focus.world_position)
+            camera.z = -1 * min(self.camdistance, dist)
+        else:
+            camera.z = -1 * self.camdistance
 
     def input(self, key):
         """Updates from single client inputs"""
@@ -99,49 +145,6 @@ class PlayerController(Entity):
             self.prev_mouse_position = mouse.position
         elif key == "toggle_combat":
             gs.network.peer.request_toggle_combat(gs.network.server_connection)
-
-    def adjust_camera_zoom(self):
-        """Set camera zoom. Handles camera collision with entities"""
-        direction = camera.world_position - self.focus.world_position
-        ray = raycast(self.focus.world_position, direction=direction, distance=self.camdistance,
-                      ignore=self.character.ignore_traverse)
-        if ray.hit:
-            dist = math.dist(ray.world_point, self.focus.world_position)
-            camera.z = -1 * min(self.camdistance, dist)
-        else:
-            camera.z = -1 * self.camdistance
-
-    def handle_keyboard_rotation(self, rotation):
-        """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
-        # Keyboard Rotation
-        # Slow down left/right rotation by multiplying by cos(x rotation)
-        rotation[1] = rotation[1] * math.cos(math.radians(self.focus.rotation_x))
-        char_rotation = Vec3(0, rotation[1] * 100, 0)
-        focus_rotation = Vec3(rotation[0] * 100, 0, 0)
-        self.character.rotate(char_rotation * time.dt)
-        self.focus.rotate(focus_rotation * time.dt)
-        self.fix_camera_rotation()
-
-    def handle_mouse_rotation(self):
-        """Handles rotation from right clicking and dragging the mouse."""
-        # Mouse rotation:
-        diff = mouse.position - self.prev_mouse_position
-        vel = Vec3(-1 * diff[1], diff[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
-        char_rotation = Vec3(0, vel[1] * 200, 0)
-        focus_rotation = Vec3(vel[0] * 200, 0, 0)
-        self.character.rotate(char_rotation)
-        self.focus.rotate(focus_rotation)
-        self.prev_mouse_position = mouse.position
-        self.fix_camera_rotation()
-
-    def fix_camera_rotation(self):
-        """Handles all the problems that results from the camera rotating.
-        Caps vertical rotation, removes z rotation, rotates character."""
-        max_vert_rotation = 80
-        self.character.world_rotation_x = 0
-        self.character.world_rotation_z = 0
-        self.focus.world_rotation_z = 0
-        self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
 
     def set_target(self, target):
         """Set character's target.
@@ -169,8 +172,11 @@ class NPCController(Entity):
         self.character = character
         self.namelabel = NameLabel(character)
 
-    def update(self):
+    @every(PHYSICS_UPDATE_RATE)
+    def tick_physics(self):
         handle_movement(self.character)
+
+    def update(self):
         self.namelabel.adjust_position()
         self.namelabel.adjust_rotation()
 
