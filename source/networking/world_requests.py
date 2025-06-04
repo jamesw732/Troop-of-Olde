@@ -55,7 +55,7 @@ def request_enter_world(connection, time_received, pstate: State,
 
 # PHYSICS
 @rpc(network.peer)
-def request_move(connection, time_received, kb_direction: Vec2, kb_rotation: int):
+def request_move(connection, time_received, kb_direction: Vec2, kb_rotation: int, sequence_number: int):
     """Request server to process keyboard inputs for movement and rotation"""
     char = network.connection_to_char[connection]
     char_speed = get_speed_modifier(char.speed)
@@ -66,7 +66,8 @@ def request_move(connection, time_received, kb_direction: Vec2, kb_rotation: int
     # char_rotation = Vec3(0, kb_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
     char_rotation = Vec3(0, kb_rotation * 100, 0) * PHYSICS_UPDATE_RATE
     char.rotate(char_rotation)
-    char.controller.rotated = True
+    if sequence_number > char.controller.sequence_number:
+        char.controller.sequence_number = sequence_number
 
 # COMBAT
 @rpc(network.peer)

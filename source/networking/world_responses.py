@@ -139,6 +139,20 @@ def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
     npc.controller.update_lerp_state(phys_state, time_received)
 
 @rpc(network.peer)
+def update_target_attrs(connection, time_received, pos: Vec3, rot: Vec3, sequence_number: int):
+    if gs.pc is None:
+        return
+    controller = gs.pc.controller
+    # Try to get the predicted targets, if not assume it's correct
+    # Only time they shouldn't exist is on startup
+    predicted_pos = controller.rsn_to_pos.get(sequence_number, pos)
+    predicted_rot = controller.rsn_to_rot.get(sequence_number, rot)
+    pos_diff = pos - predicted_pos
+    rot_diff = rot - predicted_rot
+    controller.target_pos += pos_diff
+    controller.target_rot += rot_diff
+
+@rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
     char = network.uuid_to_char.get(uuid)
     if char is None:

@@ -23,6 +23,16 @@ class PlayerController(Entity):
 
         self.prev_mouse_posiiton = mouse.position
 
+        self.sequence_number = 0
+        self.recv_sequence_number = 0
+        self.rsn_to_pos = {}
+        self.rsn_to_rot = {}
+        self.target_pos = self.character.position
+        self.prev_pos = self.character.position
+        self.target_rot = self.character.rotation
+        self.prev_rot = self.character.rotation
+        self.predict_timer = 0
+
     def bind_character(self, character):
         self.character = character
         self.focus = Entity(
@@ -53,6 +63,12 @@ class PlayerController(Entity):
 
     def update(self):
         char = self.character
+        # Client-side prediction for movement/rotation
+        self.predict_timer += time.dt
+        pct = self.predict_timer / PHYSICS_UPDATE_RATE
+        if pct < 1:
+            char.position = lerp(self.prev_pos, self.target_pos, pct)
+            char.rotation = lerp(self.prev_rot, self.target_rot, pct)
         # Performance: This probably doesn't need to happen every frame, just when we move.
         if char.get_on_gcd():
             char.tick_gcd()
@@ -76,7 +92,32 @@ class PlayerController(Entity):
         # Mouse Rotation, figure this out later
         # if held_keys['right mouse']:
         #     self.handle_mouse_rotation()
-        gs.network.peer.request_move(gs.network.server_connection, keyboard_direction, rightleft)
+        gs.network.peer.request_move(gs.network.server_connection, keyboard_direction, rightleft,
+                                     self.sequence_number)
+
+
+        # Client-side prediction for movement/rotation
+        self.predict_timer = 0
+
+        set_gravity_vel(char)
+        set_jump_vel(char)
+        char_speed = get_speed_modifier(char.speed)
+        vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
+        char.velocity_components["keyboard"] = vel
+
+        velocity = sum(list(char.velocity_components.values()))
+        velocity_t = apply_physics(char, velocity)
+        self.prev_pos = char.position
+        self.target_pos = char.position + velocity_t
+        self.rsn_to_pos[self.sequence_number] = self.target_pos
+        # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
+        rotation = Vec3(0, rightleft * 100, 0) * PHYSICS_UPDATE_RATE
+        self.prev_rot = char.rotation
+        self.target_rot = char.rotation + rotation
+        self.rsn_to_rot[self.sequence_number] = self.target_rot
+
+        self.sequence_number += 1
+
 
     def handle_keyboard_rotation(self, rotation):
         """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
@@ -219,8 +260,8 @@ class MobController(Entity):
         assert gs.network.peer.is_hosting()
         super().__init__()
         self.character = character
-        # Used to tell whether the character was rotated or not
-        self.rotated = True
+        # Relayed back to client to determine where in history this state was updated, always use most recent
+        self.sequence_number = 0
 
     def update(self):
         char = self.character
@@ -274,18 +315,17 @@ class MobController(Entity):
         set_jump_vel(self.character)
 
         velocity = sum(list(self.character.velocity_components.values()))
-        if velocity != Vec3.zero:
-            velocity_t = apply_physics(self.character, velocity)
-            self.character.position += velocity_t
-            self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-            for conn in gs.network.peer.get_connections():
-                # For other clients, this should be update_lerp_pstate
-                gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,
-                                               self.character.rotation)
-        elif self.rotated:
-            for conn in gs.network.peer.get_connections():
-                gs.network.peer.update_rotation(conn, self.character.uuid, self.character.rotation)
-        self.rotated = False
+        velocity_t = apply_physics(self.character, velocity)
+        self.character.position += velocity_t
+        self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
+        if self.character.uuid in gs.network.uuid_to_connection:
+            conn = gs.network.uuid_to_connection[self.character.uuid]
+            gs.network.peer.update_target_attrs(conn, self.character.uuid, self.character.position,
+                                                 self.character.rotation, self.sequence_number)
+        # For other clients, this should be update_lerp_pstate
+        # for conn in gs.network.peer.get_connections():
+        #     gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,
+                                           # self.character.rotation)
 
 
 class NameLabel(Text):

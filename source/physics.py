@@ -40,8 +40,6 @@ def apply_physics(char, velocity):
     velocity = handle_upward_collision(char, velocity)
     return velocity * dt
 
-
-# PRIVATE
 def handle_grounding(char, velocity):
     """Determine whether character is on the ground or not. Kills y velocity if grounded."""
     ignore_traverse = char.ignore_traverse
@@ -62,6 +60,8 @@ def handle_grounding(char, velocity):
     else:
         char.grounded = False
 
+
+# PRIVATE
 def handle_collision(char, velocity, depth=0):
     """Handles feet collision logic.
 
