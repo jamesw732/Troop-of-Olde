@@ -78,6 +78,12 @@ class PlayerController(Entity):
         if pct < 1:
             char.position = lerp(self.prev_pos, self.target_pos, pct)
             char.rotation = lerp(self.prev_rot, self.target_rot, pct)
+
+        # up-down camera rotation
+        updown = held_keys['rotate_up'] - held_keys['rotate_down']
+        self.focus.rotate(Vec3(updown * 100 * time.dt, 0, 0))
+        self.fix_camera_rotation()
+        self.adjust_camera_zoom()
         # Performance: This probably doesn't need to happen every frame, just when we move.
         if char.get_on_gcd():
             char.tick_gcd()
@@ -96,7 +102,6 @@ class PlayerController(Entity):
         strafe = held_keys['strafe_right'] - held_keys['strafe_left']
         keyboard_direction = Vec2(strafe, fwdback)
         # Keyboard Rotation
-        # updown = held_keys['rotate_up'] - held_keys['rotate_down']
         rightleft = held_keys['rotate_right'] - held_keys['rotate_left']
         # Mouse Rotation, figure this out later
         # if held_keys['right mouse']:
@@ -125,18 +130,6 @@ class PlayerController(Entity):
         self.sn_to_rot[self.sequence_number] = self.target_rot
 
         self.sequence_number += 1
-
-
-    def handle_keyboard_rotation(self, rotation):
-        """Handles rotation from keys "a", "d", "up arrow", "down arrow"."""
-        # Keyboard Rotation
-        # Slow down left/right rotation by multiplying by cos(x rotation)
-        rotation[1] = rotation[1] * math.cos(math.radians(self.focus.rotation_x))
-        char_rotation = Vec3(0, rotation[1] * 100, 0)
-        focus_rotation = Vec3(rotation[0] * 100, 0, 0)
-        dt = PHYSICS_UPDATE_RATE
-        self.character.rotate(char_rotation * dt)
-        self.focus.rotate(focus_rotation * dt)
 
     def handle_mouse_rotation(self):
         """Handles rotation from right clicking and dragging the mouse."""
