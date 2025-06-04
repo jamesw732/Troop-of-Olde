@@ -23,14 +23,23 @@ class PlayerController(Entity):
 
         self.prev_mouse_posiiton = mouse.position
 
+        # The sequence number of movement inputs
         self.sequence_number = 0
+        # The most recent relayed sequence number
         self.recv_sequence_number = 0
-        self.rsn_to_pos = {}
-        self.rsn_to_rot = {}
+        # Current targets to lerp to
         self.target_pos = self.character.position
-        self.prev_pos = self.character.position
         self.target_rot = self.character.rotation
+        # Previous positions/rotations to lerp from
+        self.prev_pos = self.character.position
         self.prev_rot = self.character.rotation
+        # Remember the position/rotation when we sent sequence numbers
+        self.sn_to_pos = {}
+        self.sn_to_rot = {}
+        # Differences between what the server calculated and what we calculated at the most recently received
+        # sequence number.
+        self.pos_diff = Vec3(0, 0, 0)
+        self.rot_diff = Vec3(0, 0, 0)
         self.predict_timer = 0
 
     def bind_character(self, character):
@@ -92,9 +101,8 @@ class PlayerController(Entity):
         # Mouse Rotation, figure this out later
         # if held_keys['right mouse']:
         #     self.handle_mouse_rotation()
-        gs.network.peer.request_move(gs.network.server_connection, keyboard_direction, rightleft,
-                                     self.sequence_number)
-
+        conn = gs.network.server_connection
+        gs.network.peer.request_move(conn, self.sequence_number, keyboard_direction, rightleft)
 
         # Client-side prediction for movement/rotation
         self.predict_timer = 0
@@ -108,13 +116,13 @@ class PlayerController(Entity):
         velocity = sum(list(char.velocity_components.values()))
         velocity_t = apply_physics(char, velocity)
         self.prev_pos = char.position
-        self.target_pos = char.position + velocity_t
-        self.rsn_to_pos[self.sequence_number] = self.target_pos
+        self.target_pos = char.position + velocity_t + self.pos_diff
+        self.sn_to_pos[self.sequence_number] = self.target_pos
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
         rotation = Vec3(0, rightleft * 100, 0) * PHYSICS_UPDATE_RATE
         self.prev_rot = char.rotation
-        self.target_rot = char.rotation + rotation
-        self.rsn_to_rot[self.sequence_number] = self.target_rot
+        self.target_rot = char.rotation + rotation + self.rot_diff
+        self.sn_to_rot[self.sequence_number] = self.target_rot
 
         self.sequence_number += 1
 
@@ -320,7 +328,7 @@ class MobController(Entity):
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
         if self.character.uuid in gs.network.uuid_to_connection:
             conn = gs.network.uuid_to_connection[self.character.uuid]
-            gs.network.peer.update_target_attrs(conn, self.character.uuid, self.character.position,
+            gs.network.peer.update_target_attrs(conn, self.character.position,
                                                  self.character.rotation, self.sequence_number)
         # For other clients, this should be update_lerp_pstate
         # for conn in gs.network.peer.get_connections():

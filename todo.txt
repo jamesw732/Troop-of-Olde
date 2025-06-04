@@ -21,13 +21,19 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Fixed physics timestep and client side prediction.
+Finish implementing client-side prediction.
+Todo list:
+- Reinstate up/down camera rotation
+- Reinstate mouse movement
+- Reinstate jumping
+- Make predictions smoother by averaging over, say, the past 5 diffs
+- Fix the rotation bug when rotating at the rotation discontinuity. Best bet is to find a way to
+use the rotate() function instead of setting the rotation manually, otherwise need to make the lerp function
+smarter.
 
-For this, need to:
-- Move physics functions to a fixed-timestep tick function
-- Move physics computations to be done on the server, with movement requests made by the clien
-- Implement client-side prediction
-- (optional) improve movement mechanics
+Also, consider improving the movement logic. Shouldn't be terribly difficult since it will only go as high
+as apply_physics, shouldn't have to touch the client side prediction at all.
+
 
 
 ===================================NEXT================================================

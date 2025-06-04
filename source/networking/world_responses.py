@@ -143,14 +143,26 @@ def update_target_attrs(connection, time_received, pos: Vec3, rot: Vec3, sequenc
     if gs.pc is None:
         return
     controller = gs.pc.controller
-    # Try to get the predicted targets, if not assume it's correct
+    if sequence_number > controller.recv_sequence_number:
+        controller.recv_sequence_number = sequence_number
+        for num in controller.sn_to_pos.copy():
+            if num < sequence_number:
+                controller.sn_to_pos.pop(num)
+                controller.sn_to_rot.pop(num)
+    else:
+        # Always take the most recent sequence number
+        # Alternatively, reject completely if it's old
+        sequence_number = controller.recv_sequence_number
+    # Try to get the predicted targets, if can't just assume it's correct
     # Only time they shouldn't exist is on startup
-    predicted_pos = controller.rsn_to_pos.get(sequence_number, pos)
-    predicted_rot = controller.rsn_to_rot.get(sequence_number, rot)
+    predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
+    predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
     pos_diff = pos - predicted_pos
     rot_diff = rot - predicted_rot
-    controller.target_pos += pos_diff
-    controller.target_rot += rot_diff
+
+    # Consider taking the average of the past 5 diffs or something
+    controller.pos_diff = pos - predicted_pos
+    controller.rot_diff = rot - predicted_rot
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
@@ -171,5 +183,5 @@ def update_rotation(connection, time_received, uuid: int, rot: Vec3):
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
     """Remotely print a message for another player"""
-    if gs.ui.gamewindow:
+    if gs.ui and gs.ui.gamewindow:
         gs.ui.gamewindow.add_message(msg)
