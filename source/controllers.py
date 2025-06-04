@@ -75,9 +75,9 @@ class PlayerController(Entity):
         # Client-side prediction for movement/rotation
         self.predict_timer += time.dt
         pct = self.predict_timer / PHYSICS_UPDATE_RATE
-        if pct < 1:
+        if pct <= 1:
             char.position = lerp(self.prev_pos, self.target_pos, pct)
-            char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
+        char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
 
         # up-down camera rotation
         updown = held_keys['rotate_up'] - held_keys['rotate_down']
@@ -95,7 +95,9 @@ class PlayerController(Entity):
             gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
 
     @every(PHYSICS_UPDATE_RATE)
-    def handle_movement_inputs(self):
+    def tick_physics(self):
+        """Process movement inputs and send request to move to server.
+        Update predicted physical state and reset lerp timer."""
         char = self.character
         # Keyboard Movement
         fwdback = held_keys['move_forward'] - held_keys['move_backward']
@@ -103,9 +105,7 @@ class PlayerController(Entity):
         keyboard_direction = Vec2(strafe, fwdback)
         # Keyboard Rotation
         rightleft = held_keys['rotate_right'] - held_keys['rotate_left']
-        # Mouse Rotation, figure this out later
-        # if held_keys['right mouse']:
-        #     self.handle_mouse_rotation()
+
         conn = gs.network.server_connection
         gs.network.peer.request_move(conn, self.sequence_number, keyboard_direction, rightleft)
 
@@ -123,11 +123,13 @@ class PlayerController(Entity):
         self.prev_pos = char.position
         self.target_pos = char.position + velocity_t + self.pos_diff
         self.sn_to_pos[self.sequence_number] = self.target_pos
+        self.pos_diff = Vec3(0, 0, 0)
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
         rotation = rightleft * 100 * PHYSICS_UPDATE_RATE
         self.prev_rot = char.rotation_y
         self.target_rot = char.rotation_y + rotation + self.rot_diff
         self.sn_to_rot[self.sequence_number] = self.target_rot
+        self.rot_diff = 0
 
         self.sequence_number += 1
 
@@ -321,8 +323,8 @@ class MobController(Entity):
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
         if self.character.uuid in gs.network.uuid_to_connection:
             conn = gs.network.uuid_to_connection[self.character.uuid]
-            gs.network.peer.update_target_attrs(conn, self.character.position,
-                                                 self.character.rotation, self.sequence_number)
+            gs.network.peer.update_target_attrs(conn, self.sequence_number, self.character.position,
+                                                 self.character.rotation_y)
 
         # For other clients, this should be update_lerp_pstate
         # for conn in gs.network.peer.get_connections():

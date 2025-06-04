@@ -140,9 +140,14 @@ def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
     npc.controller.update_lerp_state(phys_state, time_received)
 
 @rpc(network.peer)
-def update_target_attrs(connection, time_received, pos: Vec3, rot: int, sequence_number: int):
+def update_target_attrs(connection, time_received, sequence_number: int, pos: Vec3, rot: float):
     if gs.pc is None:
         return
+    # To check synchronization, uncomment these:
+    # print(rot % 360)
+    # print(gs.pc.rotation_y)
+    # print(pos)
+    # print(gs.pc.position)
     controller = gs.pc.controller
     if sequence_number > controller.recv_sequence_number:
         controller.recv_sequence_number = sequence_number
@@ -154,6 +159,7 @@ def update_target_attrs(connection, time_received, pos: Vec3, rot: int, sequence
         # Always take the most recent sequence number
         # Alternatively, reject completely if it's old
         sequence_number = controller.recv_sequence_number
+    rot = rot % 360
     # Try to get the predicted targets, if can't just assume it's correct
     # Only time they shouldn't exist is on startup
     predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
@@ -162,12 +168,8 @@ def update_target_attrs(connection, time_received, pos: Vec3, rot: int, sequence
     rot_diff = rot - predicted_rot
     if sqnorm(pos_diff) > 0.01:
         controller.pos_diff = pos_diff
-    else:
-        controller.pos_diff = Vec3(0, 0, 0)
     if rot_diff > 0.1:
         controller.rot_diff = rot_diff
-    else:
-        controller.rot_diff = 0
     # Consider taking the average of the past 5 diffs or something
 
 @rpc(network.peer)
