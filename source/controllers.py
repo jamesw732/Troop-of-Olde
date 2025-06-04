@@ -39,7 +39,7 @@ class PlayerController(Entity):
         # Differences between what the server calculated and what we calculated at the most recently received
         # sequence number.
         self.pos_diff = Vec3(0, 0, 0)
-        self.rot_diff = Vec3(0, 0, 0)
+        self.rot_diff = 0
         self.predict_timer = 0
 
     def bind_character(self, character):
@@ -77,7 +77,7 @@ class PlayerController(Entity):
         pct = self.predict_timer / PHYSICS_UPDATE_RATE
         if pct < 1:
             char.position = lerp(self.prev_pos, self.target_pos, pct)
-            char.rotation = lerp(self.prev_rot, self.target_rot, pct)
+            char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
 
         # up-down camera rotation
         updown = held_keys['rotate_up'] - held_keys['rotate_down']
@@ -124,9 +124,9 @@ class PlayerController(Entity):
         self.target_pos = char.position + velocity_t + self.pos_diff
         self.sn_to_pos[self.sequence_number] = self.target_pos
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
-        rotation = Vec3(0, rightleft * 100, 0) * PHYSICS_UPDATE_RATE
-        self.prev_rot = char.rotation
-        self.target_rot = char.rotation + rotation + self.rot_diff
+        rotation = rightleft * 100 * PHYSICS_UPDATE_RATE
+        self.prev_rot = char.rotation_y
+        self.target_rot = char.rotation_y + rotation + self.rot_diff
         self.sn_to_rot[self.sequence_number] = self.target_rot
 
         self.sequence_number += 1

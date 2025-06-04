@@ -140,7 +140,7 @@ def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
     npc.controller.update_lerp_state(phys_state, time_received)
 
 @rpc(network.peer)
-def update_target_attrs(connection, time_received, pos: Vec3, rot: Vec3, sequence_number: int):
+def update_target_attrs(connection, time_received, pos: Vec3, rot: int, sequence_number: int):
     if gs.pc is None:
         return
     controller = gs.pc.controller
@@ -164,10 +164,10 @@ def update_target_attrs(connection, time_received, pos: Vec3, rot: Vec3, sequenc
         controller.pos_diff = pos_diff
     else:
         controller.pos_diff = Vec3(0, 0, 0)
-    if sqnorm(rot_diff) > 0.01:
+    if rot_diff > 0.1:
         controller.rot_diff = rot_diff
     else:
-        controller.rot_diff = Vec3(0, 0, 0)
+        controller.rot_diff = 0
     # Consider taking the average of the past 5 diffs or something
 
 @rpc(network.peer)
