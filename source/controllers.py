@@ -330,6 +330,7 @@ class MobController(Entity):
             conn = gs.network.uuid_to_connection[self.character.uuid]
             gs.network.peer.update_target_attrs(conn, self.character.position,
                                                  self.character.rotation, self.sequence_number)
+
         # For other clients, this should be update_lerp_pstate
         # for conn in gs.network.peer.get_connections():
         #     gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,

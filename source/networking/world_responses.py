@@ -5,6 +5,7 @@ of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
 from .network import network
+from ..base import sqnorm
 from ..character import Character
 from ..controllers import *
 from ..item import *
@@ -159,10 +160,15 @@ def update_target_attrs(connection, time_received, pos: Vec3, rot: Vec3, sequenc
     predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
     pos_diff = pos - predicted_pos
     rot_diff = rot - predicted_rot
-
+    if sqnorm(pos_diff) > 0.01:
+        controller.pos_diff = pos_diff
+    else:
+        controller.pos_diff = Vec3(0, 0, 0)
+    if sqnorm(rot_diff) > 0.01:
+        controller.rot_diff = rot_diff
+    else:
+        controller.rot_diff = Vec3(0, 0, 0)
     # Consider taking the average of the past 5 diffs or something
-    controller.pos_diff = pos - predicted_pos
-    controller.rot_diff = rot - predicted_rot
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
