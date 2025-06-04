@@ -68,7 +68,6 @@ def request_move(connection, time_received, kb_direction: Vec2, kb_rotation: int
     char.rotate(char_rotation)
     char.controller.rotated = True
 
-
 # COMBAT
 @rpc(network.peer)
 def request_toggle_combat(connection, time_received):

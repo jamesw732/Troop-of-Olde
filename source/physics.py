@@ -33,16 +33,12 @@ def set_jump_vel(char):
         jump_vel = Vec3(0, 0, 0)
     char.velocity_components["jump"] = jump_vel
 
-def handle_movement(char, velocity):
-    """Main physics method which combines all character velocities into one
-    vector, then handles collision and grounding and updates position"""
+def apply_physics(char, velocity):
     if velocity[1] <= 0:
         handle_grounding(char, velocity)
-
     velocity = handle_collision(char, velocity)
     velocity = handle_upward_collision(char, velocity)
-
-    char.position += velocity * dt
+    return velocity * dt
 
 
 # PRIVATE

@@ -5,7 +5,7 @@ from .base import *
 from .combat import *
 from .gamestate import gs
 from .item import item_is_2h
-from .physics import set_gravity_vel, set_jump_vel, handle_movement
+from .physics import set_gravity_vel, set_jump_vel, apply_physics
 from .skills import *
 from .states import *
 
@@ -275,7 +275,8 @@ class MobController(Entity):
 
         velocity = sum(list(self.character.velocity_components.values()))
         if velocity != Vec3.zero:
-            handle_movement(self.character, velocity)
+            velocity_t = apply_physics(self.character, velocity)
+            self.character.position += velocity_t
             self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
             for conn in gs.network.peer.get_connections():
                 # For other clients, this should be update_lerp_pstate
