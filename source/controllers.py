@@ -169,6 +169,7 @@ class PlayerController(Entity):
         tgt = mouse.hovered_entity
         if key == "jump":
             self.character.start_jump()
+            gs.network.peer.request_jump(gs.network.server_connection)
         elif key == "scroll up":
             if tgt is None:
                 return

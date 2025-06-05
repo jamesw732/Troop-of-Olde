@@ -71,6 +71,11 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
     if sequence_number > char.controller.sequence_number:
         char.controller.sequence_number = sequence_number
 
+@rpc(network.peer)
+def request_jump(connection, time_received):
+    char = network.connection_to_char[connection]
+    char.start_jump()
+
 # COMBAT
 @rpc(network.peer)
 def request_toggle_combat(connection, time_received):
