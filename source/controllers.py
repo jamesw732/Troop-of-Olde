@@ -21,7 +21,7 @@ class PlayerController(Entity):
         self.bind_camera()
         self.bind_keys()
 
-        self.prev_mouse_posiiton = mouse.position
+        self.prev_mouse_position = mouse.position
 
         # The sequence number of movement inputs
         self.sequence_number = 0
@@ -30,6 +30,7 @@ class PlayerController(Entity):
         # Current targets to lerp to
         self.target_pos = self.character.position
         self.target_rot = self.character.rotation
+        self.mouse_y_rotation = 0
         # Previous positions/rotations to lerp from
         self.prev_pos = self.character.position
         self.prev_rot = self.character.rotation
@@ -75,22 +76,25 @@ class PlayerController(Entity):
 
     def update(self):
         char = self.character
-        # Interpolate position and rotation between 0.05s update ticks
+        # Predict position by interpolating between physics ticks
         self.predict_timer += time.dt
         pct = self.predict_timer / PHYSICS_UPDATE_RATE
         if pct <= 1:
             char.position = lerp(self.prev_pos, self.target_pos, pct)
+        # Predict character y rotation, enforce camera x rotation
         char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
+        updown = held_keys['rotate_up'] - held_keys['rotate_down']
+        self.focus.rotate(Vec3(updown * 100 * time.dt, 0, 0))
+        if held_keys['right mouse']:
+            mouse_rotation = self.get_mouse_rotation()
+            self.focus.rotation_x += mouse_rotation[0]
+            self.mouse_y_rotation += mouse_rotation[1]
+        self.fix_camera_rotation()
+        self.adjust_camera_zoom()
         # Client-side prediction for movement
         pct = self.predict_timer / self.offset_duration
         char.position += lerp(Vec3(0, 0, 0), self.pos_offset, pct)
         char.rotation_y += lerp_angle(0, self.rot_offset, pct)
-
-        # up-down camera rotation
-        updown = held_keys['rotate_up'] - held_keys['rotate_down']
-        self.focus.rotate(Vec3(updown * 100 * time.dt, 0, 0))
-        self.fix_camera_rotation()
-        self.adjust_camera_zoom()
         # Performance: This probably doesn't need to happen every frame, just when we move.
         if char.get_on_gcd():
             char.tick_gcd()
@@ -114,7 +118,8 @@ class PlayerController(Entity):
         rightleft = held_keys['rotate_right'] - held_keys['rotate_left']
 
         conn = gs.network.server_connection
-        gs.network.peer.request_move(conn, self.sequence_number, keyboard_direction, rightleft)
+        gs.network.peer.request_move(conn, self.sequence_number, keyboard_direction,
+                                     rightleft, self.mouse_y_rotation)
 
         # Client-side prediction for movement/rotation
         self.predict_timer = 0
@@ -131,23 +136,21 @@ class PlayerController(Entity):
         self.target_pos = char.position + velocity_t
         self.sn_to_pos[self.sequence_number] = self.target_pos
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
-        rotation = rightleft * 100 * PHYSICS_UPDATE_RATE
+        rotation = rightleft * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
         self.prev_rot = char.rotation_y
         self.target_rot = char.rotation_y + rotation
         self.sn_to_rot[self.sequence_number] = self.target_rot
 
+        self.mouse_y_rotation = 0
         self.sequence_number += 1
 
-    def handle_mouse_rotation(self):
+    def get_mouse_rotation(self):
         """Handles rotation from right clicking and dragging the mouse."""
         # Mouse rotation:
-        diff = mouse.position - self.prev_mouse_position
-        vel = Vec3(-1 * diff[1], diff[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
-        char_rotation = Vec3(0, vel[1] * 200, 0)
-        focus_rotation = Vec3(vel[0] * 200, 0, 0)
-        self.character.rotate(char_rotation)
-        self.focus.rotate(focus_rotation)
+        offset = mouse.position - self.prev_mouse_position
         self.prev_mouse_position = mouse.position
+        vel = Vec3(-1 * offset[1], offset[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
+        return vel * 200
 
     def fix_camera_rotation(self):
         """Handles all the problems that results from the camera rotating.

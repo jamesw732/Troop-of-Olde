@@ -55,7 +55,8 @@ def request_enter_world(connection, time_received, pstate: State,
 
 # PHYSICS
 @rpc(network.peer)
-def request_move(connection, time_received, sequence_number: int, kb_direction: Vec2, kb_rotation: int):
+def request_move(connection, time_received, sequence_number: int, kb_direction: Vec2,
+                 kb_y_rotation: int, mouse_y_rotation: float):
     """Request server to process keyboard inputs for movement and rotation"""
     char = network.connection_to_char[connection]
     char_speed = get_speed_modifier(char.speed)
@@ -63,8 +64,8 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
     if "keyboard" not in char.velocity_components:
         char.velocity_components["keyboard"] = vel
     char.velocity_components["keyboard"] += vel
-    # char_rotation = Vec3(0, kb_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
-    y_rotation = kb_rotation * 100 * PHYSICS_UPDATE_RATE
+    # char_rotation = Vec3(0, kb_y_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
+    y_rotation = kb_y_rotation * 100 * PHYSICS_UPDATE_RATE + mouse_y_rotation
     char.rotate(Vec3(0, y_rotation, 0))
     # Will send back the most recently received sequence number to match the predicted state.
     # If packets arrive out of order, we want to update based on last sequence number

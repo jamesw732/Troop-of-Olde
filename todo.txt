@@ -21,16 +21,9 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Finish implementing client-side prediction.
-Todo list:
-- Reinstate mouse movement
-- Reinstate jumping
-
-Consider improvements:
-- Make predictions smoother by averaging over, say, the past 5 diffs. May be unnecessary.
-- Improve movement physics logic. The visual bug where the player snaps downward after moving
+Improve movement physics logic. The visual bug where the player snaps downward after moving
 up a slope is an artifact of the feet collision algorithm, and actually has nothing to do with
-the client-side prediction.
+the client-side prediction. This should make it realistic to fix it.
 
 
 ===================================NEXT================================================

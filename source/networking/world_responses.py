@@ -163,20 +163,12 @@ def update_target_attrs(connection, time_received, sequence_number: int, pos: Ve
     # sn_to_pos is missing sequence_number on startup
     predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
     pos_offset = pos - predicted_pos
-    if sqnorm(pos_offset) > 0.1:
-        controller.pos_offset = pos_offset
-    else:
-        controller.pos_offset = Vec3(0, 0, 0)
-
+    controller.pos_offset = pos_offset
     # Compute the offset amt for rotation
     rot = rot % 360
     predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
     rot_offset = rot - predicted_rot
-    if rot_offset > 0.1:
-        controller.rot_offset = rot_offset
-    else:
-        controller.rot_offset = 0
-    # Consider taking the average of the past 5 offsets or something
+    controller.rot_offset = rot_offset
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
