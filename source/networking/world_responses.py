@@ -165,8 +165,8 @@ def update_target_attrs(connection, time_received, sequence_number: int, pos: Ve
     pos_offset = pos - predicted_pos
     if sqnorm(pos_offset) > 0.1:
         controller.pos_offset = pos_offset
-    # else:
-    #     controller.pos_offset = Vec3(0, 0, 0)
+    else:
+        controller.pos_offset = Vec3(0, 0, 0)
 
     # Compute the offset amt for rotation
     rot = rot % 360
@@ -174,8 +174,8 @@ def update_target_attrs(connection, time_received, sequence_number: int, pos: Ve
     rot_offset = rot - predicted_rot
     if rot_offset > 0.1:
         controller.rot_offset = rot_offset
-    # else:
-    #     controller.rot_offset = 0
+    else:
+        controller.rot_offset = 0
     # Consider taking the average of the past 5 offsets or something
 
 @rpc(network.peer)

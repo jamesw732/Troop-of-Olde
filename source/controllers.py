@@ -40,8 +40,10 @@ class PlayerController(Entity):
         # sequence number. Replaced with zeros for offsets smaller than some epsilon.
         self.pos_offset = Vec3(0, 0, 0)
         self.rot_offset = 0
-
+        # Timer used for interpolating between physics ticks
         self.predict_timer = 0
+        # Amount of time it should take client to match server given no inputs
+        self.offset_duration = 0.5
 
     def bind_character(self, character):
         self.character = character
@@ -73,12 +75,16 @@ class PlayerController(Entity):
 
     def update(self):
         char = self.character
-        # Client-side prediction for movement/rotation
+        # Interpolate position and rotation between 0.05s update ticks
         self.predict_timer += time.dt
         pct = self.predict_timer / PHYSICS_UPDATE_RATE
         if pct <= 1:
             char.position = lerp(self.prev_pos, self.target_pos, pct)
         char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
+        # Client-side prediction for movement
+        pct = self.predict_timer / self.offset_duration
+        char.position += lerp(Vec3(0, 0, 0), self.pos_offset, pct)
+        char.rotation_y += lerp_angle(0, self.rot_offset, pct)
 
         # up-down camera rotation
         updown = held_keys['rotate_up'] - held_keys['rotate_down']
@@ -122,15 +128,13 @@ class PlayerController(Entity):
         velocity = sum(list(char.velocity_components.values()))
         velocity_t = apply_physics(char, velocity)
         self.prev_pos = char.position
-        self.target_pos = char.position + velocity_t + self.pos_offset
+        self.target_pos = char.position + velocity_t
         self.sn_to_pos[self.sequence_number] = self.target_pos
-        self.pos_offset = Vec3(0, 0, 0)
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
         rotation = rightleft * 100 * PHYSICS_UPDATE_RATE
         self.prev_rot = char.rotation_y
-        self.target_rot = char.rotation_y + rotation + self.rot_offset
+        self.target_rot = char.rotation_y + rotation
         self.sn_to_rot[self.sequence_number] = self.target_rot
-        self.rot_offset = 0
 
         self.sequence_number += 1
 
