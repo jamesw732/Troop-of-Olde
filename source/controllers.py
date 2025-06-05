@@ -37,9 +37,9 @@ class PlayerController(Entity):
         self.sn_to_pos = {}
         self.sn_to_rot = {}
         # Differences between what the server calculated and what we calculated at the most recently received
-        # sequence number. Replaced with zeros for diffs smaller than some epsilon.
-        self.pos_diff = Vec3(0, 0, 0)
-        self.rot_diff = 0
+        # sequence number. Replaced with zeros for offsets smaller than some epsilon.
+        self.pos_offset = Vec3(0, 0, 0)
+        self.rot_offset = 0
 
         self.predict_timer = 0
 
@@ -122,15 +122,15 @@ class PlayerController(Entity):
         velocity = sum(list(char.velocity_components.values()))
         velocity_t = apply_physics(char, velocity)
         self.prev_pos = char.position
-        self.target_pos = char.position + velocity_t + self.pos_diff
+        self.target_pos = char.position + velocity_t + self.pos_offset
         self.sn_to_pos[self.sequence_number] = self.target_pos
-        self.pos_diff = Vec3(0, 0, 0)
+        self.pos_offset = Vec3(0, 0, 0)
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
         rotation = rightleft * 100 * PHYSICS_UPDATE_RATE
         self.prev_rot = char.rotation_y
-        self.target_rot = char.rotation_y + rotation + self.rot_diff
+        self.target_rot = char.rotation_y + rotation + self.rot_offset
         self.sn_to_rot[self.sequence_number] = self.target_rot
-        self.rot_diff = 0
+        self.rot_offset = 0
 
         self.sequence_number += 1
 
