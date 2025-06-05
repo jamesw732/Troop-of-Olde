@@ -37,9 +37,10 @@ class PlayerController(Entity):
         self.sn_to_pos = {}
         self.sn_to_rot = {}
         # Differences between what the server calculated and what we calculated at the most recently received
-        # sequence number.
+        # sequence number. Replaced with zeros for diffs smaller than some epsilon.
         self.pos_diff = Vec3(0, 0, 0)
         self.rot_diff = 0
+
         self.predict_timer = 0
 
     def bind_character(self, character):

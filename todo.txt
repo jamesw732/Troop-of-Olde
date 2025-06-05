@@ -23,12 +23,8 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 ===========================ACTIVE===============================
 Finish implementing client-side prediction.
 Todo list:
-- Reinstate up/down camera rotation
 - Reinstate mouse movement
 - Reinstate jumping
-- Fix the rotation bug when rotating at the rotation discontinuity. Best bet is to find a way to
-use the rotate() function instead of setting the rotation manually, otherwise need to make the lerp function
-smarter.
 
 Consider improvements:
 - Make predictions smoother by averaging over, say, the past 5 diffs. May be unnecessary.

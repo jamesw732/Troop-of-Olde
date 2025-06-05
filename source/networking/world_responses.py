@@ -159,17 +159,23 @@ def update_target_attrs(connection, time_received, sequence_number: int, pos: Ve
         # Always take the most recent sequence number
         # Alternatively, reject completely if it's old
         sequence_number = controller.recv_sequence_number
-    rot = rot % 360
-    # Try to get the predicted targets, if can't just assume it's correct
-    # Only time they shouldn't exist is on startup
+    # Compute the offset amt for position
+    # sn_to_pos is missing sequence_number on startup
     predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
-    predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
     pos_diff = pos - predicted_pos
-    rot_diff = rot - predicted_rot
-    if sqnorm(pos_diff) > 0.01:
+    if sqnorm(pos_diff) > 0.1:
         controller.pos_diff = pos_diff
+    # else:
+    #     controller.pos_diff = Vec3(0, 0, 0)
+
+    # Compute the offset amt for rotation
+    rot = rot % 360
+    predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
+    rot_diff = rot - predicted_rot
     if rot_diff > 0.1:
         controller.rot_diff = rot_diff
+    # else:
+    #     controller.rot_diff = 0
     # Consider taking the average of the past 5 diffs or something
 
 @rpc(network.peer)
