@@ -25,6 +25,7 @@ Improve movement physics logic. The visual bug where the player snaps downward a
 up a slope is an artifact of the feet collision algorithm, and actually has nothing to do with
 the client-side prediction. This should make it realistic to fix it.
 
+Re-add NPC LERPing
 
 ===================================NEXT================================================
 Add individual cooldowns for powers, and animations for cooldowns/gcd
@@ -38,11 +39,7 @@ Channeled enchantment (a channeled heal)
 Channeled curse (a channeled damage spell)
 
 
-Remove stuff from update functions. Take UIWindow dragging as an example, update is dodged by moving
-the body of an "if" block to a function, creating a Sequence for that function, and starting/stopping
-the sequence rather than setting the "if" condition to True/False.
-This is much more robust and doesn't necessitate calling update unnecessarily.
-
+Start adding some character assets and animations. Huge project.
 
 =========================================BACKLOG=================================================
 Physics:
