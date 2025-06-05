@@ -12,36 +12,43 @@ def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
     if not char.grounded and not char.jumping:
-        grav -= Vec3(0, 75 * dt, 0)
+        grav -= Vec3(0, 5, 0)
     elif char.grounded:
         grav = Vec3(0, 0, 0)
     char.velocity_components["gravity"] = grav
-
 
 def set_jump_vel(char):
     """If jumping add, some y to jump velocity vector"""
     # Meant to simulate the actual act of jumping, ie feet still touching ground
     if char.jumping:
-        speed = char.max_jump_height / char.max_jump_time
-        if char.rem_jump_height - speed * dt <= 0:
-            speed = char.rem_jump_height / char.max_jump_time
+        speed = char.max_jump_height / char.max_jump_time * dt
+        if char.rem_jump_height - speed <= 0:
+            speed = char.rem_jump_height / char.max_jump_time * dt
             char.cancel_jump()
         else:
-            char.rem_jump_height -= speed * dt
-        jump_vel = Vec3(0, speed, 0)
+            char.rem_jump_height -= speed
+        jump_vel = Vec3(0, speed / dt, 0)
     else:
         jump_vel = Vec3(0, 0, 0)
     char.velocity_components["jump"] = jump_vel
 
-def apply_physics(char, velocity):
-    if velocity[1] <= 0:
-        handle_grounding(char, velocity)
-    velocity = handle_collision(char, velocity)
-    velocity = handle_upward_collision(char, velocity)
-    return velocity * dt
+def get_displacement(char):
+    """Takes the sum of all character's velocity components, multiplies by dt, and applies physics"""
+    displacement = sum(list(char.velocity_components.values())) * dt
+    # Internal functions of apply_physics should be completely agnostic of dt
+    return apply_physics(char, displacement)
 
-def handle_grounding(char, velocity):
-    """Determine whether character is on the ground or not. Kills y velocity if grounded."""
+# PRIVATE
+def apply_physics(char, displacement):
+    """Takes a character displacement and applies physics functions to ensure it can be applied"""
+    if displacement[1] <= 0:
+        handle_grounding(char, displacement)
+    displacement = handle_collision(char, displacement)
+    displacement = handle_upward_collision(char, displacement)
+    return displacement
+
+def handle_grounding(char, displacement):
+    """Determine whether character is on the ground or not. Kills y displacement if grounded."""
     ignore_traverse = char.ignore_traverse
     # This doesn't seem to provide any sort of performance improvement
     # if gs.ui:
@@ -52,59 +59,57 @@ def handle_grounding(char, velocity):
         char.grounded = False
         return
     # If ground is within next timestep, we're grounded.
-    if ground.distance <= char.height + max(0.01, abs(velocity[1] * dt)):
+    if ground.distance <= char.height + max(0.01, abs(displacement[1])):
         # print("Grounding")
         char.grounded = True
         char.world_y = ground.world_point[1] + 1e-5
-        velocity[1] = 0
+        displacement[1] = 0
     else:
         char.grounded = False
 
-
-# PRIVATE
-def handle_collision(char, velocity, depth=0):
+def handle_collision(char, displacement, depth=0):
     """Handles feet collision logic.
 
-    If velocity hits a surface, "project" velocity along that surface, then recursively
+    If displacement hits a surface, "project" displacement along that surface, then recursively
     check again."""
     # It's concave, don't try to handle it, just stop
     if depth > 3:
         return Vec3(0, 0, 0)
-    dist = distance((0, 0, 0), velocity) * dt
-    collision_check = raycast(char.position, direction=velocity, distance=dist, ignore=char.ignore_traverse)
+    dist = distance((0, 0, 0), displacement)
+    collision_check = raycast(char.position, direction=displacement, distance=dist, ignore=char.ignore_traverse)
     if collision_check.hit:
         normal = collision_check.world_normal
-        speed = distance(Vec3.zero, velocity)
+        speed = distance(Vec3.zero, displacement)
         # It's a wall
         if abs(normal.normalized()[1]) <= 0.4:
             # Do normal projection formula
-            new_velocity = velocity - (numpy.dot(normal, velocity)) * normal
-            new_velocity = new_velocity
+            new_displacement = displacement - (numpy.dot(normal, displacement)) * normal
+            new_displacement[1] = 0
         # It's a slope
         else:
             point1 = collision_check.world_point
             plane_const = numpy.dot(normal, point1)
             # take new x and z coordinates as if the surface didn't exist
-            x2 = velocity[0] * dt + point1[0]
-            z2 = velocity[2] * dt + point1[2]
+            x2 = displacement[0] + point1[0]
+            z2 = displacement[2] + point1[2]
             # find the expected y coordinate from the x and z
             y2 = (plane_const - x2 * normal[0] - z2 * normal[2]) / normal[1]
             point2 = Vec3(x2, y2, z2)
             # new point is the right direction but wrong distance, re-scale
-            new_velocity = (point2 - point1).normalized() * speed
-        return handle_collision(char, new_velocity, depth + 1)
+            new_displacement = (point2 - point1).normalized() * speed
+        return handle_collision(char, new_displacement, depth + 1)
     else:
-        return velocity
+        return displacement
 
 
-def handle_upward_collision(char, velocity):
+def handle_upward_collision(char, displacement):
     """Blocks upward movement when jumping into a ceiling"""
-    if velocity[1] < 0:
-        return velocity
+    if displacement[1] < 0:
+        return displacement
     # Cast ray from top of model, rather than bottom like in handle_collision
     pos = char.position + Vec3(0, char.height, 0)
-    ceiling = raycast(pos, direction=(0, 1, 0), distance=velocity[1] * dt,
+    ceiling = raycast(pos, direction=(0, 1, 0), distance=displacement[1],
                       ignore=char.ignore_traverse)
     if ceiling.hit:
-        velocity[1] = 0
-    return velocity
+        displacement[1] = 0
+    return displacement

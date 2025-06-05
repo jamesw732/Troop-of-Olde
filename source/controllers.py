@@ -5,7 +5,7 @@ from .base import *
 from .combat import *
 from .gamestate import gs
 from .item import item_is_2h
-from .physics import set_gravity_vel, set_jump_vel, apply_physics
+from .physics import get_displacement, set_jump_vel, set_gravity_vel
 from .skills import *
 from .states import *
 
@@ -124,16 +124,14 @@ class PlayerController(Entity):
         # Client-side prediction for movement/rotation
         self.predict_timer = 0
 
+        char_speed = get_speed_modifier(char.speed)
+        kb_vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
+        char.velocity_components["keyboard"] = kb_vel
         set_gravity_vel(char)
         set_jump_vel(char)
-        char_speed = get_speed_modifier(char.speed)
-        vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
-        char.velocity_components["keyboard"] = vel
-
-        velocity = sum(list(char.velocity_components.values()))
-        velocity_t = apply_physics(char, velocity)
+        displacement = get_displacement(char)
         self.prev_pos = char.position
-        self.target_pos = char.position + velocity_t
+        self.target_pos = char.position + displacement
         self.sn_to_pos[self.sequence_number] = self.target_pos
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
         rotation = rightleft * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
@@ -325,10 +323,8 @@ class MobController(Entity):
         # Assumed that keyboard component gets set by a client
         set_gravity_vel(self.character)
         set_jump_vel(self.character)
-
-        velocity = sum(list(self.character.velocity_components.values()))
-        velocity_t = apply_physics(self.character, velocity)
-        self.character.position += velocity_t
+        displacement = get_displacement(self.character)
+        self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
         if self.character.uuid in gs.network.uuid_to_connection:
             conn = gs.network.uuid_to_connection[self.character.uuid]
