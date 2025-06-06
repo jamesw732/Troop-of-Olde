@@ -5,7 +5,7 @@ of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
 from .network import network
-from ..base import sqnorm
+from ..base import sqnorm, PHYSICS_UPDATE_RATE
 from ..character import Character
 from ..controllers import *
 from ..item import *
@@ -159,11 +159,14 @@ def update_target_attrs(connection, time_received, sequence_number: int, pos: Ve
         # Always take the most recent sequence number
         # Alternatively, reject completely if it's old
         sequence_number = controller.recv_sequence_number
+    # controller.shadow.position = pos
+    # controller.shadow.rotation_y = rot
     # Compute the offset amt for position
     # sn_to_pos is missing sequence_number on startup
     predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
     pos_offset = pos - predicted_pos
-    controller.pos_offset = pos_offset
+    # controller.pos_offset = pos_offset
+    controller.character.displacement_components["server_offset"] = pos_offset
     # Compute the offset amt for rotation
     rot = rot % 360
     predicted_rot = controller.sn_to_rot.get(sequence_number, rot)

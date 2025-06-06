@@ -54,6 +54,7 @@ default_phys_attrs = {
     "grounded": False,
     "grav": 0,
     "velocity_components": {},
+    "displacement_components": {},
     "height": 2,
     "max_jump_height": 3,
     "rem_jump_height": 3,
@@ -124,3 +125,6 @@ def sqdist(v1, v2):
     v1: Any vector
     v2: Any vector, same shape as v1"""
     return sum((v1 - v2) ** 2)
+
+def dot(a, b):
+    return sum([i * j for i, j in zip(a, b)])

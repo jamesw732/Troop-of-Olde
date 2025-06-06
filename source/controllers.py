@@ -29,7 +29,7 @@ class PlayerController(Entity):
         self.recv_sequence_number = 0
         # Current targets to lerp to
         self.target_pos = self.character.position
-        self.target_rot = self.character.rotation
+        self.target_rot = self.character.rotation_y
         self.mouse_y_rotation = 0
         # Previous positions/rotations to lerp from
         self.prev_pos = self.character.position
@@ -39,7 +39,6 @@ class PlayerController(Entity):
         self.sn_to_rot = {}
         # Differences between what the server calculated and what we calculated at the most recently received
         # sequence number. Replaced with zeros for offsets smaller than some epsilon.
-        self.pos_offset = Vec3(0, 0, 0)
         self.rot_offset = 0
         # Timer used for interpolating between physics ticks
         self.predict_timer = 0
@@ -55,6 +54,9 @@ class PlayerController(Entity):
         )
         self.namelabel = NameLabel(character)
         self.fix_namelabel()
+        # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
+        #                      color=color.yellow, rotation=self.character.rotation,
+        #                      position=self.character.position)
 
     def bind_camera(self):
         self.camdistance = 20
@@ -91,9 +93,9 @@ class PlayerController(Entity):
         self.fix_camera_rotation()
         self.adjust_camera_zoom()
         # Client-side prediction for movement
-        pct = self.predict_timer / self.offset_duration
-        char.position += lerp(Vec3(0, 0, 0), self.pos_offset, pct)
-        char.rotation_y += lerp_angle(0, self.rot_offset, pct)
+        # pct = self.predict_timer / self.offset_duration
+        # char.position += lerp(Vec3(0, 0, 0), self.pos_offset, pct)
+        # char.rotation_y += lerp_angle(0, self.rot_offset, pct)
         # Performance: This probably doesn't need to happen every frame, just when we move.
         if char.get_on_gcd():
             char.tick_gcd()
@@ -121,23 +123,26 @@ class PlayerController(Entity):
                                      rightleft, self.mouse_y_rotation)
 
         # Client-side prediction for movement/rotation
-        self.predict_timer = 0
-
         char_speed = get_speed_modifier(char.speed)
         kb_vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
         char.velocity_components["keyboard"] = kb_vel
         set_gravity_vel(char)
         set_jump_vel(char)
         displacement = get_displacement(char)
+        # Store the previous/next target position for LERPING
+        # Technically lagged behind by one step of PHYSICS_UPDATE_RATE
         self.prev_pos = char.position
         self.target_pos = char.position + displacement
         self.sn_to_pos[self.sequence_number] = self.target_pos
         # may need to mulyiply by math.cos(math.radians(self.focus.rotation_x)), 0)
         rotation = rightleft * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
-        self.prev_rot = char.rotation_y
-        self.target_rot = char.rotation_y + rotation
+        self.prev_rot = self.target_rot
+        self.target_rot = char.rotation_y + rotation + self.rot_offset
         self.sn_to_rot[self.sequence_number] = self.target_rot
-
+        # Just some necessary bookkeeping things
+        self.predict_timer = 0
+        char.displacement_components["server_offset"] = Vec3(0, 0, 0)
+        self.rot_offset = 0
         self.mouse_y_rotation = 0
         self.sequence_number += 1
 

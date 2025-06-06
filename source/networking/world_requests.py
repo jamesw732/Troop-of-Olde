@@ -66,7 +66,7 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
     char.velocity_components["keyboard"] += vel
     # char_rotation = Vec3(0, kb_y_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
     y_rotation = kb_y_rotation * 100 * PHYSICS_UPDATE_RATE + mouse_y_rotation
-    char.rotate(Vec3(0, y_rotation, 0))
+    char.rotation_y += y_rotation
     # Will send back the most recently received sequence number to match the predicted state.
     # If packets arrive out of order, we want to update based on last sequence number
     if sequence_number > char.controller.sequence_number:

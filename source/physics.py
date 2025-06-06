@@ -2,7 +2,7 @@
 from ursina import *
 import numpy
 
-from .base import PHYSICS_UPDATE_RATE, sqnorm
+from .base import PHYSICS_UPDATE_RATE, sqnorm, dot
 from .gamestate import gs
 
 dt = PHYSICS_UPDATE_RATE
@@ -35,6 +35,8 @@ def set_jump_vel(char):
 def get_displacement(char):
     """Takes the sum of all character's velocity components, multiplies by dt, and applies physics"""
     displacement = sum(list(char.velocity_components.values())) * dt
+    if len(char.displacement_components.values()) > 0:
+        displacement += sum(list(char.displacement_components.values()))
     # Internal functions of apply_physics should be completely agnostic of dt
     return apply_physics(char, displacement)
 
@@ -71,7 +73,7 @@ def handle_grounded_collision(char, displacement):
         if normal.normalized()[1] <= 0.2:
             # Intersection of the plane ax + by + cz = 0 with y = 0
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
-            displacement = direction * disp_norm * numpy.dot(direction, displacement)
+            displacement = direction * disp_norm * dot(direction, displacement)
         else:
             direction = Vec3(displacement[0] * normal[1],
                              -displacement[2] * normal[2] - displacement[0] * normal[0],
