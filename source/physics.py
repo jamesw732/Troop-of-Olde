@@ -73,16 +73,10 @@ def handle_grounded_collision(char, displacement):
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
             displacement = direction * disp_norm * numpy.dot(direction, displacement)
         else:
-            point1 = ray.world_point
-            plane_const = numpy.dot(normal, point1)
-            # take new x and z coordinates as if the surface didn't exist
-            x2 = displacement[0] + point1[0]
-            z2 = displacement[2] + point1[2]
-            # find the expected y coordinate from the x and z
-            y2 = (plane_const - x2 * normal[0] - z2 * normal[2]) / normal[1]
-            point2 = Vec3(x2, y2, z2)
-            # new point is the right direction but wrong distance, re-scale
-            displacement = (point2 - point1).normalized() * disp_norm
+            direction = Vec3(displacement[0] * normal[1],
+                             -displacement[2] * normal[2] - displacement[0] * normal[0],
+                             displacement[2] * normal[1]).normalized()
+            displacement = direction * disp_norm
     elif not down_ray.hit or down_ray.distance > 0.2:
         char.grounded = False
     return displacement

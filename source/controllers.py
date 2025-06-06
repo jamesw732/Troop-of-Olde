@@ -78,9 +78,8 @@ class PlayerController(Entity):
         char = self.character
         # Predict position by interpolating between physics ticks
         self.predict_timer += time.dt
-        pct = self.predict_timer / PHYSICS_UPDATE_RATE
-        if pct <= 1:
-            char.position = lerp(self.prev_pos, self.target_pos, pct)
+        pct = min(self.predict_timer / PHYSICS_UPDATE_RATE, 1)
+        char.position = lerp(self.prev_pos, self.target_pos, pct)
         # Predict character y rotation, enforce camera x rotation
         char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
         updown = held_keys['rotate_up'] - held_keys['rotate_down']
