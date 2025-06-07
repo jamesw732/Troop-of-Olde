@@ -3,6 +3,7 @@
 \usepackage{enumerate}
 \usepackage{hyperref}
 \usepackage{xparse}
+\usepackage{amsmath}
 
 \NewDocumentCommand{\codeword}{v}{%
 \texttt{{#1}}%
@@ -87,6 +88,11 @@ Checklist for this phase:
 \end{itemize}
 
 \section{Code Infrastructure}
+This section describes the key development choices made in the source code
+for this game. This document is not intended to be a complete design
+document, merely an aid for the developer, so I won't talk about everything
+in here, but will try to hit the most important pieces. Code that seems
+self-explanatory to me is ignored.
 \subsection{Networking}
 This game runs on a client-server framework. Currently, it is only tested to
 support one device launching multiple clients.
@@ -132,6 +138,111 @@ terminal and press the "c" key to connect to the server.
 
 Alternatively, one may simply launch \codeword{main.py}, which launches a child
 \codeword{server.py} process and connects to it automatically.
+
+\subsection{States}
+States are essentially simplified versions of objects that are sendable over
+the network. The typical usage is like:\\
+Object $\rightarrow$ State $\rightarrow$ RPC call $\rightarrow$ State
+$\rightarrow$ Object,\\
+where the last arrow represents either an overwrite of a portion of the object's state,
+or applying the state as a difference.
+
+States are defined in \codeword{state_defs.py}. They are currently based on dicts,
+but I'm realizing as I type this that this is unnecessary, and could be based on
+lists. State definitions are basically mappings of variables to types, and as long as
+the state is filled and the ordering is guaranteed and consistent between the
+client and server, we can represent a State with just a list. Would need to convert
+dicts to lists of tuples.
+\subsection{Physics}
+Implementing physics has proved to be challenging, but the current implementation seems
+good.
+
+There are currently three (well, 4, but I'll get to the fourth later) movement
+factors. Player keyboard (WASD) movement, jumping, and gravity. Velocity
+components are multiplied by the physics timestep (1/20th of a second) and then
+added together, along with the displacement factors. After we obtain a single
+velocity vector, we send it to the collision logic.
+
+Collision rules are different when the character is grounded or not.
+When not grounded, the character essentially just looks in the direction it's
+falling, and if it would clip into the floor, it adjusts its movement to not clip
+into the floor and sets the \codeword{grounded} boolean to True.
+When grounded, it's a lot more complicated. We look ahead of where our initial
+displacement would take us, and if there is anything in the way, first check
+whether it's a wall or not (normalized $x$ component less than 0.2). If it's a wall,
+we essentially move along the wall without changing our $y$ height.
+The formula for this is obtained by a plane intersection, the intersection of the
+plane $ax + by + cz = 0$ and $y = 0$. This yields the parameterization
+\[
+\begin{pmatrix}
+    x\\
+    y\\
+    z 
+\end{pmatrix} =
+\begin{pmatrix}
+    b\\0\\-a
+\end{pmatrix}s,\]
+and rescaling this and multiplying by the dot product gives us the displacement
+we want.
+
+When the colliding surface is a feasible slope to walk up, we instead keep
+the $(x, z)$ direction from our original movement, and deduce the correct
+$y$ from this and the plane normal. This is the same as finding the
+intersection of the planes $ax + by + cz = 0$ and the plane defined by
+$(0, 0, 0), (0, 1, 0), (\alpha, 0, \beta)$ (we look straight up because gravity goes
+straight down), where $(\alpha, \beta)$ is the $(x, z)$ direction of our
+original displacement. Then our line is defined by
+\[
+\begin{pmatrix}
+    x\\y\\z
+\end{pmatrix} = 
+\begin{pmatrix}
+    \alpha b\\-\beta c - \alpha a\\\beta b
+\end{pmatrix}s.\]
+Rescaling to match our original displacement gives us our final result.
+\subsection{Characters and Controllers}
+All characters in the game - NPCs, player characters, and on the client vs server,
+are all represented by the same Character class. The Character class should actually
+be more or less the intersection of all these functionalities. The differences
+are captured by their controllers.
+
+The PlayerController is responsible for handling most client-side inputs
+and sending them to the server. This class is not the complete authority
+for this, as some inputs are handled by the UI code, but pretty much any
+generic input is handled here. Handles client-side prediction for character
+movement (explained below).
+
+The NPCController actually doesn't do much controlling, it's what controls
+every character besides the player character. NPCs and other players are handled
+pretty much the same. The most complicated functionality of this class is
+linearly interpolating between states received by the server.
+
+The MobController class is the server-side controller class. It's responsible
+for handling all server-side character computations, such as movement and
+combat. Relays combat state changes and movement updates to the clients.
+\subsubsection{Client-Side Prediction}
+To ensure smooth play while enforcing server-authoritative character movement,
+we simulate the game physics client-side. Unfortunately, the simulation
+is nondeterministic, so we need to adjust for the differences in the state.
+The process for client-side prediction is as follows:\\
+On every physics tick, we send the movement inputs from this tick to
+the server, and then simulate the physics on the client. We store the
+current position/rotation, and the ``targets'', and linearly interpolate
+between them over the duration of the physics tick. This introduces a
+physics tick worth of lag, but it's not noticeable and inconsequential
+to the gameplay. This constitutes the ``prediction'' side of this story.
+
+To accommodate the server updates, when we send the movement inputs, we
+also include a sequence number that increments by one each physics
+tick. We map the sequence number to the current target state, and
+when the server sends back the state, it also sends back the current
+highest sequence number it has. Of course, when the state arrives back
+to the client, it's in the past, so we look back in time to what our
+target state was at the retransmitted sequence number. We compute the
+difference, and add it to the current target. Crucially, we add the
+displacement to the \codeword{Character}'s \codeword{displacement_components}
+to be processed for collision logic. Without applying the collision logic, it's easy to clip through the world and have an irrecoverable state.
+
 
 \section{Ursina Usage}
 \subsection{Common Bugs}
