@@ -73,7 +73,8 @@ def handle_grounded_collision(char, displacement):
         if normal.normalized()[1] <= 0.2:
             # Intersection of the plane ax + by + cz = 0 with y = 0
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
-            displacement = direction * disp_norm * dot(direction, displacement)
+            displacement = direction * disp_norm * dot(direction,
+                                                       displacement.normalized())
         else:
             direction = Vec3(displacement[0] * normal[1],
                              -displacement[2] * normal[2] - displacement[0] * normal[0],
