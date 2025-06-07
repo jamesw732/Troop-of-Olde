@@ -133,7 +133,7 @@ def remote_update_container(connection, time_received, container_name: str, cont
 # Physical
 @rpc(network.peer)
 def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
-    """Remotely call char.update_lerp_state"""
+    """Called by server to update physical state for an NPC"""
     npc = network.uuid_to_char.get(uuid)
     if npc is None:
         return
@@ -141,6 +141,7 @@ def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
 
 @rpc(network.peer)
 def update_target_attrs(connection, time_received, sequence_number: int, pos: Vec3, rot: float):
+    """Called by server to update physical state for a player character"""
     if gs.pc is None:
         return
     # To check synchronization, uncomment these:

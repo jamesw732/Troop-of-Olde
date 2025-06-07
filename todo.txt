@@ -21,11 +21,7 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Improve movement physics logic. The visual bug where the player snaps downward after moving
-up a slope is an artifact of the feet collision algorithm, and actually has nothing to do with
-the client-side prediction. This should make it realistic to fix it.
-
-Re-add NPC LERPing
+Write some documentation and figure out next steps.
 
 ===================================NEXT================================================
 Add individual cooldowns for powers, and animations for cooldowns/gcd
@@ -42,9 +38,6 @@ Channeled curse (a channeled damage spell)
 Start adding some character assets and animations. Huge project.
 
 =========================================BACKLOG=================================================
-Physics:
-Fix physics bugs. Walking into npc, jumping head first into the side of a ceiling
-
 Combat/Character:
 Neglected formulas:
 - probability to upgrade skill

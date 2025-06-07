@@ -330,15 +330,15 @@ class MobController(Entity):
         displacement = get_displacement(self.character)
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-        if self.character.uuid in gs.network.uuid_to_connection:
-            conn = gs.network.uuid_to_connection[self.character.uuid]
-            gs.network.peer.update_target_attrs(conn, self.sequence_number, self.character.position,
-                                                 self.character.rotation_y)
-
-        # For other clients, this should be update_lerp_pstate
-        # for conn in gs.network.peer.get_connections():
-        #     gs.network.peer.update_pos_rot(conn, self.character.uuid, self.character.position,
-                                           # self.character.rotation)
+        npc_pstate = State("physical", self.character)
+        for conn in gs.network.peer.get_connections():
+            if conn not in gs.network.connection_to_char:
+                continue
+            if self.character is gs.network.connection_to_char[conn]:
+                gs.network.peer.update_target_attrs(conn, self.sequence_number, self.character.position,
+                                                     self.character.rotation_y)
+            else:
+                gs.network.peer.update_lerp_pstate(conn, self.character.uuid, npc_pstate)
 
 
 class NameLabel(Text):
