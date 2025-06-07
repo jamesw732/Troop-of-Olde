@@ -13,6 +13,72 @@
 
 \pagebreak
 
+\section{Development Plan}
+I expect pre-release development to basically take place in three stages.
+I don't expect to confine
+myself to these stages, but I think they will help structure my development. Currently
+in the first stage, maybe like 60\% of the way through it.
+
+First is the prototyping stage, where I simply try to implement the relevant features
+of the game. Building combat mechanics, physics, networking, all that sort of stuff.
+The key is functionality, not aesthetics. Animations and models will play a role in this stage,
+but only in basic form. All art will be placeholder or lacking. UI is solely meant to provide an
+interface between the user and functionality, and does not need to be pretty.
+Checklist for this phase:
+\begin{itemize}
+    \item Networking
+    \item Physics
+    \item Auto attacking
+    \item Powers (one of each type)
+    \item Items
+    \item Deaths/looting
+    \item Basic stats functionality
+    \item Basic skills functionality
+    \item UI that interfaces all of the above
+    \item Character model prototype and movement/attack animations
+\end{itemize}
+At the end of this phase, this will not be a game, it will be more like a blueprint for a game.
+Should also consider closing the source code after declaring this phase to be done.
+
+Second is the content generation stage. The basic idea here is to get a minimal working
+example for the game. Once the basic prototypes and mechanics are nailed down,
+it's time to start extending them into actual content used to build the world.
+A necessary transition step here will be reconsidering the database. I don't think
+it will be good to just use json files for everything in the final product, so the first
+step before creating content will be to improve this. Since the plan is to make use of procedural
+generation to make content, there will need to be a lot of time spent making this work during
+this stage. Modeling, animations, and art will be a big part of this stage, but it will be
+important to balance creating art with generating content. UI will probably not be a big
+part of this phase, since the UI is mostly attached to the functionality.
+Checklist for this phase:
+\begin{itemize}
+    \item Reconsider/improve database
+    \item Create or generate world
+    \item Create or generate items
+    \item Create or generate NPCs
+    \item Create powers
+    \item Create launch screen for client and server
+    \item Implement save system
+    \item Add more models and character animations
+    \item Add animations for powers (mostly just particles)
+    \item Explore art style and maybe experiment with procedural art
+    \item Add real art to the UI
+\end{itemize}
+At the end of this stage, there should be a playable game.
+I should place a high standard on the quality of art entering the game. At the end of this stage,
+it should look like a marketable product. It doesn't need to be a finished product, but I should
+be able to release a Steam page and be able to find playtesters.
+
+Third is the release stage. The goal here is to enter alpha and push out a finished product.
+This is far-out still, so I'm guaranteed to miss a lot here, but I'm expecting some things to
+be certain.
+Checklist for this phase:
+\begin{itemize}
+    \item Create Steam page and market the game
+    \item Improve quality of assets as needed
+    \item Improve game balance
+    \item Consider outsourcing cloud bandwidth to allow players to host servers remotely
+\end{itemize}
 
 \section{Code Infrastructure}
 \subsection{Servers}
