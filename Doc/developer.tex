@@ -2,6 +2,11 @@
 \usepackage{graphicx}
 \usepackage{enumerate}
 \usepackage{hyperref}
+\usepackage{xparse}
+
+\NewDocumentCommand{\codeword}{v}{%
+\texttt{{#1}}%
+}
 
 \title{Troop of Olde Documentation}
 \author{James Westbrook}
@@ -36,6 +41,7 @@ Checklist for this phase:
     \item Basic skills functionality
     \item UI that interfaces all of the above
     \item Character model prototype and movement/attack animations
+    \item Test connections on more than one device
 \end{itemize}
 At the end of this phase, this will not be a game, it will be more like a blueprint for a game.
 Should also consider closing the source code after declaring this phase to be done.
@@ -81,8 +87,51 @@ Checklist for this phase:
 \end{itemize}
 
 \section{Code Infrastructure}
-\subsection{Servers}
-\subsubsection{Game Server}
+\subsection{Networking}
+This game runs on a client-server framework. Currently, it is only tested to
+support one device launching multiple clients.
+All networking code is built on Ursina's
+\codeword{networking} submodule, which is built on TCP and based on remote
+procedure calls (RPCs).
+
+All networking code is part of the \codeword{networking} submodule of this
+repository. The structure of this code is under consideration, but below is a
+brief description of the files in this directory:
+\begin{itemize}
+    \item \codeword{connect.py} is a small file that handles the work required
+        when establishing a new connection to the server.
+    \item \codeword{disconnect.py}, similarly, handles the work required when
+        leaving the server. Disconnection logic is currently buggy, but this
+        is a low priority at the moment.
+    \item \codeword{network.py} defines the \codeword{Network} class, which is
+        mostly just a centralized location for crucial network information
+        such as the \codeword{Peer} instance and dicts mapping ids and connections
+        to objects in memory. The \codeword{Network} object is added as a
+        variable of the \codeword{GameState} object, so that RPCs can be accessed
+        without having to import the corresponding files. This provides a great
+        deal of separation between the internal game logic and the networking
+        code at the cost of a global variable.
+    \item \codeword{register.py} is a simple procedural file that registers all
+        custom data types to be sent across the network.
+    \item \codeword{world_requests.py} is a file containing all in-game networking
+        requests sent by clients. All functions in this file are remote procedure
+        calls that are called by clients, executed on the server. Relies on the
+        game code and on \codeword{world_responses.py}.
+    \item \codeword{world_responses.py} is a file containing all in-game networking
+        responses sent by the server. All functions in this file are remote procedure
+        item calls that are called by the server, executed on a client. Relies on the
+        item game code.
+\end{itemize}
+To see how connections are made, it is best to look at some files in the root of the
+repository.
+
+The file \codeword{server.py} launches a headless Ursina app, and initializes
+\codeword{network.peer} with \codeword{is_host=True} and a pre-set hsot name and port.
+If run on its own, the user can launch \codeword{main_multiplayer.py} from a separate
+terminal and press the "c" key to connect to the server.
+
+Alternatively, one may simply launch \codeword{main.py}, which launches a child
+\codeword{server.py} process and connects to it automatically.
 
 \section{Ursina Usage}
 \subsection{Common Bugs}
