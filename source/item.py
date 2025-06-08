@@ -34,7 +34,7 @@ class Item:
         self.type = data.get("type", "")
         self.info = data.get("info", {})
         self.stats = data.get("stats", {})
-        self.stats = State("pc_combat", **self.stats)
+        self.stats = State("item_stats", self.stats)
         self.functions = copy.copy(self.type_to_options.get(self.type, []))
         self.icon_path = data.get("icon", "")
         self.icon = None

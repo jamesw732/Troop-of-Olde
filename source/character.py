@@ -19,8 +19,7 @@ from .states.state import *
 
 
 class Character(Entity):
-    def __init__(self, cname="Player", uuid=None, 
-                 pstate=None, cbstate=None,
+    def __init__(self, uuid=None, pstate=None, cbstate=None,
                  equipment=[], inventory=[], skills={}, powers=[]):
         """Initialize a Character. Generate parameters using
         states.get_character_states_from_json.
@@ -34,7 +33,6 @@ class Character(Entity):
         skills: State dict mapping str skill names to int skill levels
         powers: list of Powers or power Ids
         """
-        self.cname = cname
         self.uuid = uuid
 
         self.controller = None
@@ -62,7 +60,8 @@ class Character(Entity):
         if equipment:
             for slot, item_data in enumerate(equipment):
                 item = make_item_from_data(item_data)
-                internal_move_item(self, item, "equipment", slot, "nowhere")
+                internal_move_item(self, item, "equipment", slot, "nowhere",
+                                   handle_stats=gs.network.peer.is_hosting())
         if powers:
             for i, power in enumerate(powers):
                 if isinstance(power, int):
@@ -75,8 +74,8 @@ class Character(Entity):
 
         self.update_max_ratings()
         for attr in ["health", "energy", "armor"]:
-            maxval = getattr(self, "max" + attr)
-            setattr(self, attr, maxval)
+             maxval = getattr(self, "max" + attr)
+             setattr(self, attr, maxval)
 
         self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 

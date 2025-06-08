@@ -21,7 +21,9 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Write some documentation and figure out next steps.
+Current bugs:
+Clipping through surfaces (specifically slopes).
+
 
 ===================================NEXT================================================
 Add individual cooldowns for powers, and animations for cooldowns/gcd

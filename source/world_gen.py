@@ -32,14 +32,14 @@ class GenerateWorld:
                 Entity(**self.parse_colors(data))
 
     def create_npcs(self, file):
-        """Spawn npcs.
+        """Spawn from the npc source file. Called only by server.
 
         file: str, name of file to load in data/zones. Not full path"""
         path = os.path.join(self.zones_path, file)
         with open(path) as f:
             npc_data = json.load(f)
-        states = [(State("physical", **data["physical"]),
-                   State("physical", **data["combat"]))
+        states = [(State("physical", data["physical"]),
+                   State("base_combat", data["combat"]))
                    for (npc, data) in npc_data.items()]
         return [Character(pstate=tup[0], cbstate=tup[1]) for tup in states]
 

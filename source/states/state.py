@@ -1,21 +1,21 @@
 """A State is just a container used to represent a portion of a character. States may not
 be complete, in which case the undefined portion is ignored."""
-from ursina import Vec3, color
+from ursina import Vec3, color, Entity
 
-from .state_defs import state_defs
+from .state_defs import state_defs, statetype_to_defaults, type_to_default
+from ..gamestate import gs
 
 
 class State(dict):
-    def __init__(self, state_type, src=None, **kwargs):
+    def __init__(self, state_type, src=None):
         """States are temporary containers that can be sent over the network.
 
         They are essentially dicts with the power to extract data from/apply data to
-        objects such as Characters. Developer is held responsible for knowing what type
-        of state to create, the rest is handled automatically.
-        If neither src nor kwargs is specified, will essentially create a blank dict.
+        objects such as Characters. Possible states are defined in state_defs.
+        src is prioritized over kwargs, all kwargs are ignored if src is specified.
         state_type: one of the keys to state_defs
         src: object to grab data from, optional
-        **kwargs: alternative to grabbing attrs from character, optional
+        **kwargs: alternative to grabbing attrs from a src, optional
         """
         self.state_type = state_type
         self.attrs = state_defs[self.state_type]
@@ -23,14 +23,7 @@ class State(dict):
         if src is not None:
             for attr in self.attrs:
                 val = self._get_val_from_src(attr, src)
-                # Only include attrs intentionally set
-                if val is None:
-                    continue
                 self[attr] = val
-        # Otherwise, read the attributes straight off
-        else:
-            valid_kwargs = {k: v for k, v in kwargs.items() if k in self.attrs}
-            super().__init__(**valid_kwargs)
 
     def apply(self, dst):
         """Apply attrs to a destination object by overwriting the attrs
@@ -51,26 +44,26 @@ class State(dict):
                 self._apply_attr(dst, attr, original_val + val)
 
     def _get_val_from_src(self, attr, src):
-        """Generic wrapper for getting attr from src that depends on state_type
-        
-        Some sources access by key, some by attribute, this function handles that magic.
-        Also, the primitive type may not be what we want to actually
-        encode in the state, for example colors.
-        When there is a missing attr/key, and we want to ignore it, return None
-        """
-        if isinstance(src, dict):
-            if self.state_type == "skills":
-                # is this really how we want to manage missing skills?
-                # even if skills states are only used for initialization?
-                default = 1
-            val = src.get(attr, default)
-        else:
-            if not hasattr(src, attr):
-                return None
+        """General wrapper for getting attr from src. Since States are expected to have all fields
+        in their state definition, this does its best to infer data if it's missing from src."""
+        defaults = statetype_to_defaults.get(self.state_type, {})
+        val = None
+        # src is a keyed data structure like a dict and contains attr
+        if isinstance(src, dict) and attr in src:
+            val = src[attr]
+        # src is a typical data structure and contains attr
+        elif hasattr(src, attr):
             val = getattr(src, attr)
+        # couldn't find attr in src, look in defaults
         if val is None:
-            return val
-        if self.state_type == "physical" and attr in ["collider", "color", "model"]:
+            # If not in state_type's defaults, just take the default based on the type of the variable
+            if attr not in defaults:
+                statedef = state_defs[self.state_type]
+                t = statedef[attr]
+                return type_to_default[t]
+            val = defaults[attr]
+        # these need to be strings, not the respective Ursina objects
+        if attr in ["collider", "color", "model"] and not isinstance(val, str):
             val = val.name
         return val
 
@@ -92,19 +85,16 @@ class State(dict):
 
 def serialize_state(writer, state):
     writer.write(state.state_type)
-    for k, v in state.items():
-        writer.write(k)
+    state_def = state_defs[state.state_type]
+    for k in state_def:
+        v = state[k]
         writer.write(v)
-    writer.write("end")
 
 def deserialize_state(reader):
     state_type = reader.read(str)
-    attrs = state_defs[state_type]
+    state_def = state_defs[state_type]
     state = State(state_type=state_type)
-    while reader.iter.getRemainingSize() > 0:
-        k = reader.read(str)
-        if k == "end":
-            return state
-        v = reader.read(attrs[k])
+    for k, t in state_def.items():
+        v = reader.read(t)
         state[k] = v
     return state

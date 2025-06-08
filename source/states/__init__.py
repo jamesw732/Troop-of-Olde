@@ -15,16 +15,17 @@ def get_character_states_from_json(pname):
     for k, v in pstate_raw.items():
         if hasattr(v, "__iter__"):
             pstate_raw[k] = Vec3(*v)
+    pstate_raw["cname"] = pname
     basestate_raw = d.get("basestate", {})
     skills_raw = d.get("skills", {})
     equipment = d.get("equipment", [])
     inventory = d.get("inventory", [])
     powers = d.get("powers", [])
 
-    pstate = State("physical", **pstate_raw)
+    pstate = State("physical", pstate_raw)
     pstate["cname"] = pname
-    basestate = State("base_combat", **basestate_raw)
-    skills = State("skills", **skills_raw)
+    basestate = State("base_combat", basestate_raw)
+    skills = State("skills", skills_raw)
 
     return pstate, basestate, equipment, inventory, skills, powers
 
