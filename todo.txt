@@ -21,8 +21,7 @@ Generally, these are huge tasks that I need to seriously split up to be able to 
 
 
 ===========================ACTIVE===============================
-Current bugs:
-Clipping through surfaces (specifically slopes).
+Fix clipping through the damn wall.
 
 
 ===================================NEXT================================================
@@ -40,6 +39,10 @@ Channeled curse (a channeled damage spell)
 Start adding some character assets and animations. Huge project.
 
 =========================================BACKLOG=================================================
+Physics:
+Implement momentum, make it be a list of the 5 most recent keyboard movement vectors. They are
+averaged and added as a displacement factor if no keyboard inputs for that physics tick.
+
 Combat/Character:
 Neglected formulas:
 - probability to upgrade skill

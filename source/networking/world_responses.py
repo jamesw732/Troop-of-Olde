@@ -167,12 +167,12 @@ def update_target_attrs(connection, time_received, sequence_number: int, pos: Ve
     predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
     pos_offset = pos - predicted_pos
     # controller.pos_offset = pos_offset
-    controller.character.displacement_components["server_offset"] = pos_offset
+    # controller.character.displacement_components["server_offset"] = pos_offset
     # Compute the offset amt for rotation
     rot = rot % 360
     predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
     rot_offset = rot - predicted_rot
-    controller.rot_offset = rot_offset
+    # controller.rot_offset = rot_offset
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
