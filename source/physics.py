@@ -1,6 +1,5 @@
 """API for handling physics calculations."""
 from ursina import *
-import numpy
 
 from .base import PHYSICS_UPDATE_RATE, sqnorm, dot
 from .gamestate import gs
@@ -49,16 +48,16 @@ def apply_physics(char, displacement):
     if ray.hit:
         normal = ray.world_normal
         if normal.normalized()[1] <= 0.2:
-            if not char.grounded:
-                return Vec3(0, 0, 0)
             # Intersection of the plane ax + by + cz = 0 with y = 0
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
             displacement = direction * dot(direction, displacement.normalized()) * disp_norm
+            char.grounded = True
         else:
             if not char.grounded:
                 char.grounded = True
                 displacement = ray.world_point - char.world_position + Vec3(0, 1e-3, 0)
                 return displacement
+            # Intersection of the plane ax + by + cz = 0 with the plane defined by (0, 0, 0), (0, 1, 0), and original displacement
             direction = Vec3(displacement[0] * normal[1],
                              -displacement[2] * normal[2] - displacement[0] * normal[0],
                              displacement[2] * normal[1]).normalized()
@@ -67,8 +66,7 @@ def apply_physics(char, displacement):
         down_ray = raycast(char.world_position, direction=char.down, distance=0.2, ignore=char.ignore_traverse)
         if not down_ray.hit:
             char.grounded = False
-    else:
-        displacement = handle_upward_collision(char, displacement)
+    displacement = handle_upward_collision(char, displacement)
     return displacement
 
 def handle_upward_collision(char, displacement):
