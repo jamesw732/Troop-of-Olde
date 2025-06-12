@@ -5,4 +5,5 @@ resources.txt
 ideas/*
 Doc/*
 !Doc/developer.tex
+!Doc/gameplay.txt
 *pycache*

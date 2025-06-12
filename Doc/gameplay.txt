@@ -1,0 +1,160 @@
+This document describes all major gameplay philosophies. It's not an end-to-end description of
+everything about the game.
+
+======================WORLD======================
+It will be unreasonable to create a massive world. What seems much more feasible is creating a
+relatively small world with high replayability. Runs of the game should be beatable in
+a handful of hours.
+
+The world itself can help improve replayability. No ideas here are final, but this is my best estimation
+at replayability:
+- Randomly generated terrain may help give each run of the game a unique feel. But the world will need
+to be interesting whether there's random generation or not.
+- Randomly chosen enemies can help create variance in player's choices. If enemies are sufficiently
+different from one another, then the player will need to use different strategies. If enemies drop
+different things, then the player will need to make different choices about their character build.
+Both of these features are improved if there's room for the player to predict the kinds of enemies
+he/she faces.
+- Reduce unique names, or if using unique names, procedurally generate the names. This includes zone
+names, so rather than have named zones, maybe use biomes.
+
+Tentative plan for biomes:
+- There will be a handful (5?) different biomes that the player will have to clear to complete the game.
+- Each biome will have different types of enemies: common, elite, and one boss.
+- Common enemies respawn, elites and bosses respawn as common enemies. This will usher the players to
+progress through the world, rather than just repeat encounters and become OP.
+- Killing the boss unlocks the next zone. You can't go back once you enter a new zone.
+- In multiplayer, all players must stay in the same zone.
+- There are different factions (3 per zone), boss defined by main faction and most of the rest
+of enemies follow the main faction, but straggler commons and elites can be different factions.
+Prevalence of each faction is randomly chosen on each run.
+Per faction, the number of different types of enemies are:
+1 boss
+3 elites
+5 common enemies
+
+Some biome/faction ideas:
+Forest - Cultists, Treants, Dark Elves
+Desert - Undead, Scarabs, Raiders
+Jungle - Apes, Crocodilian people, Spiders
+Tundra - Vikings, Bears, Yetis
+Swamp - Frog people, Goblins, Fungus people
+Volcanic Expanse - Demons, Dragons, Fire Elementals/Golems
+
+
+=======================COMBAT=======================
+Central objects of combat:
+Auto attacks:
+- Attacks are attempts to hit your target with your weapon, which can be melee or ranged.
+- You can toggle whether or not you are auto attacking, and they will be performed automatically.
+- You can dual wield two one-handed weapons. In this case, they operate on separate timers, and your offhand
+rate depends on your dual wield skill level.
+Powers:
+- Powers are spells and abilities you cast/use to apply an effect to an enemy.
+- Powers are located on the action bar at the bottom of the screen.
+- Powers incur a global cooldown which prevents the character from performing any actions (attacks or powers).
+- Powers also have individual cooldowns, in addition to the global cooldown incursion.
+- There are lots of different types of distinctions of powers/spells:
+- Enchantments are beneficial spells, curses are harmful spells.
+- Instant powers have a single effect that is applied and not put into memory, ie damage or healing.
+- Persistent powers provide a lasting effect, either buffs or debuffs.
+- Channeled powers have a cast/use time, and apply effects over time (and/or at the end).
+NPCs:
+- NPCs will have access to auto attacks, powers, and special attacks.
+- NPCs will drop a scroll for each power they have access to, allowing players to learn it.
+Will likely be consumed upon learning.
+- Special attacks are basically just powers, but specific to particular NPCs and not dropped as scrolls.
+- In combat, the NPC AI will perform actions on a timer-based system. The timer will not be fixed,
+instead it will depend on the action. Auto attacking will probably be constant (but depend on the NPC
+and their weapon), powers and special attacks will just use the GCD or use time of it.
+
+Balance constraints:
+- Health should feel like a finite resource.
+- Minimize number of meaningless durations (like buffs in Everquest)
+- Player should have multiple choices in combat encounters
+
+Power ideas:
+Melee:
+- Stances; offensive and defensive.
+Ranged:
+- Elemental arrows (probably implement as a buff that lasts for a single shot, zero gcd)
+- Arrow rain (works with elemental arrows)
+- Headshot (low accuracy but high damage attack)
+Magic:
+- DoT's that spread to other enemies
+- DoT's that end in an explosion
+Healing:
+- Heals over time.
+Support:
+- High-damage thorns that only last a few seconds.
+- Curses that cause the target's next spell to misfire. This will need a long cooldown.
+- Curse that puts some of the target's powers on cooldown.
+- Charm - turn an enemy friendly temporarily
+- Generic debuffs to increase damage or weaken enemy
+- Sacrifice health to restore energy to allies
+- Animal forms
+- Purification spells that remove debuffs
+
+Elemental system:
+Speculating making elements a big part of combat.
+Main arguments for:
+- Adds new dimensions to combat.
+- Might increase player choice.
+Main counterarguments:
+- If the elemental system is a huge part of combat (like, dictates 50% of damage), then encounters
+range from being impossible without the correct elements, to being trivial with the correct elements.
+- Lots of things to keep track of/potentially items to store just in case you need them for an elemental
+npc.
+- Does it really increase player choice?
+
+I think that elements should play at most a small role in combat, and shouldn't dictate too much of the
+damage calculation.
+I do like the idea of different types acting differently, such as fire being a fast DoT, poison
+being a slow DoT, cold causing the enemy to be slower in some way, etc. This could be the whole
+elemental system, but the question is whether characters should have stats that influence elemental
+effects.
+Leaning towards no because of proportionality - I don't want there to be too many stats (maybe 10-15 total),
+and elements would have to occupy like 6 of those. But a single stat like "Hardiness" which reduces the
+effects of all elements on the player might be favorable.
+
+
+
+==============DEATH=================
+The ideal system is hard-permadeath for single player, and soft-permadeath for multiplayer.
+Soft-permadeath meaning that allies can get revived somehow, but if the whole party dies, the
+world is lost.
+
+An idea for soft-permadeath in multiplayer is having bosses drop revive stones. Can also provide
+resurrection spells.
+
+Might be nice to decouple character deaths and world deaths, and allow for players to play a character
+even after death. This would necessitate multiple difficulties of the game, I think. Basically, you can
+play the same character and die as much as you want, but you have to restart the world (and the world
+will be different). Once you beat the world on one difficulty, you can move on to the next, and so on.
+
+
+=================STATS================
+These are quantities assigned to the character that influence respective in-game interactions.
+Current idea of stats is very basic, not clear what it will look like at the moment.
+
+
+=================SKILLS=================
+These tell how proficient a character is at certain tasks, such as attacking with 1-handed melee weapons
+or dodging attacks.
+Similar to stats, the actual skills will be refined as combat gets implemented.
+
+
+==================ITEMS====================
+Main planned item types right now are equipments and scrolls. Scrolls are unlockable powers dropped
+by NPCs with access to those powers.
+There are very few equipment slots. There are a lot of favorable things about this decision:
+- Reduced development time (I don't need to make as many items)
+- Individual gear upgrades feel more impactful
+- Players don't need to spend as much time farming gear or being behind on some slots
+
+It *might* be cool to have a random enchanting system like in MoM for all equipment (not just common ones).
+Except they'd actually be good. I'm reluctant to do this because it would be hard to balance, especially
+to balance stronger weapons (such as those dropped by bosses). Might also be less flavorful.
+If I also choose to make an elemental system a core part of combat, these should definitely be
+intertwined.
+
