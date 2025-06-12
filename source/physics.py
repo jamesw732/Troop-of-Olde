@@ -37,54 +37,38 @@ def get_displacement(char):
     displacement = sum(list(char.velocity_components.values())) * dt
     if len(char.displacement_components.values()) > 0:
         displacement += sum(list(char.displacement_components.values()))
-    # Internal functions of apply_physics should be completely agnostic of dt
+    if displacement == Vec3(0, 0, 0):
+        return displacement
     return apply_physics(char, displacement)
 
 # PRIVATE
 def apply_physics(char, displacement):
-    """Takes a character displacement and applies physics functions to ensure it can be applied"""
-    if not char.grounded:
-        displacement = handle_upward_collision(char, displacement)
-    displacement = handle_feet_collision(char, displacement)
-    # still possible that we're clipping, if so just kill displacement.
-    disp_norm = distance(Vec3(0, 0, 0), displacement)
-    final_ray = raycast(char.world_position, direction=displacement, distance=disp_norm,
-                        ignore=char.ignore_traverse)
-    if final_ray.hit:
-        displacement = handle_feet_collision(char, displacement)
-    return displacement
-
-def handle_feet_collision(char, displacement):
-    """Handle collision logic when grounded
-
-    Assumes char.grounded is True"""
+    """Takes a character displacement and returns a collision-modified displacement"""
     disp_norm = distance((0, 0, 0), displacement)
     ray = raycast(char.world_position, direction=displacement, distance=disp_norm, ignore=char.ignore_traverse)
     if ray.hit:
-        char.grounded = True
         normal = ray.world_normal
         if normal.normalized()[1] <= 0.2:
+            if not char.grounded:
+                return Vec3(0, 0, 0)
             # Intersection of the plane ax + by + cz = 0 with y = 0
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
-            displacement = direction * disp_norm * dot(direction, displacement.normalized())
-            if not gs.network.peer.is_hosting():
-                print("Wall collision")
+            displacement = direction * dot(direction, displacement.normalized()) * disp_norm
         else:
+            if not char.grounded:
+                char.grounded = True
+                displacement = ray.world_point - char.world_position + Vec3(0, 1e-3, 0)
+                return displacement
             direction = Vec3(displacement[0] * normal[1],
                              -displacement[2] * normal[2] - displacement[0] * normal[0],
                              displacement[2] * normal[1]).normalized()
             displacement = direction * disp_norm
-            if not gs.network.peer.is_hosting():
-                print("Ground collision")
-        if not gs.network.peer.is_hosting():
-            print(ray.world_point)
-            print(char.world_position)
-            print(displacement)
-        
-        return displacement
-    down_ray = raycast(char.world_position, direction=char.down, distance=0.2, ignore=char.ignore_traverse)
-    if not down_ray.hit:
-        char.grounded = False
+    elif char.grounded:
+        down_ray = raycast(char.world_position, direction=char.down, distance=0.2, ignore=char.ignore_traverse)
+        if not down_ray.hit:
+            char.grounded = False
+    else:
+        displacement = handle_upward_collision(char, displacement)
     return displacement
 
 def handle_upward_collision(char, displacement):
