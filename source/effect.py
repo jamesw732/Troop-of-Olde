@@ -12,57 +12,66 @@ with open(effects_path) as effects_json:
 
 
 class Effect(Entity):
-    """Represents the actual effect of things like powers and procs
+    """Represents the actual effect of things like powers and procs.
 
-    Current implementation is very simplistic and needs expanding."""
-    def __init__(self, effect_id):
+    Current implementation is very simplistic and needs expanding.
+    Effects are temporary objects by definition."""
+    def __init__(self, effect_id, src, tgt):
         super().__init__()
         effect_id = str(effect_id)
         effect_data = copy.deepcopy(id_to_effect_data[effect_id])
         self.effect_type = effect_data["effect_type"]
         self.effects = effect_data["effects"]
+        self.src = src
+        self.tgt = tgt
         self.hit = False
 
         if self.effect_type == "persistent":
             self.timer = 0
 
-    def attempt_apply(self, src, tgt):
+    def attempt_apply(self):
         """Main driving method called by the server for applying an effect to a target"""
         assert gs.network.peer.is_hosting()
-        if tgt is None:
+        if self.tgt is None:
             return
-        hit = self.get_hit(src, tgt)
-        if hit:
-            self.apply_mods(src, tgt)
-            self.apply(src, tgt)
-        msg = self.get_msg(src, tgt)
-        gs.network.broadcast_cbstate_update(src)
+        self.check_land()
+        if self.hit:
+            self.apply_mods()
+            self.apply()
+            gs.network.broadcast_cbstate_update(self.src)
+        msg = self.get_msg()
         gs.network.broadcast(gs.network.peer.remote_print, msg)
 
-    def get_hit(self, src, tgt):
+    def check_land(self):
+        """Performs a random roll to determine whether the effect is applied or not"""
+        # Currently bare, will eventually need a formula
         self.hit = True
-        return True
 
-    def apply_mods(self, src, tgt):
+    def apply_mods(self):
         if not self.hit:
             return
         if self.effect_type == "instant":
             if "damage" in self.effects:
-                self.effects["damage"] -= tgt.armor
+                self.effects["damage"] -= self.tgt.armor
 
-    def get_msg(self, src, tgt):
+    def get_msg(self):
         if not self.hit:
-            return f"{src.cname} misses {tgt.cname}."
+            return f"{self.src.cname} misses {self.tgt.cname}."
         if self.effect_type == "instant":
             if "damage" in self.effects:
                 dmg = self.effects["damage"]
-                msg = f"{tgt.cname} is damaged for {dmg} damage!"
+                msg = f"{self.tgt.cname} is damaged for {dmg} damage!"
         return msg
 
-    def apply(self, src, tgt):
+    def apply(self):
         if not self.hit:
             return
         if self.effect_type == "instant":
-            if "damage" in self.effects:
-                dmg = self.effects["damage"]
-                tgt.health -= dmg
+            self.apply_instant()
+
+    def apply_instant(self):
+        if not self.hit or self.effect_type != "instant":
+            return
+        if "damage" in self.effects:
+            dmg = self.effects["damage"]
+            self.tgt.health -= dmg

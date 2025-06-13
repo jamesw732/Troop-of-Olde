@@ -25,30 +25,8 @@ class Power(Entity):
 
         self.ui_elmnt = None
 
-    def get_effect(self):
-        return Effect(self.effect_id)
-
-    def get_target(self, char):
-        """Returns the correct target based on the type of power and character's target
-
-        Currently just returns the character's target, will be more complicated eventually"""
-        return char.target
-
-    def use(self, char, tgt):
-        """Does the server-side things involved with using a power.
-        Used by char on their active target."""
-        assert gs.network.peer.is_hosting()
-        if tgt is None:
-            return
-        self.set_char_gcd(char)
-        char.next_power = None
-
-        effect = self.get_effect()
-        # Would like some better logic here eventually, like auto-targetting based on beneficial
-        # or harmful
-        effect.attempt_apply(char, tgt)
-
     def handle_power_input(self):
+        """Handles client's input to use a power"""
         assert not gs.network.peer.is_hosting()
         tgt = self.get_target(gs.pc)
         if gs.pc.get_on_gcd():
@@ -61,6 +39,15 @@ class Power(Entity):
         else:
             self.client_use_power()
             gs.network.peer.request_use_power(gs.network.server_connection, self.power_id)
+
+    def get_target(self, char):
+        """Returns the correct target based on the type of power and character's target
+
+        Currently just returns the character's target, will be more complicated eventually"""
+        return char.target
+
+    def queue(self, char):
+        char.next_power = self
 
     def client_use_power(self):
         """Does the client-side things involved with using a power.
@@ -81,7 +68,19 @@ class Power(Entity):
         char.gcd = self.gcd_duration
         char.gcd_timer = 0
 
-    def queue(self, char):
-        char.next_power = self
+    def use(self, char, tgt):
+        """Does the server-side things involved with using a power.
+        Used by char on their active target."""
+        assert gs.network.peer.is_hosting()
+        if tgt is None:
+            return
+        self.set_char_gcd(char)
+        char.next_power = None
 
+        effect = self.get_effect(char, tgt)
+        # Would like some better logic here eventually, like auto-targetting based on beneficial
+        # or harmful
+        effect.attempt_apply()
 
+    def get_effect(self, src, tgt):
+        return Effect(self.effect_id, src, tgt)
