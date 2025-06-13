@@ -36,6 +36,7 @@ Per faction, the number of different types of enemies are:
 Some biome/faction ideas:
 Forest - Cultists, Treants, Dark Elves
 Desert - Undead, Scarabs, Raiders
+Island - Pirates, Merfolk, Crabs (might be complex and definitely contingent on a water implementation)
 Jungle - Apes, Crocodilian people, Spiders
 Tundra - Vikings, Bears, Yetis
 Swamp - Frog people, Goblins, Fungus people
