@@ -69,7 +69,7 @@ class Character(Entity):
                     if power < 0:
                         power = None
                     else:
-                        power = Power(power)
+                        power = Power(power, self)
                 self.powers[i] = power
 
         self.update_max_ratings()
