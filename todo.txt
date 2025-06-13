@@ -1,27 +1,6 @@
-This file contains a heap-like todo list, with the following priorities:
-
-ACTIVE:
-This is whatever I'm spending active development time on. Should only really have one thing here.
-
-NEXT:
-These are basically "next steps" in whatever overarching task I'm working on.
-Things that are put here should not stay on here very long, either pushed into "ACTIVE" once
-I decide it's time to work on it, or pushed back to "BACKLOG" when I realize I'm farther away than
-I thought.
-
-BACKLOG:
-These are specific tasks that I'm not very close to accomplishing. Tasks on here might need to get
-split up substantially before being approachable, and might require more thought before I know how they work.
-Tasks in here get popped into "NEXT" or "RIGHT NOW" once I am ready to start implementing them.
-This section will get pretty vast, so some organization is helpful.
-
-DISTANT:
-These are abstract ideas about things that will need to be done eventually, but I haven't thought about.
-Generally, these are huge tasks that I need to seriously split up to be able to parse.
-
+Implementation todo list.
 
 ===========================ACTIVE===============================
-Fix clipping through the damn wall.
 
 
 ===================================NEXT================================================
@@ -42,6 +21,9 @@ Start adding some character assets and animations. Huge project.
 Physics:
 Implement momentum, make it be a list of the 5 most recent keyboard movement vectors. They are
 averaged and added as a displacement factor if no keyboard inputs for that physics tick.
+Add more raycasts for collision logic.
+Use a loop for raycasts to not collide through concave intersections
+Improve wall collision logic, namely removing ability to jump up walls.
 
 Combat/Character:
 Neglected formulas:
