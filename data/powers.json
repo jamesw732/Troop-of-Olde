@@ -9,5 +9,16 @@
         "purpose": "harmful",
         "target": "single",
         "gcd_duration": 5
+    },
+    "1": {
+        "name": "Light Heal",
+        "icon": "heal-royal-3.png",
+        "power_type": "spell",
+        "cost": 20,
+        "effect_id": 1,
+        "cooldown": 10,
+        "purpose": "beneficial",
+        "target": "single",
+        "gcd_duration": 5
     }
 }

@@ -39,6 +39,8 @@ class Effect(Entity):
             self.apply_mods()
             self.apply()
             gs.network.broadcast_cbstate_update(self.src)
+            if self.src != self.tgt:
+                gs.network.broadcast_cbstate_update(self.tgt)
         msg = self.get_msg()
         gs.network.broadcast(gs.network.peer.remote_print, msg)
 
@@ -57,10 +59,14 @@ class Effect(Entity):
     def get_msg(self):
         if not self.hit:
             return f"{self.src.cname} misses {self.tgt.cname}."
+        msg = ""
         if self.effect_type == "instant":
             if "damage" in self.effects:
                 dmg = self.effects["damage"]
                 msg = f"{self.tgt.cname} is damaged for {dmg} damage!"
+            if "heal" in self.effects:
+                heal = self.effects["heal"]
+                msg = f"{self.src.cname} heals {self.tgt.cname} for {heal} health!"
         return msg
 
     def apply(self):
@@ -74,4 +80,7 @@ class Effect(Entity):
             return
         if "damage" in self.effects:
             dmg = self.effects["damage"]
-            self.tgt.health -= dmg
+            self.tgt.reduce_health(dmg)
+        if "heal" in self.effects:
+            heal = self.effects["heal"]
+            self.tgt.increase_health(heal)

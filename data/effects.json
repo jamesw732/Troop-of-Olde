@@ -4,5 +4,11 @@
         "effects": {
             "damage": 20
         }
+    },
+    "1": {
+        "effect_type": "instant",
+        "effects": {
+            "heal": 10
+        }
     }
 }

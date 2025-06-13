@@ -11,19 +11,22 @@ with open(power_path) as power_json:
 
 
 class Power(Entity):
+    """Powers are abilities and spells that a player has access to.
+
+    Dual relationship with Effects. Basic difference is that Powers are permanent objects which
+    are mostly independent from characters, while Effects are temporary objects that consider
+    a source and target character."""
     def __init__(self, power_id):
         super().__init__()
         self.power_id = power_id
         power_data = id_to_power_data[str(power_id)]
+        # Would it be better to be more explicit about this?
         for k, v in power_data.items():
             setattr(self, k, v)
-
         # set to True immediately after use
         self.on_cooldown = False
         # ticks up if self.on_cooldown
         self.timer = 0
-
-        self.ui_elmnt = None
 
     def handle_power_input(self):
         """Handles client's input to use a power"""
@@ -55,12 +58,15 @@ class Power(Entity):
         Currently, just sets the GCD. Eventually, will also invoke animation."""
         assert not gs.network.peer.is_hosting()
         char = gs.pc
-        tgt = char.target
+        tgt = self.get_target(char)
         if char.get_on_gcd():
             return
         if tgt is None:
             return
-        self.set_char_gcd(gs.pc)
+        if char.energy < self.cost:
+            return
+        char.energy -= self.cost
+        self.set_char_gcd(char)
         char.next_power = None
         gs.ui.actionbar.start_gcd_animation()
 
@@ -74,9 +80,11 @@ class Power(Entity):
         assert gs.network.peer.is_hosting()
         if tgt is None:
             return
+        if char.energy < self.cost:
+            return
+        char.energy -= self.cost
         self.set_char_gcd(char)
         char.next_power = None
-
         effect = self.get_effect(char, tgt)
         # Would like some better logic here eventually, like auto-targetting based on beneficial
         # or harmful

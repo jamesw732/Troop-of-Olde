@@ -1,9 +1,7 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-
-
-===================================NEXT================================================
+Work on powers.
 Add individual cooldowns for powers, and animations for cooldowns/gcd
 
 Add more types of powers.
@@ -14,7 +12,9 @@ Persistent curse (a debuff)
 Channeled enchantment (a channeled heal)
 Channeled curse (a channeled damage spell)
 
+Also work out the neglected functionality (things like energy cost, etc)
 
+===================================NEXT================================================
 Start adding some character assets and animations. Huge project.
 
 =========================================BACKLOG=================================================
@@ -57,6 +57,7 @@ Current UI functionality is also quite lacking.
 - Allow destroying items
 
 There are some bugs as well:
+- Scrolling with mousewheel while scrollbar is full results in division by zero
 - Transparency handling for the game window is buggy since the scrollbar has its own collider. Basically,
 the current handling for mouse enter/exit is fragile - entering on and exiting from a child entity
 with a collider doesn't correctly trigger the transparency change. Unclear how to fix this, worst case

@@ -102,7 +102,7 @@ class Character(Entity):
         self.powers = [None] * self.num_powers
 
     def update_max_ratings(self):
-        """Adjust max ratings, for example after receiving a staet update."""
+        """Adjust max ratings, for example after receiving a stat update."""
         self.maxhealth = self.statichealth
         self.maxenergy = self.staticenergy
         self.health = min(self.maxhealth, self.health)
