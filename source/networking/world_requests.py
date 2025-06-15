@@ -12,7 +12,7 @@ from ..character import Character
 from ..controllers import *
 from ..item import *
 from ..gamestate import gs
-from ..power import Power
+from ..power import Power, make_power_from_data
 from ..states import State, container_to_ids
 
 # LOGIN
@@ -34,8 +34,10 @@ def request_enter_world(connection, time_received, pstate: State,
         gs.chars.append(new_pc)
         network.connection_to_char[connection] = new_pc
         network.peer.remote_generate_world(connection, "demo.json")
+        # extend instance id-based objects to include database id and instance id
         inventory_ids = container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
         equipment_ids = container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
+        power_ids = container_to_ids(new_pc.powers, ("power_id", "inst_id"))
         # The new pc will be an npc for everybody else
         new_pc_cbstate = State("npc_combat", new_pc)
         for conn in network.peer.get_connections():
@@ -44,7 +46,7 @@ def request_enter_world(connection, time_received, pstate: State,
                     if ch is new_pc:
                         pc_cbstate = State("pc_combat", new_pc)
                         network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
-                                              inventory_ids, skills, powers, pc_cbstate)
+                                              inventory_ids, skills, power_ids, pc_cbstate)
                     else:
                         npc_pstate = State("physical", ch)
                         npc_cbstate = State("npc_combat", ch)
@@ -105,7 +107,7 @@ def request_use_power(connection, time_received, power_id: int):
     good enough for now.
     """
     char = network.connection_to_char[connection]
-    power = Power(power_id, char)
+    power = make_power_from_data(char, power_id)
     if char.get_on_gcd():
         power.queue()
         return

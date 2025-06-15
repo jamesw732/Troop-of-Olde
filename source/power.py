@@ -10,20 +10,48 @@ with open(power_path) as power_json:
     id_to_power_data = json.load(power_json)
 
 
+def make_power_from_data(char, power_data):
+    """Make a power by handling cases for whether hosting or not
+
+    Powers are mostly client/server agnostic, except for creation.
+    Server needs to increment the unique id count, while clients should just"""
+    if gs.network.peer.is_hosting():
+        assert isinstance(power_data, int)
+        # Set the instance ID. Server needs to externally transmit this upon item creation.
+        power_id = power_data
+        inst_id = gs.network.power_inst_id_ct
+        gs.network.power_inst_id_ct += 1
+    else:
+        assert isinstance(power_data, tuple)
+        power_id = power_data[0]
+        inst_id = power_data[1]
+    if inst_id >= 0 and inst_id not in gs.network.inst_id_to_power:
+        power = Power(char, power_id, inst_id)
+        gs.network.inst_id_to_power[inst_id] = power
+        return power
+    return None
+
+
+
 class Power(Entity):
     """Powers are abilities and spells that a player has access to.
 
     Dual relationship with Effects. Basic difference is that Powers are permanent objects which
     depend only on a source character, while Effects are temporary objects that consider
     a source and target character. Main reason for the distinction is in the functionality."""
-    def __init__(self, power_id, char):
+    def __init__(self, char, power_id, inst_id):
+        """
+        char: Character that has access to this Power
+        power_id: id that refers to a row in the database, note unique WRT instances
+        inst_id: unique instance id used to refer to this power over the network"""
         super().__init__()
+        self.char = char
         self.power_id = power_id
+        self.inst_id = inst_id
         power_data = id_to_power_data[str(power_id)]
         # Would it be better to be more explicit about this?
         for k, v in power_data.items():
             setattr(self, k, v)
-        self.char = char
         # set to True immediately after use
         self.on_cooldown = False
         # ticks up if self.on_cooldown

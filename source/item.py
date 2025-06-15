@@ -26,7 +26,9 @@ class Item:
     def __init__(self, item_id, inst_id=-1):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
         item_id: items_dict key, int or str (gets casted to a str)
-        See JSON structure for valid kwargs"""
+        See JSON structure for valid kwargs
+        item_id: int, id corresponding to an entry in the database; not unique WRT item instances
+        inst_id: unique id used to refer to this item over the network"""
         self.item_id = item_id
         data = copy.deepcopy(items_dict[str(item_id)])
 
@@ -48,9 +50,7 @@ class Item:
                                   for slot in self.info["slots"]]
 
         if gs.network.peer.is_hosting():
-            # Set the instantiated ID.
-            # Currently, instantiated item id's are only transmitted to the client upon player connection,
-            # they will eventually need to be transmitted upon creation.
+            # Set the instance ID. Server needs to externally transmit this upon item creation.
             self.inst_id = gs.network.item_inst_id_ct
             gs.network.item_inst_id_ct += 1
         else:
@@ -64,10 +64,12 @@ class Item:
 # Public functions
 def make_item_from_data(item_data):
     """Handles the possible cases for creating an item from id's
+    Items created by the server don't expect an inst_id since __init__ will just increment the counter.
+    Items created by the client do expect an inst_id.
 
-    item_data: an item_id, if called by the server.
-    If called as an RPC for a client, item_data should be a tuple (item_id, instance_id)
-    Also allowed to be an Item, in which case just return item_data"""
+    item_data: an item_id if called by the server, a tuple of (item_id, inst_id) if called by client,
+        or an Item if a mistake was made.
+    """
     if isinstance(item_data, int):
         # item_data is an id
         if item_data < 0:

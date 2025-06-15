@@ -1,6 +1,11 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
+Make network calls refer to instance id rather than power id
+Split up objects that use a lot of "is gs.network.is_hosting()" checks using a base class, a server-side
+class, and a client-side class.
+
+===================================NEXT================================================
 Work on powers.
 Add individual cooldowns for powers, and animations for cooldowns/gcd
 
@@ -14,7 +19,7 @@ Channeled curse (a channeled damage spell)
 
 Also work out the neglected functionality (things like energy cost, etc)
 
-===================================NEXT================================================
+
 Start adding some character assets and animations. Huge project.
 
 =========================================BACKLOG=================================================

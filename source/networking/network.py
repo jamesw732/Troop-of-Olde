@@ -24,6 +24,8 @@ class Network(Entity):
 
         self.inst_id_to_item = dict()
         self.item_inst_id_ct = 0
+        self.inst_id_to_power = dict()
+        self.power_inst_id_ct = 0
 
     @every(UPDATE_RATE)
     def fixed_update(self):

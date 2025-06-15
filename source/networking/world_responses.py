@@ -25,14 +25,15 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
              inventory: list[int], skills: State, powers: list[int], cbstate: State):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
-    Parameters are typical, except for equipment and inventory. We need both the global
-    item id and instance id of each item, so the first half of the list is the global
-    id, the second half is the instance id.
+    Objects which depend on instance id are treated as flat lists where the first half is database
+    ids and the second half is instance ids. Currently these are equipment, inventory, and powers.
     """
     inv_l = len(inventory)
     inventory = zip(inventory[:inv_l//2], inventory[inv_l//2:])
     equip_l = len(equipment)
     equipment = zip(equipment[:equip_l//2], equipment[equip_l//2:])
+    powers_l = len(powers)
+    powers = zip(powers[:powers_l//2], powers[powers_l//2:])
     gs.pc = Character(pstate=pstate, equipment=equipment,
                       inventory=inventory, skills=skills,
                       powers=powers, cbstate=cbstate)
