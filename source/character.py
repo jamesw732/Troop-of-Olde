@@ -19,19 +19,16 @@ from .states.state import *
 
 
 class Character(Entity):
-    def __init__(self, uuid=None, pstate=None, cbstate=None,
-                 equipment=[], inventory=[], skills={}, powers=[]):
-        """Initialize a Character. Generate parameters using
-        states.get_character_states_from_json.
+    def __init__(self, uuid=None, pstate=None, cbstate=None, skills={}):
+        """Base Character class representing the intersection of server and client-side Characters.
 
+        Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
+        when necessary.
         cname: name of character, str
         uuid: unique id. Used to encode which player you're talking about online.
         pstate: State; defines physical attrs, these are updated client-authoritatively
         base_state: State; used to build the character's stats from the ground up
-        equipment: list of Items or item ids or tuples of item ids and inst item ids
-        inventory: list of Items or item ids or tuples of item ids and inst item ids
         skills: State dict mapping str skill names to int skill levels
-        powers: list of Powers or power Ids
         """
         self.uuid = uuid
 
@@ -53,44 +50,6 @@ class Character(Entity):
             pstate.apply(self)
         if cbstate:
             cbstate.apply(self)
-        if inventory:
-            for slot, item_data in enumerate(inventory):
-                if gs.network.peer.is_hosting():
-                    if item_data < 0:
-                        continue
-                    item = ServerItem(item_data)
-                else:
-                    if item_data[0] < 0:
-                        continue
-                    item = Item(*item_data)
-                internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
-        if equipment:
-            for slot, item_data in enumerate(equipment):
-                if gs.network.peer.is_hosting():
-                    if item_data < 0:
-                        continue
-                    item = ServerItem(item_data)
-                else:
-                    if item_data[0] < 0:
-                        continue
-                    item = Item(*item_data)
-                internal_move_item(self, item, "equipment", slot, "nowhere",
-                                   handle_stats=gs.network.peer.is_hosting())
-        if powers:
-            for i, power_data in enumerate(powers):
-                if gs.network.peer.is_hosting():
-                    if power_data < 0:
-                        continue
-                    self.powers[i] = ServerPower(self, power_data)
-                else:
-                    if power_data[0] < 0 or power_data[1] < 0:
-                        continue
-                    self.powers[i] = ClientPower(self, *power_data)
-
-        self.update_max_ratings()
-        for attr in ["health", "energy", "armor"]:
-             maxval = getattr(self, "max" + attr)
-             setattr(self, attr, maxval)
 
         self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 
@@ -139,13 +98,6 @@ class Character(Entity):
             del self.controller
         del self.ignore_traverse
 
-    def die(self):
-        """Essentially just destroy self and make sure the rest of the network knows if host."""
-        if gs.network.peer.is_hosting():
-            gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
-        self.alive = False
-        destroy(self)
-
     def increase_health(self, amt):
         """Function to be used whenever increasing character's health"""
         self.health = min(self.maxhealth, self.health + amt)
@@ -176,7 +128,7 @@ class Character(Entity):
         tgt_pos = target.position + Vec3(0, 0.8 * target.scale_y, 0)
         dir = tgt_pos - src_pos
         line_of_sight = raycast(src_pos, direction=dir, distance=inf,
-                                ignore=[entity for entity in scene.entities if type(entity) is Character])
+                                ignore=[entity for entity in scene.entities if isinstance(entity, Character)])
         if line_of_sight.hit:
             entity = line_of_sight.entity
             if sqdist(entity.position, self.position) < sdist:
@@ -223,3 +175,86 @@ class Character(Entity):
     def get_on_gcd(self):
         """Returns whether the character is currently on the global cooldown for powers"""
         return self.gcd_timer < self.gcd
+
+class ServerCharacter(Character):
+    def __init__(self, uuid=None, pstate=None, cbstate=None,
+                 equipment=[], inventory=[], skills={}, powers=[]):
+        """Initialize a Character for the server.
+        Args obtained from states.get_character_states_from_json.
+
+        cname: name of character, str
+        uuid: unique id. Used to encode which player you're talking about online.
+        pstate: State; defines physical attrs, these are updated client-authoritatively
+        base_state: State; used to build the character's stats from the ground up
+        equipment: list of Items or item ids or tuples of item ids and inst item ids
+        inventory: list of Items or item ids or tuples of item ids and inst item ids
+        skills: State dict mapping str skill names to int skill levels
+        powers: list of Powers or power Ids
+        """
+        super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        for slot, item_id in enumerate(inventory):
+            if item_id < 0:
+                continue
+            item = ServerItem(item_id)
+            internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
+        for slot, item_id in enumerate(equipment):
+            if item_id < 0:
+                continue
+            item = ServerItem(item_id)
+            internal_move_item(self, item, "equipment", slot, "nowhere", handle_stats=True)
+        for i, power_id in enumerate(powers):
+            if power_id < 0:
+                continue
+            self.powers[i] = ServerPower(self, power_id)
+
+        self.update_max_ratings()
+        for attr in ["health", "energy", "armor"]:
+             maxval = getattr(self, "max" + attr)
+             setattr(self, attr, maxval)
+
+    def die(self):
+        """Essentially just destroy self and make sure the rest of the network knows if host."""
+        gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
+        self.alive = False
+        destroy(self)
+
+class ClientCharacter(Character):
+    def __init__(self, uuid=None, pstate=None, cbstate=None,
+                 equipment=[], inventory=[], skills={}, powers=[]):
+        """Initialize a Character for the Client.
+        Args obtained from states.get_character_states_from_json.
+
+        cname: name of character, str
+        uuid: unique id. Used to encode which player you're talking about online.
+        pstate: State; defines physical attrs, these are updated client-authoritatively
+        base_state: State; used to build the character's stats from the ground up
+        equipment: list of Items or item ids or tuples of item ids and inst item ids
+        inventory: list of Items or item ids or tuples of item ids and inst item ids
+        skills: State dict mapping str skill names to int skill levels
+        powers: list of Powers or power Ids
+        """
+        super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        for slot, item_ids in enumerate(inventory):
+            if item_ids[0] < 0 or item_ids[1] < 0:
+                continue
+            item = Item(*item_ids)
+            internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
+        for slot, item_ids in enumerate(equipment):
+            if item_ids[0] < 0 or item_ids[1] < 0:
+                continue
+            item = Item(*item_ids)
+            internal_move_item(self, item, "equipment", slot, "nowhere", handle_stats=False)
+        for i, power_ids in enumerate(powers):
+            if power_ids[0] < 0 or power_ids[1] < 0:
+                continue
+            self.powers[i] = ClientPower(self, *power_ids)
+
+        self.update_max_ratings()
+        for attr in ["health", "energy", "armor"]:
+             maxval = getattr(self, "max" + attr)
+             setattr(self, attr, maxval)
+
+    def die(self):
+        """Essentially just destroy self and make sure the rest of the network knows if host."""
+        self.alive = False
+        destroy(self)

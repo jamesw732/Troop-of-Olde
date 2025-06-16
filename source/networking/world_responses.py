@@ -6,7 +6,7 @@ from ursina.networking import rpc
 
 from .network import network
 from ..base import sqnorm, PHYSICS_UPDATE_RATE
-from ..character import Character
+from ..character import ClientCharacter
 from ..controllers import *
 from ..item import *
 from ..gamestate import gs
@@ -34,7 +34,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
     equipment = zip(equipment[:equip_l//2], equipment[equip_l//2:])
     powers_l = len(powers)
     powers = zip(powers[:powers_l//2], powers[powers_l//2:])
-    gs.pc = Character(pstate=pstate, equipment=equipment,
+    gs.pc = ClientCharacter(pstate=pstate, equipment=equipment,
                       inventory=inventory, skills=skills,
                       powers=powers, cbstate=cbstate)
 
@@ -59,7 +59,7 @@ def spawn_npc(connection, time_received, uuid: int,
     if network.peer.is_hosting():
         return
     if uuid not in network.uuid_to_char:
-        char = Character(pstate=phys_state, cbstate=cbstate)
+        char = ClientCharacter(pstate=phys_state, cbstate=cbstate)
         char.controller = NPCController(char)
         gs.chars.append(char)
         network.uuid_to_char[uuid] = char

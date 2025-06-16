@@ -8,14 +8,13 @@ from ..gamestate import gs
 
 class State(dict):
     def __init__(self, state_type, src=None):
-        """States are temporary containers that can be sent over the network.
+        """States are containers that store Character attrs.
 
         They are essentially dicts with the power to extract data from/apply data to
-        objects such as Characters. Possible states are defined in state_defs.
+        Characters. Possible states are defined in state_defs.
         src is prioritized over kwargs, all kwargs are ignored if src is specified.
         state_type: one of the keys to state_defs
-        src: object to grab data from, optional
-        **kwargs: alternative to grabbing attrs from a src, optional
+        src: object to grab data from, usually a Character or dict. State not tied to src.
         """
         self.state_type = state_type
         self.attrs = state_defs[self.state_type]

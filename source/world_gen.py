@@ -3,7 +3,7 @@ from ursina import Entity, Sky, color
 import json
 import os
 
-from .character import Character
+from .character import ServerCharacter
 from .states.state import State
 
 
@@ -41,7 +41,7 @@ class GenerateWorld:
         states = [(State("physical", data["physical"]),
                    State("base_combat", data["combat"]))
                    for (npc, data) in npc_data.items()]
-        return [Character(pstate=tup[0], cbstate=tup[1]) for tup in states]
+        return [ServerCharacter(pstate=tup[0], cbstate=tup[1]) for tup in states]
 
     def parse_colors(self, data):
         """Parses colors from a json, which are just formatted as strings.

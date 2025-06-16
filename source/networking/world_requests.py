@@ -8,7 +8,7 @@ from ursina.networking import rpc
 
 from .network import network
 from .world_responses import *
-from ..character import Character
+from ..character import ServerCharacter
 from ..controllers import *
 from ..item import *
 from ..gamestate import gs
@@ -21,7 +21,7 @@ def request_enter_world(connection, time_received, pstate: State,
                         inventory: list[int], skills: State,
                         powers: list[int]):
     if network.peer.is_hosting():
-        new_pc = Character(pstate=pstate, cbstate=base_state,
+        new_pc = ServerCharacter(pstate=pstate, cbstate=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
                          powers=powers)
         new_pc.controller = MobController(new_pc)
