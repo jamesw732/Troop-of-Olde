@@ -1,9 +1,24 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Make network calls refer to instance id rather than power id
+Refactor smells.
+
 Split up objects that use a lot of "is gs.network.is_hosting()" checks using a base class, a server-side
 class, and a client-side class.
+
+Item itself shouldn't be very hard, probably only need a ServerItem class which implements the
+server-side id creation.
+
+Characters also shouldn't be hard, but similar to Powers will need ClientCharacter and ServerCharacter
+
+I don't really like accessing containers by name. I think it would be better to operate based on IDs.
+This is a pretty major change to the Item code. To do it, will need to:
+- Add Container and ServerContainer classes with attrs id and name. Container should inherit list?
+- Add an id system like I did for powers and items.
+- Change functions one at a time to use ids instead of names.
+- Consider moving behavior from functions to Container/ServerContainer methods
+
+
 
 ===================================NEXT================================================
 Work on powers.
