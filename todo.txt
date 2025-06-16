@@ -1,22 +1,28 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Refactor smells.
-
-Split up objects that use a lot of "is gs.network.is_hosting()" checks using a base class, a server-side
-class, and a client-side class.
-
-Item itself shouldn't be very hard, probably only need a ServerItem class which implements the
-server-side id creation.
-
-Characters also shouldn't be hard, but similar to Powers will need ClientCharacter and ServerCharacter
-
 I don't really like accessing containers by name. I think it would be better to operate based on IDs.
 This is a pretty major change to the Item code. To do it, will need to:
 - Add Container and ServerContainer classes with attrs id and name. Container should inherit list?
 - Add an id system like I did for powers and items.
 - Change functions one at a time to use ids instead of names.
 - Consider moving behavior from functions to Container/ServerContainer methods
+
+Would it be worthwhile to move some functionality to Item and Container?
+Or maybe better yet, refactor the functionality so that it fits into specific Item and Container methods?
+I think the process layout should look something like this:
+Get the desired move (cases: dragging, click (which can be simplified to auto equip, auto unequip))
+Check if the desired move is valid 
+Compute all consequences of the move (ie moving onto a non-empty space, equipping 2h while dual wielding)
+Perform the moves
+Handle stat changes
+
+
+
+Starting to get the feeling that States shouldn't be so loose. Might be worthwhile to change to an
+inheritance-based system rather than making them basically entirely typeless.
+Would still have to register a bunch of states, but this isn't too bad. For organization purposes, make them
+static methods.
 
 
 
