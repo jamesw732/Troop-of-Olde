@@ -11,7 +11,7 @@ from .base import default_cb_attrs, default_phys_attrs, default_equipment, defau
     all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, make_item_from_data, internal_move_item
+from .item import Item, ServerItem, internal_move_item
 from .physics import *
 from .power import ServerPower, ClientPower
 from .skills import *
@@ -55,11 +55,25 @@ class Character(Entity):
             cbstate.apply(self)
         if inventory:
             for slot, item_data in enumerate(inventory):
-                item = make_item_from_data(item_data)
+                if gs.network.peer.is_hosting():
+                    if item_data < 0:
+                        continue
+                    item = ServerItem(item_data)
+                else:
+                    if item_data[0] < 0:
+                        continue
+                    item = Item(*item_data)
                 internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
         if equipment:
             for slot, item_data in enumerate(equipment):
-                item = make_item_from_data(item_data)
+                if gs.network.peer.is_hosting():
+                    if item_data < 0:
+                        continue
+                    item = ServerItem(item_data)
+                else:
+                    if item_data[0] < 0:
+                        continue
+                    item = Item(*item_data)
                 internal_move_item(self, item, "equipment", slot, "nowhere",
                                    handle_stats=gs.network.peer.is_hosting())
         if powers:

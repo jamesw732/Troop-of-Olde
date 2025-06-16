@@ -23,13 +23,15 @@ class Item:
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, item_id, inst_id=-1):
+    def __init__(self, item_id, inst_id):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
         item_id: items_dict key, int or str (gets casted to a str)
         See JSON structure for valid kwargs
         item_id: int, id corresponding to an entry in the database; not unique WRT item instances
         inst_id: unique id used to refer to this item over the network"""
         self.item_id = item_id
+        self.inst_id = inst_id
+        gs.network.inst_id_to_item[self.inst_id] = self
         data = copy.deepcopy(items_dict[str(item_id)])
 
         self.name = data.get("name", "")
@@ -49,42 +51,18 @@ class Item:
             self.info["slots"] = [slot_to_ind[slot] if isinstance(slot, str) else slot
                                   for slot in self.info["slots"]]
 
-        if gs.network.peer.is_hosting():
-            # Set the instance ID. Server needs to externally transmit this upon item creation.
-            self.inst_id = gs.network.item_inst_id_ct
-            gs.network.item_inst_id_ct += 1
-        else:
-            self.inst_id = inst_id
-        if self.inst_id >= 0:
-            gs.network.inst_id_to_item[self.inst_id] = self
 
     def __str__(self):
         return self.name
 
+class ServerItem(Item):
+    def __init__(self, item_id):
+        # Set the instance ID. Server needs to externally transmit this upon item creation.
+        self.inst_id = gs.network.item_inst_id_ct
+        gs.network.item_inst_id_ct += 1
+        super().__init__(item_id, self.inst_id)
+
 # Public functions
-def make_item_from_data(item_data):
-    """Handles the possible cases for creating an item from id's
-    Items created by the server don't expect an inst_id since __init__ will just increment the counter.
-    Items created by the client do expect an inst_id.
-
-    item_data: an item_id if called by the server, a tuple of (item_id, inst_id) if called by client,
-        or an Item if a mistake was made.
-    """
-    if isinstance(item_data, int):
-        # item_data is an id
-        if item_data < 0:
-            return None
-        return Item(item_data)
-    elif isinstance(item_data, tuple):
-        # item_data is a tuple containing (item_id, inst_id)
-        # this is for items created by client, since the server tells the client what the instance id is
-        if item_data[0] < 0:
-            return None
-        return Item(*item_data)
-    # otherwise, assume it's an Item already
-    return item_data
-
-
 def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
     """Handles all the magic necessary to swap the contents of two item locations.
     Main driving function for moving items."""
