@@ -1,19 +1,22 @@
 # Repository for the game Troop of Olde
 This is a currently extremely incomplete prototype for a game which is planned
-to be an Everquest-style MMORPG, minus the M in "Massively". You play with your
-friends (or by yourself), kill stuff, get more powerful, and cut out all the
-drama in between all that.
+to be an solo/multiplayer fantasy RPG with Everquest-style combat, but with a small replayable world.
+The hope is to provide a "dungeon crawl with your friends" experience - it will not be massively
+multiplayer, the tentative plan is to make it private-server based (think Minecraft).
+
+This game is still in the earliest of development stages, and this is the first game I've
+developed. This game will not remain open source forever. The current goal is to get a working
+prototype of all desired functionality in the game, and after that point, I will archive this
+repository and not contribute to it or maintain it anymore, and open a closed respository for
+developing content.
 
 ## Repository Tour
 
 ### `Doc`
 Directory containing all documentation for the codebase and the game itself.
-Currently extremely incomplete because this repository is still young. I am still
-in the "constantly refactor everything" stage of this project since managing this
-potentially large codebase is a first for me. Eventually, I hope to have complete
-documents on the code design, and also on the philosophy/motivation/goals of this
-game. This is both for myself and for anybody else who wants to contribute to this
-project.
+This directory is not exactly up to date, but currently `gameplay.txt` contains
+plans for many future aspects of the game from the perspective of the player,
+and `developer.tex` contains details on implementation choices.
 
 ### `data`
 The `data` repository is a too-all-encompassing directory that contains assets,
@@ -22,14 +25,13 @@ just a bunch of `.json` files. Eventually, will probably be split up into two
 directories for assets and database.
 
 ### `source`
-This is the source code for the game. Eventually see `Doc` for documentation
+This is the source code for the game. See `Doc` for some details
 on the code design.
 
 ### `tests`
 Eventually, I hope to have a complete test suite for everything.
-Right now, this is not going so well, similar to the reason `Doc` is pretty much
-empty. Too much of the code is changing for tests to be effective (more accurately,
-the interface is changing while the core of the code is not).
+Currently, too much of the code is changing for tests to be effective, more than
+half of my time is spent refactoring.
 
 ### Root directory
 I do not currently have a build process. This is probably a mistake.

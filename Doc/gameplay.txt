@@ -42,6 +42,10 @@ Tundra - Vikings, Bears, Yetis
 Swamp - Frog people, Goblins, Fungus people
 Volcanic Expanse - Demons, Dragons, Fire Elementals/Golems
 
+Quests will be present in the world, but small. There will be a handful of friendly NPCs which 
+will ask for a particular item and give some worthwhile reward. Would be best to make the location/items
+of NPCs random.
+
 
 =======================COMBAT=======================
 Central objects of combat:
