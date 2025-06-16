@@ -103,7 +103,7 @@ class PlayerController(Entity):
             # Client-side power queueing basically just waits to request to use the power
             power = char.next_power
             tgt = power.get_target()
-            power.client_use_power()
+            power.use()
             gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
 
     @every(PHYSICS_UPDATE_RATE)

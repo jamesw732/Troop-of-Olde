@@ -12,7 +12,6 @@ from ..character import Character
 from ..controllers import *
 from ..item import *
 from ..gamestate import gs
-from ..power import Power, make_power_from_data
 from ..states import State, container_to_ids
 
 # LOGIN
@@ -96,7 +95,7 @@ def request_set_target(connection, time_received, uuid: int):
 
 # POWERS
 @rpc(network.peer)
-def request_use_power(connection, time_received, power_id: int):
+def request_use_power(connection, time_received, inst_id: int):
     """Function called to use or queue a power.
 
     This function is called when a player clicks a power button while their character is not on GCD.
@@ -107,7 +106,7 @@ def request_use_power(connection, time_received, power_id: int):
     good enough for now.
     """
     char = network.connection_to_char[connection]
-    power = make_power_from_data(char, power_id)
+    power = network.inst_id_to_power[inst_id]
     if char.get_on_gcd():
         power.queue()
         return

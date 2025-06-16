@@ -13,7 +13,7 @@ from .combat import get_wpn_range
 from .gamestate import gs
 from .item import Item, make_item_from_data, internal_move_item
 from .physics import *
-from .power import Power, make_power_from_data
+from .power import ServerPower, ClientPower
 from .skills import *
 from .states.state import *
 
@@ -64,7 +64,14 @@ class Character(Entity):
                                    handle_stats=gs.network.peer.is_hosting())
         if powers:
             for i, power_data in enumerate(powers):
-                self.powers[i] = make_power_from_data(self, power_data)
+                if gs.network.peer.is_hosting():
+                    if power_data < 0:
+                        continue
+                    self.powers[i] = ServerPower(self, power_data)
+                else:
+                    if power_data[0] < 0 or power_data[1] < 0:
+                        continue
+                    self.powers[i] = ClientPower(self, *power_data)
 
         self.update_max_ratings()
         for attr in ["health", "energy", "armor"]:
