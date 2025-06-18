@@ -76,11 +76,15 @@ class ServerContainer(Container):
         super().__init__(container_id, name, items)
 
 # Public functions
-def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
+def internal_swap(char, from_container_id, from_slot, to_container_id, to_slot):
     """Handles all the magic necessary to swap the contents of two item locations.
     Main driving function for moving items."""
-    item1 = getattr(char, from_container_n)[from_slot]
-    item2 = getattr(char, to_container_n)[to_slot]
+    from_container = gs.network.inst_id_to_container[from_container_id]
+    from_container_n = from_container.name
+    item1 = from_container[from_slot]
+    to_container = gs.network.inst_id_to_container[to_container_id]
+    to_container_n = to_container.name
+    item2 = to_container[to_slot]
 
     # If we're intentionally equipping offhand, unequip 2h if wearing
     man_unequip_2h = equipping_oh_wearing_2h(char, item1, to_container_n, to_slot) \

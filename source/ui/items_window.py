@@ -8,11 +8,11 @@ from ..gamestate import gs
 from ..item import *
 
 """Explanation of terminology used in this file:
-Item, named items, represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
-ItemBox, named boxes, represent boxes within the inventory
-ItemBox.container_name is the name of the internal container that contains Item objects. For now, should only be "inventory" or "equipment"
-ItemIcon, named icons or itemicons, represent actual visible items within the inventory
-slot is the position within the internal container (so a str key if equipment, or an int index if inventory)
+Item objects represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
+ItemBox objects represent boxes within the inventory
+ItemIcon objects represent actual visible items within the inventory
+ItemsWindow is the PlayerWindow subframe, the highest ancestor in this file
+ItemsFrame represents a grid of items, and handles most of the items UI inputs
 """
 
 class ItemsWindow(Entity):
@@ -37,7 +37,7 @@ class ItemsWindow(Entity):
         equip_frame_scale = Vec3(equip_frame_width, equip_frame_height, 1)
         equip_frame_pos = ((1 - equip_frame_width) / 2, equip_frame_height + edge_margin - 1, -1)
 
-        self.equipment_frame = ItemFrame(equip_grid_size, "equipment", self.player.equipment,
+        self.equipment_frame = ItemFrame(equip_grid_size, self.player.equipment,
                                         slot_labels=equipment_slots,
                                         parent=self, position=equip_frame_pos, scale=equip_frame_scale)
 
@@ -51,7 +51,7 @@ class ItemsWindow(Entity):
         inventory_position = (4 * edge_margin, -edge_margin, -1)
         inventory_frame_scale = Vec2(inventory_frame_width, inventory_frame_height)
 
-        self.inventory_frame = ItemFrame(inventory_grid_size, "inventory", self.player.inventory,
+        self.inventory_frame = ItemFrame(inventory_grid_size, self.player.inventory,
                                          parent=self, position=inventory_position, scale=inventory_frame_scale)
 
         self.container_to_frame = {"equipment": self.equipment_frame,
@@ -68,17 +68,16 @@ class ItemsWindow(Entity):
 
 
 class ItemFrame(Entity):
-    def __init__(self, grid_size, container_name, items, slot_labels=[], **kwargs):
+    def __init__(self, grid_size, container, slot_labels=[], **kwargs):
         self.grid_size = grid_size
-        self.container_name = container_name
+        self.container = container
         # store this frame by name so that the server can easily update it from item movements
-        gs.ui.item_frames[container_name] = self
+        gs.ui.item_frames[container.container_id] = self
         # pad the slot labels with empty strings
-        self.slot_labels = slot_labels + ([""] * (len(items) - len(slot_labels)))
+        self.slot_labels = slot_labels + ([""] * (len(container) - len(slot_labels)))
 
-        self.items = items
-        self.boxes = [None] * len(items)
-        self.item_icons = [None] * len(items)
+        self.boxes = [None] * len(container)
+        self.icons = [None] * len(container)
 
         super().__init__(collider="box", origin=(-0.5, 0.5), model='quad', color=slot_color, **kwargs)
         gs.ui.colliders.append(self)
@@ -91,14 +90,14 @@ class ItemFrame(Entity):
         positions = [(i, -j, -1) for j in range(int(self.grid_size[1])) for i in range(int(self.grid_size[0]))]
 
         for i, pos in enumerate(positions):
-            self.boxes[i] = ItemBox(text=self.slot_labels[i], slot=i, container_name=container_name,
+            self.boxes[i] = ItemBox(text=self.slot_labels[i], slot=i, container=self.container,
                                parent=self, position=pos * ((1 + box_spacing) * box_scale),
                                scale=box_scale)
-            icon = self.make_item_icon(items[i], self.boxes[i])
+            icon = self.make_item_icon(container[i], self.boxes[i])
             self.boxes[i].icon = icon
             if icon is not None:
                 self.boxes[i].label.text = ""
-            self.item_icons[i] = icon
+            self.icons[i] = icon
 
         grid(self, int(grid_size[1]), int(grid_size[0]), color=color.black)
 
@@ -111,7 +110,7 @@ class ItemFrame(Entity):
     def update_ui_icons(self):
         """Public function which refreshes all icons in whole UI element"""
         for slot, box in enumerate(self.boxes):
-            item = self.items[slot]
+            item = self.container[slot]
             if item is None:
                 box.itemicon = None
                 box.label.text = self.slot_labels[slot]
@@ -122,7 +121,7 @@ class ItemFrame(Entity):
                 icon.parent = box
                 icon.position = Vec3(0, 0, -1)
                 box.label.text = ""
-            self.item_icons[slot] = icon
+            self.icons[slot] = icon
 
     def make_item_icon(self, item, box):
         """Creates an item icon and puts it in the UI.
@@ -136,7 +135,7 @@ class ItemFrame(Entity):
 
     def on_click(self):
         hovered_slot = self.get_hovered_slot()
-        self.dragging_icon = self.item_icons[hovered_slot]
+        self.dragging_icon = self.icons[hovered_slot]
         self.dragging_box = self.boxes[hovered_slot]
         if self.dragging_icon is None:
             return
@@ -167,59 +166,52 @@ class ItemFrame(Entity):
                     getattr(self.dragging_icon, meth)()
                 # Clicked and released on another box
                 else:
-                    self.move_icon_to_box(self.dragging_icon, drop_box)
+                    self.handle_release_icon(self.dragging_icon, drop_box)
             self.dragging_icon = None
             self.dragging_box = None
 
-    def move_icon_to_box(self, my_icon, other_box):
-        """Performs the visual move of an item from the mouse to another frame/slot.
+    def handle_release_icon(self, my_icon, other_box):
+        """Performs checks client-side to make sure an item move is valid, then
+        sends request to server. Only called when manually dragging items.
 
-        Note that this is ONLY called when the client user manually drags an item with their mouse.
-        In this case, we trust that the source/target locations are what the user says they are.
-        With auto equipping/unequipping, we don't assume that the client can accurately compute the correct
-        locations, so we just wait for the server to give us the entire new states.
-        This might be wrong, we can probably just trust the client.
-        Assumes that other_box is an ItemBox, invalid moves are handled here."""
-        other_icon = other_box.itemicon
-        other_container = other_box.container_name
+        Expected to have some delay when latency is high. In this case, should
+        predict the new locations client-side."""
+        other_icon = other_box.icon
         other_slot = other_box.slot
 
-        my_container = self.container_name
         my_slot = my_icon.parent.slot
 
         # Should eventually make this handling more general, maybe give ItemBoxes knowledge
         # of what valid items can go in them rather than hardcoding equipment.
-        equipping_mine = other_container == "equipment"
-        equipping_other = my_container == "equipment"
+        equipping_mine = other_box.container.name == "equipment"
+        equipping_other = self.container.name == "equipment"
 
         # Make sure items can go to new locations if being equipped
-        if equipping_other and other_icon is not None:
-            other_item_slots = other_icon.get_item_slots()
-            if my_slot not in other_item_slots:
+        if equipping_other and other_box.icon is not None:
+            if my_slot not in other_box.icon.get_equippable_slots():
                 my_icon.position = Vec3(0, 0, -1)
                 return
         if equipping_mine:
-            my_item_slots = my_icon.get_item_slots()
-            if other_slot not in my_item_slots:
+            if other_slot not in my_icon.get_equippable_slots():
                 my_icon.position = Vec3(0, 0, -1)
                 return
-
         conn = gs.network.server_connection
-        gs.network.peer.request_swap_items(conn, my_container, my_slot, other_container, other_slot)
+        gs.network.peer.request_swap_items(conn, self.container.container_id, my_slot,
+                                           other_box.container.container_id, other_slot)
 
     def update(self):
         if self.dragging_icon is not None and mouse.position:
             self.dragging_icon.set_position(mouse.position + self.step, camera.ui)
 
 class ItemBox(Entity):
-    def __init__(self, *args, text="", slot=None, container_name="", **kwargs):
+    def __init__(self, *args, text="", slot=None, container=None,  **kwargs):
         super().__init__(*args, origin=(-.5, .5), **kwargs)
         self.label = Text(text=text, parent=self, origin=(0, 0), position=(0.5, -0.5, -1),
                           world_scale=(11, 11), color=window_fg_color)
-        self.container_name = container_name
-        self.container = getattr(gs.pc, container_name)
+
+        self.container = container
         self.slot = slot
-        self.itemicon = None
+        self.icon = None
 
 
 class ItemIcon(Entity):
@@ -235,15 +227,16 @@ class ItemIcon(Entity):
     def auto_equip(self):
         """UI wrapper for Item.iauto_equip"""
         conn = gs.network.server_connection
-        gs.network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot, self.parent.container_name)
+        gs.network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
+                                           self.parent.container.container_id)
 
     def auto_unequip(self):
         """UI wrapper for Item.iauto_unequip"""
         conn = gs.network.server_connection
         gs.network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
 
-    def get_item_slots(self):
-        """Unified way to get the available slots of an equippable item"""
+    def get_equippable_slots(self):
+        """Returns available equipment slots for item"""
         iteminfo = self.item.info
         slot = iteminfo.get("slot")
         if slot is not None:

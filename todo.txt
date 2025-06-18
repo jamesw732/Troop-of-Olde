@@ -1,11 +1,7 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-I don't really like accessing containers by name. I think it would be better to operate based on IDs.
-This is a pretty major change to the Item code. To do it, will need to:
-- Add Container and ServerContainer classes with attrs id and name. Container should inherit list?
-- Add an id system like I did for powers and items.
-- Change functions one at a time to use ids instead of names.
+- Change Item functions one at a time to use ids instead of names.
 - Consider moving behavior from functions to Container/ServerContainer methods
 
 Would it be worthwhile to move some functionality to Item and Container?
@@ -44,6 +40,10 @@ Also work out the neglected functionality (things like energy cost, etc)
 Start adding some character assets and animations. Huge project.
 
 =========================================BACKLOG=================================================
+Code cleanup:
+Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
+I should instead leverage warnings that don't break the game.
+
 Physics:
 Implement momentum, make it be a list of the 5 most recent keyboard movement vectors. They are
 averaged and added as a displacement factor if no keyboard inputs for that physics tick.

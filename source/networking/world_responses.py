@@ -124,7 +124,7 @@ def remote_update_skill(connection, time_received, skill: str, val: int):
 
 # Items
 @rpc(network.peer)
-def remote_update_container(connection, time_received, container_name: str, container: list[int]):
+def remote_update_container(connection, time_received, container_id: int, container: list[int]):
     """Update internal containers and visual containers
 
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
@@ -132,11 +132,13 @@ def remote_update_container(connection, time_received, container_name: str, cont
     if network.peer.is_hosting():
         return
     new_container = ids_to_container(container)
+    old_container = network.inst_id_to_container[container_id]
+    container_name = old_container.name
 
     for slot, item in enumerate(new_container):
         internal_move_item(gs.pc, item, container_name, slot, "nowhere", handle_stats=False)
 
-    item_frame = gs.ui.item_frames.get(container_name)
+    item_frame = gs.ui.item_frames.get(container_id)
     if item_frame:
         item_frame.update_ui_icons()
 
