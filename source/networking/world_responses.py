@@ -25,13 +25,22 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
              inventory: list[int], skills: State, powers: list[int], cbstate: State):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
-    Objects which depend on instance id are treated as flat lists where the first half is database
-    ids and the second half is instance ids. Currently these are equipment, inventory, and powers.
+    uuid: unique id of new Character, used to refer to it across the network
+    pstate: physical state of the new Character
+    equipment: list with structure [container_id, *database_ids, *instance_ids] for equipment
+    inventory: list with structure [container_id, *database_ids, *instance_ids] for inventory
+    skills: essentially a list containing all skill levels
+    powers: list with structure [*database_ids, *instance_ids] for powers
+    cbstate: combat state of the new Character
     """
+    inv_id = inventory[0]
+    inventory = inventory[1:]
     inv_l = len(inventory)
-    inventory = zip(inventory[:inv_l//2], inventory[inv_l//2:])
+    inventory = [inv_id] + list(zip(inventory[:inv_l//2], inventory[inv_l//2:]))
+    equip_id = equipment[0]
+    equipment = equipment[1:]
     equip_l = len(equipment)
-    equipment = zip(equipment[:equip_l//2], equipment[equip_l//2:])
+    equipment = [equip_id] + list(zip(equipment[:equip_l//2], equipment[equip_l//2:]))
     powers_l = len(powers)
     powers = zip(powers[:powers_l//2], powers[powers_l//2:])
     gs.pc = ClientCharacter(pstate=pstate, equipment=equipment,

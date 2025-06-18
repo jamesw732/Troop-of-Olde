@@ -35,7 +35,9 @@ def request_enter_world(connection, time_received, pstate: State,
         network.peer.remote_generate_world(connection, "demo.json")
         # extend instance id-based objects to include database id and instance id
         inventory_ids = container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
+        inventory_ids = [new_pc.inventory.container_id] + inventory_ids
         equipment_ids = container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
+        equipment_ids = [new_pc.equipment.container_id] + equipment_ids
         power_ids = container_to_ids(new_pc.powers, ("power_id", "inst_id"))
         # The new pc will be an npc for everybody else
         new_pc_cbstate = State("npc_combat", new_pc)

@@ -62,6 +62,19 @@ class ServerItem(Item):
         gs.network.item_inst_id_ct += 1
         super().__init__(item_id, self.inst_id)
 
+class Container(list):
+    def __init__(self, container_id, name, items):
+        self.container_id = container_id
+        self.name = name
+        super().__init__(items)
+        gs.network.inst_id_to_container[self.container_id] = self
+
+class ServerContainer(Container):
+    def __init__(self, name, items):
+        container_id = gs.network.container_inst_id_ct
+        gs.network.container_inst_id_ct += 1
+        super().__init__(container_id, name, items)
+
 # Public functions
 def internal_swap(char, from_container_n, from_slot, to_container_n, to_slot):
     """Handles all the magic necessary to swap the contents of two item locations.

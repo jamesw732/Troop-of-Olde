@@ -11,7 +11,7 @@ from .base import default_cb_attrs, default_phys_attrs, default_equipment, defau
     all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, ServerItem, internal_move_item
+from .item import Item, ServerItem, Container, ServerContainer, internal_move_item
 from .physics import *
 from .power import ServerPower, ClientPower
 from .skills import *
@@ -41,8 +41,6 @@ class Character(Entity):
 
         # Initialize default values for everything
         self._init_phys_attrs()
-        self._init_equipment()
-        self._init_inventory()
         self._init_powers()
         self._init_cb_attrs()
         # Populate all attrs
@@ -63,13 +61,6 @@ class Character(Entity):
         """Initialize base default combat attributes."""
         for attr, val in default_cb_attrs.items():
             setattr(self, attr, val)
-
-    def _init_equipment(self):
-        """Initialize equipment dict"""
-        self.equipment = copy(default_equipment)
-
-    def _init_inventory(self):
-        self.inventory = copy(default_inventory)
 
     def _init_powers(self):
         self.num_powers = default_num_powers
@@ -192,6 +183,8 @@ class ServerCharacter(Character):
         powers: list of Powers or power Ids
         """
         super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        self.inventory = ServerContainer("inventory", default_inventory)
+        self.equipment = ServerContainer("equipment", default_equipment)
         for slot, item_id in enumerate(inventory):
             if item_id < 0:
                 continue
@@ -233,17 +226,27 @@ class ClientCharacter(Character):
         skills: State dict mapping str skill names to int skill levels
         powers: list of Powers or power Ids
         """
+        if equipment:
+            equipment_id = equipment[0]
+            equipment = equipment[1:]
+            self.equipment = Container(equipment_id, "equipment", equipment)
+            for slot, item_ids in enumerate(equipment):
+                if item_ids[0] < 0 or item_ids[1] < 0:
+                    self.equipment[slot] = None
+                    continue
+                item = Item(*item_ids)
+                internal_move_item(self, item, "equipment", slot, "nowhere", handle_stats=False)
+        if inventory:
+            inventory_id = inventory[0]
+            inventory = inventory[1:]
+            self.inventory = Container(inventory_id, "inventory", inventory)
+            for slot, item_ids in enumerate(inventory):
+                if item_ids[0] < 0 or item_ids[1] < 0:
+                    self.inventory[slot] = None
+                    continue
+                item = Item(*item_ids)
+                internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
         super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
-        for slot, item_ids in enumerate(inventory):
-            if item_ids[0] < 0 or item_ids[1] < 0:
-                continue
-            item = Item(*item_ids)
-            internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
-        for slot, item_ids in enumerate(equipment):
-            if item_ids[0] < 0 or item_ids[1] < 0:
-                continue
-            item = Item(*item_ids)
-            internal_move_item(self, item, "equipment", slot, "nowhere", handle_stats=False)
         for i, power_ids in enumerate(powers):
             if power_ids[0] < 0 or power_ids[1] < 0:
                 continue
@@ -253,6 +256,7 @@ class ClientCharacter(Character):
         for attr in ["health", "energy", "armor"]:
              maxval = getattr(self, "max" + attr)
              setattr(self, attr, maxval)
+
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
