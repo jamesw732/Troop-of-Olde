@@ -225,13 +225,13 @@ class ItemIcon(Entity):
         super().__init__(*args, origin=(-.5, .5), model='quad', texture=texture, **kwargs)
 
     def auto_equip(self):
-        """UI wrapper for Item.iauto_equip"""
+        """UI/networking wrapper for Item.iauto_equip"""
         conn = gs.network.server_connection
         gs.network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
                                            self.parent.container.container_id)
 
     def auto_unequip(self):
-        """UI wrapper for Item.iauto_unequip"""
+        """UI/networkign wrapper for Item.iauto_unequip"""
         conn = gs.network.server_connection
         gs.network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
 

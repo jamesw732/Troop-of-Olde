@@ -128,9 +128,10 @@ def request_swap_items(connection, time_received, container1_id: int, slot1: int
     if not network.peer.is_hosting():
         return
     char = network.connection_to_char[connection]
-    internal_swap(char, container1_id,  slot1, container2_id, slot2)
-    unique_containers = {container_id: network.inst_id_to_container[container_id]
-                         for container_id in [container1_id, container2_id]}
+    container1 = network.inst_id_to_container[container1_id]
+    container2 = network.inst_id_to_container[container2_id]
+    internal_swap(char, container1,  slot1, container2, slot2)
+    unique_containers = {container1_id: container1, container2_id: container2}
     for container_id, container in unique_containers.items():
         container = container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
@@ -141,8 +142,7 @@ def request_auto_equip(connection, time_received, itemid: int, slot: int, contai
     """Request host to automatically equip an item."""
     char = network.connection_to_char[connection]
     container = network.inst_id_to_container[container_id]
-    container_name = container.name
-    iauto_equip(char, container_name, slot)
+    iauto_equip(char, container, slot)
     for container in [container, char.equipment]:
         container_id = container.container_id
         container = container_to_ids(container)

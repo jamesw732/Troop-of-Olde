@@ -76,13 +76,11 @@ class ServerContainer(Container):
         super().__init__(container_id, name, items)
 
 # Public functions
-def internal_swap(char, from_container_id, from_slot, to_container_id, to_slot):
+def internal_swap(char, from_container, from_slot, to_container, to_slot):
     """Handles all the magic necessary to swap the contents of two item locations.
     Main driving function for moving items."""
-    from_container = gs.network.inst_id_to_container[from_container_id]
     from_container_n = from_container.name
     item1 = from_container[from_slot]
-    to_container = gs.network.inst_id_to_container[to_container_id]
     to_container_n = to_container.name
     item2 = to_container[to_slot]
 
@@ -103,17 +101,17 @@ def internal_swap(char, from_container_id, from_slot, to_container_id, to_slot):
 
 def iauto_equip(char, old_container, old_slot):
     """Auto equips an item internally"""
-    item = getattr(char, old_container)[old_slot]
+    item = old_container[old_slot]
     new_slot = find_first_empty_equip(item, char)
     if new_slot > 0:
-        internal_swap(char, old_container, old_slot, "equipment", new_slot)
+        internal_swap(char, old_container, old_slot, char.equipment, new_slot)
 
 def iauto_unequip(char, old_slot):
     """Auto unequips an item internally"""
     new_slot = find_first_empty_inventory(char)
     if new_slot == "":
         return
-    internal_swap(char, "equipment", old_slot, "inventory", new_slot)
+    internal_swap(char, char.equipment, old_slot, char.inventory, new_slot)
 
 def internal_move_item(char, item, to_container_n, to_slot, from_container_n, handle_stats=True):
     """Internally overwrite an item slot with item.
