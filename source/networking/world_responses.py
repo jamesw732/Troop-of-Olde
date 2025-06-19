@@ -133,10 +133,9 @@ def remote_update_container(connection, time_received, container_id: int, contai
         return
     new_container = ids_to_container(container)
     old_container = network.inst_id_to_container[container_id]
-    container_name = old_container.name
 
     for slot, item in enumerate(new_container):
-        internal_move_item(gs.pc, item, container_name, slot, "nowhere", handle_stats=False)
+        internal_move_item(gs.pc, item, old_container, slot, [], handle_stats=False)
 
     item_frame = gs.ui.item_frames.get(container_id)
     if item_frame:

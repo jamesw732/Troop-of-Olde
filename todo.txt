@@ -50,6 +50,7 @@ averaged and added as a displacement factor if no keyboard inputs for that physi
 Add more raycasts for collision logic.
 Use a loop for raycasts to not collide through concave intersections
 Improve wall collision logic, namely removing ability to jump up walls.
+Jumping is very buggy
 
 Combat/Character:
 Neglected formulas:

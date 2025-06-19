@@ -189,12 +189,12 @@ class ServerCharacter(Character):
             if item_id < 0:
                 continue
             item = ServerItem(item_id)
-            internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
+            internal_move_item(self, item, self.inventory, slot, [], handle_stats=False)
         for slot, item_id in enumerate(equipment):
             if item_id < 0:
                 continue
             item = ServerItem(item_id)
-            internal_move_item(self, item, "equipment", slot, "nowhere", handle_stats=True)
+            internal_move_item(self, item, self.equipment, slot, [], handle_stats=False)
         for i, power_id in enumerate(powers):
             if power_id < 0:
                 continue
@@ -235,7 +235,7 @@ class ClientCharacter(Character):
                     self.equipment[slot] = None
                     continue
                 item = Item(*item_ids)
-                internal_move_item(self, item, "equipment", slot, "nowhere", handle_stats=False)
+                internal_move_item(self, item, self.equipment, slot, [], handle_stats=False)
         if inventory:
             inventory_id = inventory[0]
             inventory = inventory[1:]
@@ -245,7 +245,7 @@ class ClientCharacter(Character):
                     self.inventory[slot] = None
                     continue
                 item = Item(*item_ids)
-                internal_move_item(self, item, "inventory", slot, "nowhere", handle_stats=False)
+                internal_move_item(self, item, self.inventory, slot, [], handle_stats=False)
         super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
         for i, power_ids in enumerate(powers):
             if power_ids[0] < 0 or power_ids[1] < 0:

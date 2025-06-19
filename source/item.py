@@ -79,22 +79,20 @@ class ServerContainer(Container):
 def internal_swap(char, from_container, from_slot, to_container, to_slot):
     """Handles all the magic necessary to swap the contents of two item locations.
     Main driving function for moving items."""
-    from_container_n = from_container.name
     item1 = from_container[from_slot]
-    to_container_n = to_container.name
     item2 = to_container[to_slot]
 
     # If we're intentionally equipping offhand, unequip 2h if wearing
-    man_unequip_2h = equipping_oh_wearing_2h(char, item1, to_container_n, to_slot) \
-                     or equipping_oh_wearing_2h(char, item2, from_container_n, from_slot)
+    man_unequip_2h = equipping_oh_wearing_2h(char, item1, to_container, to_slot) \
+                     or equipping_oh_wearing_2h(char, item2, from_container, from_slot)
     # If equipping 2h, also unequip offhand if wearing
-    if equipping_2h(item1, to_container_n):
+    if equipping_2h(item1, to_container):
         unequip_offhand(char)
-    if equipping_2h(item2, from_container_n):
+    if equipping_2h(item2, from_container):
         unequip_offhand(char)
 
-    internal_move_item(char, item1, to_container_n, to_slot, from_container_n)
-    internal_move_item(char, item2, from_container_n, from_slot, to_container_n)
+    internal_move_item(char, item1, to_container, to_slot, from_container)
+    internal_move_item(char, item2, from_container, from_slot, to_container)
     # Save auto unequipping 2h for last, otherwise position gets screwed up
     if man_unequip_2h:
         iauto_unequip(char, slot_to_ind["mh"])
@@ -113,7 +111,7 @@ def iauto_unequip(char, old_slot):
         return
     internal_swap(char, char.equipment, old_slot, char.inventory, new_slot)
 
-def internal_move_item(char, item, to_container_n, to_slot, from_container_n, handle_stats=True):
+def internal_move_item(char, item, to_container, to_slot, from_container, handle_stats=True):
     """Internally overwrite an item slot with item.
 
     char: Character
@@ -123,11 +121,10 @@ def internal_move_item(char, item, to_container_n, to_slot, from_container_n, ha
     from_container_n: str, name of source container
     handle_stats: whether or not to compute stat changes. Generally, True for server, False for client.
     """
-    to_container = getattr(char, to_container_n)
     to_container[to_slot] = item
-    auto_set_primary_option(item, to_container_n)
+    auto_set_primary_option(item, to_container.name)
     if handle_stats:
-        handle_stat_updates(char, item, to_container_n, from_container_n)
+        handle_stat_updates(char, item, to_container.name, from_container.name)
 
 # Private functions
 def auto_set_primary_option(item, container_name):
@@ -153,13 +150,13 @@ def handle_stat_updates(char, item, to_container_n, from_container_n):
     char.update_max_ratings()
 
 # Lower level private functions
-def get_primary_option_from_container(item, container):
+def get_primary_option_from_container(item, container_n):
     """Get intended primary option of an item based on where it is"""
-    if item is None or container is None:
+    if item is None or container_n is None:
         return ""
-    if container == "equipment":
+    if container_n == "equipment":
         return "unequip"
-    elif container == "inventory":
+    elif container_n == "inventory":
         if item.type in ["weapon", "equipment"]:
             return "equip"
 
@@ -173,8 +170,8 @@ def update_primary_option(item, funcname):
     # and item tooltips are a thing
     item.functions = [funcname]
 
-def equipping_2h(item, tgt_container):
-    return tgt_container == "equipment" and item_is_2h(item)
+def equipping_2h(item, to_container):
+    return to_container.name == "equipment" and item_is_2h(item)
 
 def unequip_offhand(char):
     """Unequips the offhand, if there is one"""
@@ -186,16 +183,16 @@ def unequip_offhand(char):
             return False
     return True
 
-def equipping_oh_wearing_2h(char, item, tgt_container_n, tgt_slot):
+def equipping_oh_wearing_2h(char, item, to_container, to_slot):
     """Returns whether we're equipping an offhand while wearing a 2h weapon. Note that based on how
     auto slot finding is written, this case is only possible if the slot was
     intentionally selected for this item."""
-    if tgt_container_n != "equipment":
-        return
-    mh = char.equipment[slot_to_ind["mh"]]
+    if to_container.name != "equipment":
+        return False
+    mh = to_container[slot_to_ind["mh"]]
     if mh is None:
         return False
-    return item_is_2h(mh) and tgt_slot == slot_to_ind["oh"]
+    return item_is_2h(mh) and to_slot == slot_to_ind["oh"]
 
 def item_is_2h(item):
     if item is None:
