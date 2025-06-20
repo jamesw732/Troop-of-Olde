@@ -1,10 +1,6 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Move some functions to Item and Container methods
-Write docstrings
-
-
 Starting to get the feeling that States shouldn't be so loose. Might be worthwhile to change to an
 inheritance-based system rather than making them basically entirely typeless.
 Would still have to register a bunch of states, but this isn't too bad. For organization purposes, make them

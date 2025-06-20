@@ -137,7 +137,8 @@ def remote_update_container(connection, time_received, container_id: int, contai
     for slot, item in enumerate(container):
         new_item = new_container[slot]
         container[slot] = new_item
-        auto_set_leftclick(new_item, container)
+        if new_item is not None:
+            new_item.auto_set_leftclick(container)
 
     item_frame = gs.ui.item_frames.get(container_id)
     if item_frame:

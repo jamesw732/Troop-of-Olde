@@ -50,12 +50,42 @@ class Item:
                                   for slot in self.info["slots"]]
 
     def get_valid_move(self, to_container, to_slot):
-        """Get whether this item can go to to_slot in to_container"""
+        """Get whether this item can go to to_slot in to_container
+        to_container: intended Container to move this item to
+        to_slot: intended slot within to_container to move this item to"""
         # extend this as new types are added, or add a field of Item specifying equipment
         if self.type in ["weapon"] and to_container.name == "equipment":
             if to_slot not in self.info["slots"]:
                 return False
         return True
+
+    def handle_stats(self, char, to_container, from_container=[]):
+        """Handle necessary char stat changes caused by moving to to_container
+        char: Character who is equipping/unequipping this item
+        to_container: intended Container to move this item to
+        to_slot: intended slot within to_container to move this item to
+        from_container: Container currently storing this item, optional"""
+        if to_container.name == "equipment":
+            # If equipping from elsewhere, add stats
+            # But only apply stat change if not swapping between equipment
+            if not isinstance(from_container, Container) or from_container.name != "equipment":
+                self.stats.apply_diff(char)
+        elif isinstance(from_container, Container) and from_container.name == "equipment":
+            # If removing from equipment, remove stats
+            self.stats.apply_diff(char, remove=True)
+        char.update_max_ratings()
+
+    def auto_set_leftclick(self, container):
+        """Automatically set the left-click option of item"""
+        if self is None or container is None or container.name is None:
+            return
+        primary_option = "equip"
+        if container.name == "equipment":
+            primary_option = "unequip"
+        elif container.name == "inventory":
+            if self.type in ["weapon"]:
+                primary_option = "equip"
+        self.leftclick = primary_option
 
     def __str__(self):
         return self.name
@@ -178,29 +208,7 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         to_slot = move[2]
         from_container = move[3]
         to_container[to_slot] = item
-        handle_stats(char, item, to_container, from_container)
-        auto_set_leftclick(item, to_container)
+        if item is not None:
+            item.handle_stats(char, to_container, from_container)
+            item.auto_set_leftclick(to_container)
 
-
-def handle_stats(char, item, to_container, from_container=[]):
-    if item is None:
-        return
-    if to_container.name == "equipment":
-        # Only apply stat change if not swapping between equipment
-        if not isinstance(from_container, Container) or from_container.name != "equipment":
-            item.stats.apply_diff(char)
-    elif isinstance(from_container, Container) and from_container.name == "equipment":
-        item.stats.apply_diff(char, remove=True)
-    char.update_max_ratings()
-
-def auto_set_leftclick(item, container):
-    """Automatically set the left-click option of item"""
-    if item is None or container is None or container.name is None:
-        return
-    primary_option = "equip"
-    if container.name == "equipment":
-        primary_option = "unequip"
-    elif container.name == "inventory":
-        if item.type in ["weapon"]:
-            primary_option = "equip"
-    item.leftclick = primary_option
