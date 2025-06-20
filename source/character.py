@@ -11,7 +11,7 @@ from .base import default_cb_attrs, default_phys_attrs, default_equipment, defau
     all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, ServerItem, Container, ServerContainer, internal_move_item
+from .item import Item, ServerItem, Container, ServerContainer, auto_set_leftclick, handle_stats
 from .physics import *
 from .power import ServerPower, ClientPower
 from .skills import *
@@ -189,12 +189,15 @@ class ServerCharacter(Character):
             if item_id < 0:
                 continue
             item = ServerItem(item_id)
-            internal_move_item(self, item, self.inventory, slot, [], handle_stats=False)
+            self.inventory[slot] = item
+            auto_set_leftclick(item, self.inventory)
         for slot, item_id in enumerate(equipment):
             if item_id < 0:
                 continue
             item = ServerItem(item_id)
-            internal_move_item(self, item, self.equipment, slot, [], handle_stats=False)
+            self.equipment[slot] = item
+            handle_stats(self, item, self.equipment)
+            auto_set_leftclick(item, self.equipment)
         for i, power_id in enumerate(powers):
             if power_id < 0:
                 continue
@@ -235,7 +238,8 @@ class ClientCharacter(Character):
                     self.equipment[slot] = None
                     continue
                 item = Item(*item_ids)
-                internal_move_item(self, item, self.equipment, slot, [], handle_stats=False)
+                self.equipment[slot] = item
+                auto_set_leftclick(item, self.equipment)
         if inventory:
             inventory_id = inventory[0]
             inventory = inventory[1:]
@@ -245,7 +249,8 @@ class ClientCharacter(Character):
                     self.inventory[slot] = None
                     continue
                 item = Item(*item_ids)
-                internal_move_item(self, item, self.inventory, slot, [], handle_stats=False)
+                self.inventory[slot] = item
+                auto_set_leftclick(item, self.inventory)
         super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
         for i, power_ids in enumerate(powers):
             if power_ids[0] < 0 or power_ids[1] < 0:

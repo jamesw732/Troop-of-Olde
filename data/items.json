@@ -37,7 +37,7 @@
             "delay": 3,
             "range": 5,
             "style": "2h melee",
-            "slot": "mh"
+            "slots": ["mh"]
         },
         "icon": "2h_sword.png"
     }

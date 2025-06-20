@@ -4,7 +4,6 @@ import json
 from .base import *
 from .combat import *
 from .gamestate import gs
-from .item import item_is_2h
 from .physics import get_displacement, set_jump_vel, set_gravity_vel
 from .skills import *
 from .states import *
@@ -298,7 +297,9 @@ class MobController(Entity):
                     gs.network.broadcast_cbstate_update(char.target)
             # See if we should progress offhand timer too
             # (if has skill dw):
-            mh_is_1h = not item_is_2h(char.equipment[mh_slot])
+            mh_is_1h = not (item is not None
+                            and item.type == "weapon"
+                            and item.info.get("style", "")[:2] == "2h")
             oh_slot = slot_to_ind["oh"]
             offhand = char.equipment[oh_slot]
             # basically just check if not wearing a shield

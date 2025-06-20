@@ -122,16 +122,16 @@ def request_use_power(connection, time_received, inst_id: int):
 
 # ITEMS
 @rpc(network.peer)
-def request_swap_items(connection, time_received, container1_id: int, slot1: int,
-                       container2_id: int, slot2: int):
+def request_swap_items(connection, time_received, to_id: int, to_slot: int,
+                       from_id: int, from_slot: int):
     """Request host to swap items internally, host will send back updated container states"""
     if not network.peer.is_hosting():
         return
     char = network.connection_to_char[connection]
-    container1 = network.inst_id_to_container[container1_id]
-    container2 = network.inst_id_to_container[container2_id]
-    internal_swap(char, container1,  slot1, container2, slot2)
-    unique_containers = {container1_id: container1, container2_id: container2}
+    to_container = network.inst_id_to_container[to_id]
+    from_container = network.inst_id_to_container[from_id]
+    full_item_move(char, to_container, to_slot, from_container, from_slot)
+    unique_containers = {to_id: to_container, from_id: from_container}
     for container_id, container in unique_containers.items():
         container = container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
@@ -142,7 +142,7 @@ def request_auto_equip(connection, time_received, itemid: int, slot: int, contai
     """Request host to automatically equip an item."""
     char = network.connection_to_char[connection]
     container = network.inst_id_to_container[container_id]
-    iauto_equip(char, container, slot)
+    internal_autoequip(char, container, slot)
     for container in [container, char.equipment]:
         container_id = container.container_id
         container = container_to_ids(container)
@@ -153,7 +153,7 @@ def request_auto_equip(connection, time_received, itemid: int, slot: int, contai
 def request_auto_unequip(connection, time_received, itemid: int, slot: int):
     """Request host to automatically unequip an item."""
     char = network.connection_to_char[connection]
-    iauto_unequip(char, slot)
+    internal_autounequip(char, slot)
     for container in [char.equipment, char.inventory]:
         container_id = container.container_id
         container = container_to_ids(container)

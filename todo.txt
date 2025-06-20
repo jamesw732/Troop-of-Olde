@@ -1,18 +1,9 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-- Change Item functions one at a time to use ids instead of names.
-- Consider moving behavior from functions to Container/ServerContainer methods
-
-Would it be worthwhile to move some functionality to Item and Container?
-Or maybe better yet, refactor the functionality so that it fits into specific Item and Container methods?
-I think the process layout should look something like this:
-Get the desired move (cases: dragging, click (which can be simplified to auto equip, auto unequip))
-Check if the desired move is valid 
-Compute all consequences of the move (ie moving onto a non-empty space, equipping 2h while dual wielding)
-Perform the moves
-Handle stat changes
-
+Base functionality is okay, need to clean up some logic for auto-equipping
+Move some functions to Item and Container methods
+Write docstrings
 
 
 Starting to get the feeling that States shouldn't be so loose. Might be worthwhile to change to an

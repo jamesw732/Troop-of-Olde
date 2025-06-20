@@ -101,26 +101,30 @@ Support:
 - Purification spells that remove debuffs
 
 Elemental system:
-Speculating making elements a big part of combat.
-Main arguments for:
+Speculating how to implement an elemental system (in the future), if at all.
+Main considerations of an elemental system:
 - Adds new dimensions to combat.
-- Might increase player choice.
-Main counterarguments:
+- Might increase player choice. Or not?
 - If the elemental system is a huge part of combat (like, dictates 50% of damage), then encounters
 range from being impossible without the correct elements, to being trivial with the correct elements.
 - Lots of things to keep track of/potentially items to store just in case you need them for an elemental
 npc.
-- Does it really increase player choice?
 
-I think that elements should play at most a small role in combat, and shouldn't dictate too much of the
+I think that elements should play a modest role in combat, and shouldn't dictate too much of the
 damage calculation.
-I do like the idea of different types acting differently, such as fire being a fast DoT, poison
-being a slow DoT, cold causing the enemy to be slower in some way, etc. This could be the whole
-elemental system, but the question is whether characters should have stats that influence elemental
-effects.
-Leaning towards no because of proportionality - I don't want there to be too many stats (maybe 10-15 total),
-and elements would have to occupy like 6 of those. But a single stat like "Hardiness" which reduces the
-effects of all elements on the player might be favorable.
+What's certain is that different types (fire, ice, poison, etc) will have different identities.
+Fire spells will always be fast DoT's (maybe like 20 small hits in 5 seconds), poisons will be slower
+DoT's, etc.
+The next question is whether there should be explicit stats that influence these types, or whether 
+to make it more subtle. For example, characters which are good at tanking lots of small hits would
+be naturally better at resisting fire attacks. Is it necessary, then, to have a fire resist which reduces
+damage?
+One thing to keep in mind is proportionality. Ideally, there are not too many stats (hoping for 10-15 if
+possible), and if each element has its own resist stat, that would take up a lot of stats.
+A good middle ground might be to have a single stat like "Hardiness" which reduces the effects of all
+elements on the character. This way, the player still has the same level of choice, but doesn't have to
+juggle a bunch of different gear for specific encounters and have their stats screen flooded.
+Might not be maximally flavorful, but should be good enough.
 
 
 

@@ -12,7 +12,7 @@ Item objects represent the invisible data of an item. They inherit dict and are 
 ItemBox objects represent boxes within the inventory
 ItemIcon objects represent actual visible items within the inventory
 ItemsWindow is the PlayerWindow subframe, the highest ancestor in this file
-ItemsFrame represents a grid of items, and handles most of the items UI inputs
+ItemFrame represents a grid of items, and handles most of the items UI inputs
 """
 
 class ItemsWindow(Entity):
@@ -161,7 +161,7 @@ class ItemFrame(Entity):
                 drop_box = other_container.boxes[hovered_slot]
                 # Clicked and released quickly without moving out of this box
                 if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
-                    option = self.dragging_icon.item.functions[0]
+                    option = self.dragging_icon.item.leftclick
                     meth = Item.option_to_meth[option]
                     getattr(self.dragging_icon, meth)()
                 # Clicked and released on another box
@@ -196,8 +196,8 @@ class ItemFrame(Entity):
                 my_icon.position = Vec3(0, 0, -1)
                 return
         conn = gs.network.server_connection
-        gs.network.peer.request_swap_items(conn, self.container.container_id, my_slot,
-                                           other_box.container.container_id, other_slot)
+        gs.network.peer.request_swap_items(conn, other_box.container.container_id, other_slot,
+                                           self.container.container_id, my_slot)
 
     def update(self):
         if self.dragging_icon is not None and mouse.position:
@@ -225,13 +225,13 @@ class ItemIcon(Entity):
         super().__init__(*args, origin=(-.5, .5), model='quad', texture=texture, **kwargs)
 
     def auto_equip(self):
-        """UI/networking wrapper for Item.iauto_equip"""
+        """UI/networking wrapper for Item.internal_autoequip"""
         conn = gs.network.server_connection
         gs.network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
                                            self.parent.container.container_id)
 
     def auto_unequip(self):
-        """UI/networkign wrapper for Item.iauto_unequip"""
+        """UI/networking wrapper for Item.internal_autounequip"""
         conn = gs.network.server_connection
         gs.network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
 
