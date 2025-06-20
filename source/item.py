@@ -66,6 +66,24 @@ class Container(list):
         super().__init__(items)
         gs.network.inst_id_to_container[self.container_id] = self
 
+    def get_first_empty(self, item=None, extra_includes=[]):
+        """Find the first empty slot in this container
+        If can't find any, return -1, which should be treated as nan
+        item: if equipping, need to know the item's stats
+        extra_includes: slots that are occupied but we still want to return if hit"""
+        if self.name == "equipment":
+            if item is None:
+                return -1
+            valid_slots = item.info.get("slots", [])
+            for s in valid_slots:
+                if self[s] is None or s in extra_includes:
+                    return s
+        else:
+            for s, it in enumerate(self):
+                if it is None or s in extra_includes:
+                    return s
+        return -1
+
 class ServerContainer(Container):
     def __init__(self, name, items):
         container_id = gs.network.container_inst_id_ct
@@ -84,7 +102,7 @@ def internal_autoequip(char, container, slot):
     if equipping_mh_wpn and wearing_2h:
         new_slot = slot_to_ind["mh"]
     else:
-        new_slot = get_first_empty(char.equipment, item)
+        new_slot = char.equipment.get_first_empty(item)
         if new_slot < 0:
             new_slot = item.info.get("slots", [])[0]
     # Perform the move
@@ -92,7 +110,7 @@ def internal_autoequip(char, container, slot):
 
 def internal_autounequip(char, old_slot):
     """Auto unequips an item internally"""
-    new_slot = get_first_empty(char.inventory)
+    new_slot = char.inventory.get_first_empty()
     if new_slot < 0:
         new_slot = item.info.get("slots", [])[0]
     full_item_move(char, char.inventory, new_slot, char.equipment, old_slot)
@@ -115,7 +133,7 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
                 extra_includes = []
                 if char.equipment[slot_to_ind["mh"]] is None:
                     extra_includes = [from_slot]
-                oh_tgt_slot = get_first_empty(char.inventory, oh, extra_includes=extra_includes)
+                oh_tgt_slot = char.inventory.get_first_empty(oh, extra_includes=extra_includes)
                 if oh_tgt_slot >= 0:
                     # Move the offhand out, replace it with None
                     moves.append((oh, char.inventory, oh_tgt_slot, char.equipment))
@@ -125,7 +143,7 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
             mh = char.equipment[slot_to_ind["mh"]]
             if mh is not None and mh.info["style"][:2] == "2h":
                 extra_includes = [from_slot]
-                mh_tgt_slot = get_first_empty(char.inventory, mh, extra_includes=extra_includes)
+                mh_tgt_slot = char.inventory.get_first_empty(mh, extra_includes=extra_includes)
                 if mh_tgt_slot >= 0:
                     # Move the 2h out, replace it with None
                     moves.append((mh, char.inventory, mh_tgt_slot, char.equipment))
@@ -134,7 +152,7 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         # If unequipping a 1h mainhand onto a 2h, also unequip offhand
         if item2 is not None and item2.type == "weapon" and item2.info["style"][:2] == "2h":
             oh = char.equipment[slot_to_ind["oh"]]
-            oh_tgt_slot = get_first_empty(char.inventory, oh)
+            oh_tgt_slot = char.inventory.get_first_empty(oh)
             moves.append((oh, char.inventory, oh_tgt_slot, char.equipment))
             moves.append((None, char.equipment, slot_to_ind["oh"], char.inventory))
     # Check consequences are valid before actually moving anything
@@ -150,21 +168,6 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         to_container[to_slot] = item
         handle_stats(char, item, to_container, from_container)
         auto_set_leftclick(item, to_container)
-
-def get_first_empty(container, item=None, extra_includes=[]):
-    """Find the first empty"""
-    if container.name == "equipment":
-        if item is None:
-            return -1
-        valid_slots = item.info.get("slots", [])
-        for s in valid_slots:
-            if container[s] is None or s in extra_includes:
-                return s
-    else:
-        for s, it in enumerate(container):
-            if it is None or s in extra_includes:
-                return s
-    return -1
 
 def get_valid_move(item, to_container, to_slot):
     # Get whether item can go to to_slot
