@@ -49,6 +49,14 @@ class Item:
             self.info["slots"] = [slot_to_ind[slot] if isinstance(slot, str) else slot
                                   for slot in self.info["slots"]]
 
+    def get_valid_move(self, to_container, to_slot):
+        """Get whether this item can go to to_slot in to_container"""
+        # extend this as new types are added, or add a field of Item specifying equipment
+        if self.type in ["weapon"] and to_container.name == "equipment":
+            if to_slot not in self.info["slots"]:
+                return False
+        return True
+
     def __str__(self):
         return self.name
 
@@ -90,7 +98,7 @@ class ServerContainer(Container):
         gs.network.container_inst_id_ct += 1
         super().__init__(container_id, name, items)
 
-# New code
+
 def internal_autoequip(char, container, slot):
     """Auto equips an item internally"""
     item = container[slot]
@@ -157,7 +165,11 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
             moves.append((None, char.equipment, slot_to_ind["oh"], char.inventory))
     # Check consequences are valid before actually moving anything
     for move in moves:
-        if not get_valid_move(*move[:-1]):
+        item = move[0]
+        to_container = move[1]
+        to_slot = move[2]
+        from_container = move[3]
+        if item is not None and not item.get_valid_move(to_container, to_slot):
             return
     # Make all moves and necessary changes
     for move in moves:
@@ -169,13 +181,6 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         handle_stats(char, item, to_container, from_container)
         auto_set_leftclick(item, to_container)
 
-def get_valid_move(item, to_container, to_slot):
-    # Get whether item can go to to_slot
-    # extend this as new types are added, or add a field of Item specifying equipment
-    if isinstance(item, Item) and item.type in ["weapon"] and to_container.name == "equipment":
-        if to_slot not in item.info["slots"]:
-            return False
-    return True
 
 def handle_stats(char, item, to_container, from_container=[]):
     if item is None:
