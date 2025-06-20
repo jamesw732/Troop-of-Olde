@@ -76,9 +76,18 @@ class ServerContainer(Container):
 def internal_autoequip(char, container, slot):
     """Auto equips an item internally"""
     item = container[slot]
-    new_slot = get_first_empty(char.equipment, item)
-    if new_slot < 0:
-        new_slot = item.info.get("slots", [])[0]
+    # Find the correct slot to equip to
+    equipping_mh_wpn = item.type == "weapon" and slot_to_ind["mh"] in item.info["slots"]
+    mh_slot = slot_to_ind["mh"]
+    wearing_2h = char.equipment[mh_slot] is not None \
+            and char.equipment[mh_slot].info["style"][:2] == "2h"
+    if equipping_mh_wpn and wearing_2h:
+        new_slot = slot_to_ind["mh"]
+    else:
+        new_slot = get_first_empty(char.equipment, item)
+        if new_slot < 0:
+            new_slot = item.info.get("slots", [])[0]
+    # Perform the move
     full_item_move(char, char.equipment, new_slot, container, slot)
 
 def internal_autounequip(char, old_slot):
@@ -103,7 +112,10 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         if item1.type == "weapon" and item1.info["style"][:2] == "2h":
             oh = char.equipment[slot_to_ind["oh"]]
             if isinstance(oh, Item):
-                oh_tgt_slot = get_first_empty(char.inventory, oh)
+                extra_includes = []
+                if char.equipment[slot_to_ind["mh"]] is None:
+                    extra_includes = [from_slot]
+                oh_tgt_slot = get_first_empty(char.inventory, oh, extra_includes=extra_includes)
                 if oh_tgt_slot >= 0:
                     # Move the offhand out, replace it with None
                     moves.append((oh, char.inventory, oh_tgt_slot, char.equipment))
@@ -111,12 +123,20 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         # If equipping an offhand, also unequip 2h in mainhand
         if equipment_slots[to_slot] == "oh":
             mh = char.equipment[slot_to_ind["mh"]]
-            if mh.info["style"][:2] == "2h":
-                mh_tgt_slot = get_first_empty(char.inventory, mh)
+            if mh is not None and mh.info["style"][:2] == "2h":
+                extra_includes = [from_slot]
+                mh_tgt_slot = get_first_empty(char.inventory, mh, extra_includes=extra_includes)
                 if mh_tgt_slot >= 0:
                     # Move the 2h out, replace it with None
                     moves.append((mh, char.inventory, mh_tgt_slot, char.equipment))
                     moves.append((None, char.equipment, slot_to_ind["mh"], char.inventory))
+    if from_container.name == "equipment":
+        # If unequipping a 1h mainhand onto a 2h, also unequip offhand
+        if item2 is not None and item2.type == "weapon" and item2.info["style"][:2] == "2h":
+            oh = char.equipment[slot_to_ind["oh"]]
+            oh_tgt_slot = get_first_empty(char.inventory, oh)
+            moves.append((oh, char.inventory, oh_tgt_slot, char.equipment))
+            moves.append((None, char.equipment, slot_to_ind["oh"], char.inventory))
     # Check consequences are valid before actually moving anything
     for move in moves:
         if not get_valid_move(*move[:-1]):
@@ -131,19 +151,18 @@ def full_item_move(char, to_container, to_slot, from_container, from_slot):
         handle_stats(char, item, to_container, from_container)
         auto_set_leftclick(item, to_container)
 
-def get_first_empty(container, item=None):
+def get_first_empty(container, item=None, extra_includes=[]):
     """Find the first empty"""
     if container.name == "equipment":
         if item is None:
             return -1
         valid_slots = item.info.get("slots", [])
         for s in valid_slots:
-            cur_item = container[s]
-            if cur_item is None:
+            if container[s] is None or s in extra_includes:
                 return s
     else:
         for s, it in enumerate(container):
-            if it is None:
+            if it is None or s in extra_includes:
                 return s
     return -1
 

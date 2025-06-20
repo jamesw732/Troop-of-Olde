@@ -1,7 +1,6 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Base functionality is okay, need to clean up some logic for auto-equipping
 Move some functions to Item and Container methods
 Write docstrings
 
