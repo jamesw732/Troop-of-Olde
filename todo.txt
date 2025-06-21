@@ -1,29 +1,20 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Starting to get the feeling that States shouldn't be so loose. Might be worthwhile to change to an
-inheritance-based system rather than making them basically entirely typeless.
-Would still have to register a bunch of states, but this isn't too bad. For organization purposes, make them
-static methods.
-
-
-
-===================================NEXT================================================
 Work on powers.
-Add individual cooldowns for powers, and animations for cooldowns/gcd
+Add individual cooldowns for powers, and animations for cooldowns
 
 Add more types of powers.
 Want one of each of the following:
-Instant enchantment (a heal spell),
 Persistent enchantment (a buff),
 Persistent curse (a debuff)
 Channeled enchantment (a channeled heal)
 Channeled curse (a channeled damage spell)
 
-Also work out the neglected functionality (things like energy cost, etc)
 
 
-Start adding some character assets and animations. Huge project.
+===================================NEXT================================================
+Start adding some character assets and animations. Maybe start with just some premade stuff.
 
 =========================================BACKLOG=================================================
 Code cleanup:
@@ -36,7 +27,7 @@ averaged and added as a displacement factor if no keyboard inputs for that physi
 Add more raycasts for collision logic.
 Use a loop for raycasts to not collide through concave intersections
 Improve wall collision logic, namely removing ability to jump up walls.
-Jumping is very buggy
+Jumping is sometimes very buggy, but sometimes fine?
 
 Combat/Character:
 Neglected formulas:
