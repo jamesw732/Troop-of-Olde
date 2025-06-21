@@ -22,7 +22,7 @@ def remote_generate_world(connection, time_received, zone:str):
 
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: list[int],
-             inventory: list[int], skills: SkillsState, powers: list[int], cbstate: State):
+             inventory: list[int], skills: SkillsState, powers: list[int], cbstate: PlayerCombatState):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
     uuid: unique id of new Character, used to refer to it across the network
@@ -63,7 +63,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
-              phys_state: State, cbstate: State):
+              phys_state: State, cbstate: NPCCombatState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
     if network.peer.is_hosting():
         return
@@ -103,7 +103,19 @@ def remote_set_target(connection, time_received, uuid: int):
         gs.ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
-def update_cbstate(connection, time_received, uuid: int, cbstate: State):
+def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerCombatState):
+    char = network.uuid_to_char.get(uuid)
+    if char is None:
+        return
+    cbstate.apply(char)
+    if uuid is network.my_uuid:
+        if gs.ui.bars:
+            gs.ui.bars.update_display()
+        if gs.ui.playerwindow:
+            gs.ui.playerwindow.stats.update_labels()
+
+@rpc(network.peer)
+def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatState):
     char = network.uuid_to_char.get(uuid)
     if char is None:
         return

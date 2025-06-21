@@ -3,6 +3,7 @@ from ursina.networking import RPCPeer, rpc
 
 from ..gamestate import gs
 from ..states import State
+from ..states.state2 import *
 
 UPDATE_RATE = 1 / 20
 
@@ -42,14 +43,14 @@ class Network(Entity):
                 func(connection, *args)
 
     def broadcast_cbstate_update(self, char):
-        pc_state = State("pc_combat", char)
-        npc_state = State("npc_combat", char)
+        pc_state = PlayerCombatState(char)
+        npc_state = NPCCombatState(char)
         connections = network.connection_to_char
         for connection in connections:
             if network.connection_to_char[connection] is char:
-                network.peer.update_cbstate(connection, char.uuid, pc_state)
+                network.peer.update_pc_cbstate(connection, char.uuid, pc_state)
             else:
-                network.peer.update_cbstate(connection, char.uuid, npc_state)
+                network.peer.update_npc_cbstate(connection, char.uuid, npc_state)
 
 
 # RPC needs to know about network at compile time, so this global seems necessary

@@ -40,21 +40,21 @@ def request_enter_world(connection, time_received, pstate: State,
         equipment_ids = [new_pc.equipment.container_id] + equipment_ids
         power_ids = container_to_ids(new_pc.powers, ("power_id", "inst_id"))
         # The new pc will be an npc for everybody else
-        new_pc_cbstate = State("npc_combat", new_pc)
+        new_char_cbstate = NPCCombatState(new_pc)
         for conn in network.peer.get_connections():
             if conn == connection:
                 for ch in gs.chars:
                     if ch is new_pc:
-                        pc_cbstate = State("pc_combat", new_pc)
+                        pc_cbstate = PlayerCombatState(new_pc)
                         network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
                                               inventory_ids, skills, power_ids, pc_cbstate)
                     else:
                         npc_pstate = State("physical", ch)
-                        npc_cbstate = State("npc_combat", ch)
+                        npc_cbstate = NPCCombatState(ch)
                         network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
             # Existing users just need new character
             else:
-                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_pc_cbstate)
+                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
 
 # PHYSICS
 @rpc(network.peer)
