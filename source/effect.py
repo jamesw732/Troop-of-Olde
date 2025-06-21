@@ -11,23 +11,24 @@ with open(effects_path) as effects_json:
     id_to_effect_data = json.load(effects_json)
 
 
+def make_effect(effect_id, src, tgt):
+    effect_id = str(effect_id)
+    effect_data = copy.deepcopy(id_to_effect_data[effect_id])
+    if effect_data["effect_type"] == "instant":
+        return InstantEffect(effect_data, src, tgt)
+
+
 class Effect(Entity):
     """Represents the actual effect of things like powers and procs.
 
     Current implementation is very simplistic and needs expanding.
     Effects are temporary objects by definition."""
-    def __init__(self, effect_id, src, tgt):
+    def __init__(self, effect_data, src, tgt):
         super().__init__()
-        effect_id = str(effect_id)
-        effect_data = copy.deepcopy(id_to_effect_data[effect_id])
-        self.effect_type = effect_data["effect_type"]
         self.effects = effect_data["effects"]
         self.src = src
         self.tgt = tgt
         self.hit = False
-
-        if self.effect_type == "persistent":
-            self.timer = 0
 
     def attempt_apply(self):
         """Main driving method called by the server for applying an effect to a target"""
@@ -49,34 +50,31 @@ class Effect(Entity):
         # Currently bare, will eventually need a formula
         self.hit = True
 
+
+class InstantEffect(Effect):
+    def __init__(self, effect_data, src, tgt):
+        super().__init__(effect_data, src, tgt)
+
     def apply_mods(self):
         if not self.hit:
             return
-        if self.effect_type == "instant":
-            if "damage" in self.effects:
-                self.effects["damage"] -= self.tgt.armor
+        if "damage" in self.effects:
+            self.effects["damage"] -= self.tgt.armor
 
     def get_msg(self):
         if not self.hit:
             return f"{self.src.cname} misses {self.tgt.cname}."
         msg = ""
-        if self.effect_type == "instant":
-            if "damage" in self.effects:
-                dmg = self.effects["damage"]
-                msg = f"{self.tgt.cname} is damaged for {dmg} damage!"
-            if "heal" in self.effects:
-                heal = self.effects["heal"]
-                msg = f"{self.src.cname} heals {self.tgt.cname} for {heal} health!"
+        if "damage" in self.effects:
+            dmg = self.effects["damage"]
+            msg = f"{self.tgt.cname} is damaged for {dmg} damage!"
+        if "heal" in self.effects:
+            heal = self.effects["heal"]
+            msg = f"{self.src.cname} heals {self.tgt.cname} for {heal} health!"
         return msg
 
     def apply(self):
         if not self.hit:
-            return
-        if self.effect_type == "instant":
-            self.apply_instant()
-
-    def apply_instant(self):
-        if not self.hit or self.effect_type != "instant":
             return
         if "damage" in self.effects:
             dmg = self.effects["damage"]
