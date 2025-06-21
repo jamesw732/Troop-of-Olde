@@ -131,7 +131,7 @@ Might not be maximally flavorful, but should be good enough.
 ==============DEATH=================
 The ideal system is hard-permadeath for single player, and soft-permadeath for multiplayer.
 Soft-permadeath meaning that allies can get revived somehow, but if the whole party dies, the
-world is lost.
+world is lost. Characters are never lost upon death, only the world.
 
 An idea for soft-permadeath in multiplayer is having bosses drop revive stones. Can also provide
 resurrection spells.

@@ -5,6 +5,7 @@ import os
 
 from .character import ServerCharacter
 from .states.state import State
+from .states.state2 import BaseCombatState
 
 
 class GenerateWorld:
@@ -39,7 +40,7 @@ class GenerateWorld:
         with open(path) as f:
             npc_data = json.load(f)
         states = [(State("physical", data["physical"]),
-                   State("base_combat", data["combat"]))
+                   BaseCombatState(data["combat"]))
                    for (npc, data) in npc_data.items()]
         return [ServerCharacter(pstate=tup[0], cbstate=tup[1]) for tup in states]
 

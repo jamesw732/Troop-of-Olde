@@ -17,8 +17,8 @@ from ..states import State, container_to_ids
 # LOGIN
 @rpc(network.peer)
 def request_enter_world(connection, time_received, pstate: State,
-                        base_state: State, equipment: list[int],
-                        inventory: list[int], skills: State,
+                        base_state: BaseCombatState, equipment: list[int],
+                        inventory: list[int], skills: SkillsState,
                         powers: list[int]):
     if network.peer.is_hosting():
         new_pc = ServerCharacter(pstate=pstate, cbstate=base_state,

@@ -22,7 +22,7 @@ def remote_generate_world(connection, time_received, zone:str):
 
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: list[int],
-             inventory: list[int], skills: State, powers: list[int], cbstate: State):
+             inventory: list[int], skills: SkillsState, powers: list[int], cbstate: State):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
     uuid: unique id of new Character, used to refer to it across the network

@@ -5,6 +5,7 @@ from ursina import *
 
 from ..gamestate import gs
 from .state import State
+from .state2 import *
 
 def get_character_states_from_json(pname):
     """Does all the work needed to get inputs to Character from a player name in players.json.  """
@@ -24,8 +25,8 @@ def get_character_states_from_json(pname):
 
     pstate = State("physical", pstate_raw)
     pstate["cname"] = pname
-    basestate = State("base_combat", basestate_raw)
-    skills = State("skills", skills_raw)
+    basestate = BaseCombatState(basestate_raw)
+    skills = SkillsState(skills_raw)
 
     return pstate, basestate, equipment, inventory, skills, powers
 
