@@ -1,7 +1,9 @@
-from ursina import Vec3
+from ursina import Vec3, color
 from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs
 
 class State2(dict):
+    """Base class for all State types. Never meant to be initialized, only
+    inherited by other State types."""
     statedef = {}
     defaults = {}
     type_to_default = {
@@ -12,7 +14,6 @@ class State2(dict):
     }
 
     def __init__(self, src={}):
-        """Generic parent class for State types"""
         for attr in self.statedef:
             self[attr] = self._get_val_from_src(attr, src)
 
@@ -193,6 +194,26 @@ class PhysicalState(State2):
     }
     defaults = default_phys_attrs
     # Need to overwrite some things here
+
+    def _get_val_from_src(self, attr, src):
+        """General wrapper for getting attr from src. Since States are expected to have all fields
+        in their state definition, this does its best to infer data if it's missing from src."""
+        val = None
+        # src is a keyed data structure like a dict and contains attr
+        if isinstance(src, dict) and attr in src:
+            val = src[attr]
+        # src is a typical data structure and contains attr
+        elif hasattr(src, attr):
+            val = getattr(src, attr)
+        # couldn't find attr in src, look in defaults
+        if val is None:
+            # If not in class's defaults, infer based on type of attr
+            if attr not in self.defaults:
+                return self.type_to_default[self.statedef[attr]]
+            val = self.defaults[attr]
+        if attr in ["collider", "color", "model"] and not isinstance(val, str):
+            val = val.name
+        return val
 
     def _apply_attr(self, dst, attr, val):
         """Essentially just setattr but with handling for color/model"""

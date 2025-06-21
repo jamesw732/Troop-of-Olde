@@ -21,7 +21,7 @@ def remote_generate_world(connection, time_received, zone:str):
     gs.world = GenerateWorld(zone)
 
 @rpc(network.peer)
-def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: list[int],
+def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipment: list[int],
              inventory: list[int], skills: SkillsState, powers: list[int], cbstate: PlayerCombatState):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
@@ -63,7 +63,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: State, equipment: lis
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
-              phys_state: State, cbstate: NPCCombatState):
+              phys_state: PhysicalState, cbstate: NPCCombatState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
     if network.peer.is_hosting():
         return
@@ -158,7 +158,7 @@ def remote_update_container(connection, time_received, container_id: int, contai
 
 # Physical
 @rpc(network.peer)
-def update_lerp_pstate(connection, time_received, uuid: int, phys_state: State):
+def update_lerp_pstate(connection, time_received, uuid: int, phys_state: PhysicalState):
     """Called by server to update physical state for an NPC"""
     npc = network.uuid_to_char.get(uuid)
     if npc is None:

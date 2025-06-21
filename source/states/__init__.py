@@ -23,8 +23,7 @@ def get_character_states_from_json(pname):
     inventory = d.get("inventory", [])
     powers = d.get("powers", [])
 
-    pstate = State("physical", pstate_raw)
-    pstate["cname"] = pname
+    pstate = PhysicalState(pstate_raw)
     basestate = BaseCombatState(basestate_raw)
     skills = SkillsState(skills_raw)
 

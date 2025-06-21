@@ -16,7 +16,7 @@ from ..states import State, container_to_ids
 
 # LOGIN
 @rpc(network.peer)
-def request_enter_world(connection, time_received, pstate: State,
+def request_enter_world(connection, time_received, pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: list[int],
                         inventory: list[int], skills: SkillsState,
                         powers: list[int]):
@@ -49,7 +49,7 @@ def request_enter_world(connection, time_received, pstate: State,
                         network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
                                               inventory_ids, skills, power_ids, pc_cbstate)
                     else:
-                        npc_pstate = State("physical", ch)
+                        npc_pstate = PhysicalState(ch)
                         npc_cbstate = NPCCombatState(ch)
                         network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
             # Existing users just need new character
@@ -163,7 +163,7 @@ def request_auto_unequip(connection, time_received, itemid: int, slot: int):
 # State Updates
 @rpc(network.peer)
 def request_update_pstate(connection, time_received, uuid: int,
-                       phys_state: State):
+                       phys_state: PhysicalState):
     """Client-authoritatively apply physical state updates.
     Don't apply new state directly, instead add it as the new LERP state.
     Host will broadcast the new state to all other peers.

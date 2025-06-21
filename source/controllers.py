@@ -242,7 +242,7 @@ class NPCController(Entity):
     def _init_lerp_attrs(self):
         """Initialize lerp logic"""
         self.prev_state = None
-        self.new_state = State("physical", self)
+        self.new_state = PhysicalState(self)
         self.prev_lerp_recv = 0
         self.lerping = False
         self.lerp_rate = 0
@@ -332,7 +332,7 @@ class MobController(Entity):
         displacement = get_displacement(self.character)
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-        npc_pstate = State("physical", self.character)
+        npc_pstate = PhysicalState(self.character)
         for conn in gs.network.peer.get_connections():
             if conn not in gs.network.connection_to_char:
                 continue
