@@ -285,9 +285,10 @@ class MobController(Entity):
             char.combat_timer = 0
         if char.target and char.target.alive and char.in_combat:
             mh_slot = slot_to_ind["mh"]
-            if tick_mh(char) and char.get_target_hittable(char.equipment[mh_slot]):
+            mh = char.equipment[mh_slot]
+            if tick_mh(char) and char.get_target_hittable(mh):
                 hit, msg = attempt_attack(char, char.target, "mh")
-                mh_skill = get_wpn_style(char.equipment[mh_slot])
+                mh_skill = get_wpn_style(mh)
                 if hit and check_raise_skill(char, mh_skill):
                     raise_skill(char, mh_skill)
                 conn = gs.network.uuid_to_connection.get(char.uuid, None)
@@ -297,9 +298,9 @@ class MobController(Entity):
                     gs.network.broadcast_cbstate_update(char.target)
             # See if we should progress offhand timer too
             # (if has skill dw):
-            mh_is_1h = not (item is not None
-                            and item.type == "weapon"
-                            and item.info.get("style", "")[:2] == "2h")
+            mh_is_1h = not (mh is not None
+                            and mh.type == "weapon"
+                            and mh.info.get("style", "")[:2] == "2h")
             oh_slot = slot_to_ind["oh"]
             offhand = char.equipment[oh_slot]
             # basically just check if not wearing a shield
