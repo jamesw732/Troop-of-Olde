@@ -4,8 +4,7 @@ import json
 from ursina import *
 
 from ..gamestate import gs
-from .state import State
-from .state2 import *
+from .state import *
 
 def get_character_states_from_json(pname):
     """Does all the work needed to get inputs to Character from a player name in players.json.  """

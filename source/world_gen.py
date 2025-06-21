@@ -4,8 +4,7 @@ import json
 import os
 
 from .character import ServerCharacter
-from .states.state import State
-from .states.state2 import BaseCombatState, PhysicalState
+from .states import BaseCombatState, PhysicalState
 
 
 class GenerateWorld:

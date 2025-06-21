@@ -2,8 +2,7 @@ from ursina import *
 from ursina.networking import RPCPeer, rpc
 
 from ..gamestate import gs
-from ..states import State
-from ..states.state2 import *
+from ..states import *
 
 UPDATE_RATE = 1 / 20
 

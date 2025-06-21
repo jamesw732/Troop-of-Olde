@@ -15,7 +15,7 @@ from .item import Item, ServerItem, Container, ServerContainer
 from .physics import *
 from .power import ServerPower, ClientPower
 from .skills import *
-from .states.state import *
+from .states import *
 
 
 class Character(Entity):

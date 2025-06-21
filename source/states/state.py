@@ -1,28 +1,21 @@
-"""A State is just a container used to represent a portion of a character. States may not
-be complete, in which case the undefined portion is ignored."""
-from ursina import Vec3, color, Entity
-
-from .state_defs import state_defs, statetype_to_defaults, type_to_default
-from ..gamestate import gs
-
+from ursina import Vec3, color
+from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs
 
 class State(dict):
-    def __init__(self, state_type, src=None):
-        """States are containers that store Character attrs.
+    """Base class for all State types. Never meant to be initialized, only
+    inherited by other State types."""
+    statedef = {}
+    defaults = {}
+    type_to_default = {
+        int: 0,
+        float: 0.0,
+        Vec3: Vec3(0, 0, 0),
+        str: ""
+    }
 
-        They are essentially dicts with the power to extract data from/apply data to
-        Characters. Possible states are defined in state_defs.
-        src is prioritized over kwargs, all kwargs are ignored if src is specified.
-        state_type: one of the keys to state_defs
-        src: object to grab data from, usually a Character or dict. State not tied to src.
-        """
-        self.state_type = state_type
-        self.attrs = state_defs[self.state_type]
-        # If a character was passed, take its attributes
-        if src is not None:
-            for attr in self.attrs:
-                val = self._get_val_from_src(attr, src)
-                self[attr] = val
+    def __init__(self, src={}):
+        for attr in self.statedef:
+            self[attr] = self._get_val_from_src(attr, src)
 
     def apply(self, dst):
         """Apply attrs to a destination object by overwriting the attrs
@@ -45,7 +38,6 @@ class State(dict):
     def _get_val_from_src(self, attr, src):
         """General wrapper for getting attr from src. Since States are expected to have all fields
         in their state definition, this does its best to infer data if it's missing from src."""
-        defaults = statetype_to_defaults.get(self.state_type, {})
         val = None
         # src is a keyed data structure like a dict and contains attr
         if isinstance(src, dict) and attr in src:
@@ -55,45 +47,214 @@ class State(dict):
             val = getattr(src, attr)
         # couldn't find attr in src, look in defaults
         if val is None:
-            # If not in state_type's defaults, just take the default based on the type of the variable
-            if attr not in defaults:
-                statedef = state_defs[self.state_type]
-                t = statedef[attr]
-                return type_to_default[t]
-            val = defaults[attr]
-        # these need to be strings, not the respective Ursina objects
+            # If not in class's defaults, infer based on type of attr
+            if attr not in self.defaults:
+                return self.type_to_default[self.statedef[attr]]
+            val = self.defaults[attr]
+        return val
+
+    def _apply_attr(self, dst, attr, val):
+        """Generic wrapper for setting attr of dst"""
+        setattr(dst, attr, val)
+
+    def serialize(writer, state):
+        statedef = State.state_def
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
+
+    def deserialize(reader):
+        statedef = State.statedef
+        state = State()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
+
+class BaseCombatState(State):
+    statedef = {
+        "statichealth": int,
+        "staticenergy": int,
+        "staticarmor": int,
+
+        "str": int,
+        "dex": int,
+        "ref": int,
+
+        "haste": int,
+        "speed": int,
+    }
+    defaults = default_cb_attrs
+
+    def serialize(writer, state):
+        statedef = BaseCombatState.statedef
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
+
+    def deserialize(reader):
+        statedef = BaseCombatState.statedef
+        state = BaseCombatState()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
+
+class PlayerCombatState(State):
+    statedef = {
+        "health": int,
+        "maxhealth": int,
+        "statichealth": int,
+        "energy": int,
+        "maxenergy": int,
+        "staticenergy": int,
+        "armor": int,
+        "maxarmor": int,
+        "staticarmor": int,
+
+        "str": int,
+        "dex": int,
+        "ref": int,
+
+        "haste": int,
+        "speed": int,
+    }
+    defaults = default_cb_attrs
+
+    def serialize(writer, state):
+        statedef = PlayerCombatState.statedef
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
+
+    def deserialize(reader):
+        statedef = PlayerCombatState.statedef
+        state = PlayerCombatState()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
+
+class NPCCombatState(State):
+    statedef = {
+        "health": int,
+        "maxhealth": int,
+    }
+    defaults = default_cb_attrs
+
+    def serialize(writer, state):
+        statedef = NPCCombatState.statedef
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
+
+    def deserialize(reader):
+        statedef = NPCCombatState.statedef
+        state = NPCCombatState()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
+
+class ItemStats(State):
+    statedef = {
+        "statichealth": int,
+        "staticenergy": int,
+        "staticarmor": int,
+        "str": int,
+        "dex": int,
+        "ref": int,
+        "haste": int,
+        "speed": int
+    }
+    defaults = {stat: 0 for stat in statedef}
+
+    def serialize(writer, state):
+        statedef = ItemStats.statedef
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
+
+    def deserialize(reader):
+        statedef = ItemStats.statedef
+        state = ItemStats()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
+
+class PhysicalState(State):
+    statedef = {
+        "model": str,
+        "scale": Vec3,
+        "position": Vec3,
+        "rotation": Vec3,
+        "color": str,
+        "cname": str
+    }
+    defaults = default_phys_attrs
+    # Need to overwrite some things here
+
+    def _get_val_from_src(self, attr, src):
+        """General wrapper for getting attr from src. Since States are expected to have all fields
+        in their state definition, this does its best to infer data if it's missing from src."""
+        val = None
+        # src is a keyed data structure like a dict and contains attr
+        if isinstance(src, dict) and attr in src:
+            val = src[attr]
+        # src is a typical data structure and contains attr
+        elif hasattr(src, attr):
+            val = getattr(src, attr)
+        # couldn't find attr in src, look in defaults
+        if val is None:
+            # If not in class's defaults, infer based on type of attr
+            if attr not in self.defaults:
+                return self.type_to_default[self.statedef[attr]]
+            val = self.defaults[attr]
         if attr in ["collider", "color", "model"] and not isinstance(val, str):
             val = val.name
         return val
 
     def _apply_attr(self, dst, attr, val):
-        """Generic wrapper for setting attr of dst"""
-        if self.state_type == "skills":
-            dst[attr] = val
-            return
-        elif self.state_type == "physical":
-            # Colors can't be strings, need to be color objects
-            if attr == "color" and isinstance(val, str):
-                val = color.colors[val]
+        """Essentially just setattr but with handling for color/model"""
+        # Colors can't be strings, need to be color objects
+        if attr == "color" and isinstance(val, str):
+            val = color.colors[val]
         setattr(dst, attr, val)
         if attr == "model":
             # When updating a model, origin gets reset, so we fix
-            # This should probably be intrinsic to the Character, not done here
             dst.origin = Vec3(0, -0.5, 0)
 
+    def serialize(writer, state):
+        statedef = PhysicalState.statedef
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
 
-def serialize_state(writer, state):
-    writer.write(state.state_type)
-    state_def = state_defs[state.state_type]
-    for k in state_def:
-        v = state[k]
-        writer.write(v)
+    def deserialize(reader):
+        statedef = PhysicalState.statedef
+        state = PhysicalState()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
 
-def deserialize_state(reader):
-    state_type = reader.read(str)
-    state_def = state_defs[state_type]
-    state = State(state_type=state_type)
-    for k, t in state_def.items():
-        v = reader.read(t)
-        state[k] = v
-    return state
+class SkillsState(State):
+    statedef = {
+        skill: int for skill in all_skills
+    }
+    defaults = {skill: 1 for skill in all_skills}
+
+    def serialize(writer, state):
+        statedef = SkillsState.statedef
+        for k in statedef:
+            v = state[k]
+            writer.write(v)
+
+    def deserialize(reader):
+        statedef = SkillsState.statedef
+        state = SkillsState()
+        for k, t in statedef.items():
+            v = reader.read(t)
+            state[k] = v
+        return state
