@@ -1,14 +1,21 @@
 {
     "0": {
-        "effect_type": "instant",
-        "effects": {
+        "instant_effects": {
             "damage": 20
         }
     },
     "1": {
-        "effect_type": "instant",
-        "effects": {
+        "instant_effects": {
             "heal": 10
         }
+    },
+    "2": {
+        "instant_effects": {
+            "damage": 10
+        },
+        "tick_effects": {
+            "damage": [2, 0.5]
+        },
+        "duration": 5
     }
 }

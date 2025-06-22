@@ -50,7 +50,7 @@ Incomplete stat implementations:
 UI:
 UI is quite incomplete, there is a lot of helpful information that should be tracked by the UI.
 Off the top of my head:
-- player's target
+- player's target's health
 - in combat/not
 - persistent effects (future)
 - Enemy drops (future)

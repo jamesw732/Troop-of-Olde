@@ -20,5 +20,16 @@
         "purpose": "beneficial",
         "target": "single",
         "gcd_duration": 5
+    },
+    "2": {
+        "name": "Fire Blast",
+        "icon": "fireball-red-1.png",
+        "power_type": "spell",
+        "cost": 30,
+        "effect_id": 2,
+        "cooldown": 10,
+        "purpose": "harmful",
+        "target": "single",
+        "gcd_duration": 5
     }
 }

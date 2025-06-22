@@ -2,7 +2,7 @@ from ursina import *
 import os
 import json
 
-from .effect import make_effect
+from .effect import Effect
 from .gamestate import gs
 
 power_path = os.path.join(os.path.dirname(__file__), "..", "data", "powers.json")
@@ -66,7 +66,7 @@ class ServerPower(Power):
         self.char.energy -= self.cost
         self.set_char_gcd()
         self.char.next_power = None
-        effect = make_effect(self.effect_id, self.char, tgt)
+        effect = Effect(self.effect_id, self.char, tgt)
         # Would like some better logic here eventually, like auto-targetting based on beneficial
         # or harmful
         effect.attempt_apply()
