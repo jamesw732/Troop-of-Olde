@@ -27,13 +27,14 @@ class State(dict):
     def apply_diff(self, dst, remove=False):
         """Apply attrs to a destination object by adding/subtracting the attrs
         
-        dst: Character or container object, this may expand"""
+        dst: Character"""
         for attr, val in self.items():
             original_val = self._get_val_from_src(attr, dst)
             if remove:
                 self._apply_attr(dst, attr, original_val - val)
             else:
                 self._apply_attr(dst, attr, original_val + val)
+        dst.update_max_ratings()
 
     def _get_val_from_src(self, attr, src):
         """General wrapper for getting attr from src. Since States are expected to have all fields
@@ -156,7 +157,7 @@ class NPCCombatState(State):
             state[k] = v
         return state
 
-class ItemStats(State):
+class Stats(State):
     statedef = {
         "statichealth": int,
         "staticenergy": int,
@@ -170,14 +171,14 @@ class ItemStats(State):
     defaults = {stat: 0 for stat in statedef}
 
     def serialize(writer, state):
-        statedef = ItemStats.statedef
+        statedef = Stats.statedef
         for k in statedef:
             v = state[k]
             writer.write(v)
 
     def deserialize(reader):
-        statedef = ItemStats.statedef
-        state = ItemStats()
+        statedef = Stats.statedef
+        state = Stats()
         for k, t in statedef.items():
             v = reader.read(t)
             state[k] = v

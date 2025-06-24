@@ -5,7 +5,7 @@ import copy
 from .base import default_equipment, default_inventory, slot_to_ind, equipment_slots
 from .gamestate import gs
 # This import might be a problem eventually
-from .states import ItemStats
+from .states import Stats
 
 # Eventually, this will be a database connection rather than a json stored in memory
 items_file = os.path.join(os.path.dirname(__file__), "..", "data", "items.json")
@@ -38,7 +38,7 @@ class Item:
         self.type = data.get("type", "")
         self.info = data.get("info", {})
         self.stats = data.get("stats", {})
-        self.stats = ItemStats(self.stats)
+        self.stats = Stats(self.stats)
         if self.type in self.type_to_options:
             self.leftclick = self.type_to_options[self.type][0]
         self.icon_path = data.get("icon", "")
