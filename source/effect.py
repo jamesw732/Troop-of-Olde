@@ -4,6 +4,7 @@ import json
 import copy
 
 from .gamestate import gs
+from .states import Stats
 
 
 effects_path = os.path.join(os.path.dirname(__file__), "..", "data", "effects.json")
@@ -23,6 +24,7 @@ class Effect(Entity):
         self.instant_effects = effect_data.get("instant_effects", {})
         self.tick_effects = effect_data.get("tick_effects", {})
         self.persistent_effects = effect_data.get("persistent_effects", {})
+        self.persistent_state = Stats(self.persistent_effects)
         self.duration = effect_data.get("duration", 0)
         self.timer = 0
         self.tick_timers = {name: 0 for name in self.tick_effects}
@@ -33,13 +35,18 @@ class Effect(Entity):
     def update(self):
         """Update tick effects and overall timer, destroy if past duration"""
         if not self.tgt.alive or self.timer >= self.duration:
+            self.persistent_state.apply_diff(self.tgt, remove=True)
             destroy(self)
+        send_update = False
         for name in self.tick_timers:
             self.tick_timers[name] += time.dt
             if self.tick_timers[name] >= self.tick_effects[name][1]:
                 self.tick_timers[name] -= self.tick_effects[name][1]
                 val = self.get_modified_val(name, self.tick_effects[name][0])
                 self.apply_subeffect(name, val)
+                send_update = True
+        if send_update:
+            gs.network.broadcast_cbstate_update(self.tgt)
         self.timer += time.dt
 
     def attempt_apply(self):
@@ -68,6 +75,7 @@ class Effect(Entity):
         for name, val in self.instant_effects.items():
             val = self.get_modified_val(name, val)
             self.apply_subeffect(name, val)
+        self.persistent_state.apply_diff(self.tgt)
 
     def apply_subeffect(self, name, val):
         """Helper function for applying all types of effects"""

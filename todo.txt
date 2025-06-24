@@ -6,10 +6,10 @@ Add individual cooldowns for powers, and animations for cooldowns
 
 Add more types of powers.
 Want one of each of the following:
-Persistent enchantment (a buff),
 Persistent curse (a debuff)
-Channeled enchantment (a channeled heal)
+Persistent enchantment (a buff),
 Channeled curse (a channeled damage spell)
+Channeled enchantment (a channeled heal)
 
 
 
@@ -17,7 +17,7 @@ Channeled curse (a channeled damage spell)
 Start adding some character assets and animations. Maybe start with just some premade stuff.
 
 =========================================BACKLOG=================================================
-Code cleanup:
+Generic Code cleanup:
 Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
 I should instead leverage warnings that don't break the game.
 
@@ -46,6 +46,7 @@ Incomplete stat implementations:
 - Regeneration
 - Hardiness
 
+Stats object should probably have a more elegant interaction with Characters.
 
 UI:
 UI is quite incomplete, there is a lot of helpful information that should be tracked by the UI.
