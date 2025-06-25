@@ -14,14 +14,16 @@
             "damage": 10
         },
         "tick_effects": {
-            "damage": [2, 0.5]
+            "damage": 2
         },
+        "tick_rate": 0.5,
         "duration": 5
     },
     "3": {
         "tick_effects": {
-            "heal": [5, 2]
+            "heal": 5
         },
+        "tick_rate": 2,
         "duration": 10
     },
     "4": {

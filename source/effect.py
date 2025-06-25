@@ -26,8 +26,9 @@ class Effect(Entity):
         self.persistent_effects = effect_data.get("persistent_effects", {})
         self.persistent_state = Stats(self.persistent_effects)
         self.duration = effect_data.get("duration", 0)
+        self.tick_rate = effect_data.get("tick_rate", 0)
         self.timer = 0
-        self.tick_timers = {name: 0 for name in self.tick_effects}
+        self.tick_timer = 0
         self.src = src
         self.tgt = tgt
         self.hit = False
@@ -39,15 +40,12 @@ class Effect(Entity):
             self.tgt.update_max_ratings()
             gs.network.broadcast_cbstate_update(self.tgt)
             destroy(self)
-        send_update = False
-        for name in self.tick_timers:
-            self.tick_timers[name] += time.dt
-            if self.tick_timers[name] >= self.tick_effects[name][1]:
-                self.tick_timers[name] -= self.tick_effects[name][1]
-                val = self.get_modified_val(name, self.tick_effects[name][0])
+        self.tick_timer += time.dt
+        if self.tick_rate and self.tick_timer >= self.tick_rate:
+            self.tick_timer -= self.tick_rate
+            for name, val in self.tick_effects.items():
+                val = self.get_modified_val(name, val)
                 self.apply_subeffect(name, val)
-                send_update = True
-        if send_update:
             gs.network.broadcast_cbstate_update(self.tgt)
         self.timer += time.dt
 
