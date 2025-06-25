@@ -23,5 +23,11 @@
             "heal": [5, 2]
         },
         "duration": 10
+    },
+    "4": {
+        "persistent_effects": {
+            "str": 3
+        },
+        "duration": 20
     }
 }

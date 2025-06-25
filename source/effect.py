@@ -15,8 +15,8 @@ with open(effects_path) as effects_json:
 class Effect(Entity):
     """Represents the actual effect of things like powers and procs.
 
-    Current implementation is very simplistic and needs expanding.
-    Effects are temporary objects by definition."""
+    Should only be instantiated server-side. Effects are temporary objects
+    which last for a fixed rotation or for only an instant."""
     def __init__(self, effect_id, src, tgt):
         super().__init__()
         effect_id = str(effect_id)
@@ -36,6 +36,8 @@ class Effect(Entity):
         """Update tick effects and overall timer, destroy if past duration"""
         if not self.tgt.alive or self.timer >= self.duration:
             self.persistent_state.apply_diff(self.tgt, remove=True)
+            self.tgt.update_max_ratings()
+            gs.network.broadcast_cbstate_update(self.tgt)
             destroy(self)
         send_update = False
         for name in self.tick_timers:
@@ -76,6 +78,7 @@ class Effect(Entity):
             val = self.get_modified_val(name, val)
             self.apply_subeffect(name, val)
         self.persistent_state.apply_diff(self.tgt)
+        self.tgt.update_max_ratings()
 
     def apply_subeffect(self, name, val):
         """Helper function for applying all types of effects"""

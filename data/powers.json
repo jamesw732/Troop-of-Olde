@@ -42,5 +42,16 @@
         "purpose": "beneficial",
         "target": "single",
         "gcd_duration": 5
+    },
+    "4": {
+        "name": "Empowered Strikes",
+        "icon": "enchant-royal-1.png",
+        "power_type": "spell",
+        "cost": 20,
+        "effect_id": 4,
+        "cooldown": 10,
+        "purpose": "beneficial",
+        "target": "single",
+        "gcd_duration": 5
     }
 }
