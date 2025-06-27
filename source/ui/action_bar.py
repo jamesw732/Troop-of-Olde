@@ -104,13 +104,11 @@ class Timer(Entity):
 
     def update(self):
         self.alpha = 0.6
-        gcd_ratio = 1 - gs.pc.gcd_timer / gs.pc.gcd
-        cd_ratio = 1 - self.power.timer / self.power.cooldown
-        # if self.power.on_cooldown:
-        #     cd_ratio = 1 - self.power.timer / self.power.cooldown
-        # else:
-        #     cd_ratio = 0
-        self.scale_x = max(gcd_ratio, cd_ratio)
+        # Choose gcd or individual cd timer, whichever will finish later
+        if gs.pc.gcd - gs.pc.gcd_timer >= self.power.cooldown - self.power.timer:
+            self.scale_x = 1 - gs.pc.gcd_timer / gs.pc.gcd
+        else:
+            self.scale_x = 1 - self.power.timer / self.power.cooldown
         if self.scale_x <= 0:
             destroy(self)
             self.parent.cd_overlay = None
