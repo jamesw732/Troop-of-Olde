@@ -39,9 +39,9 @@ class ActionBar(UIWindow):
             if icon is None or icon.cd_overlay is not None:
                 continue
             icon.cd_overlay = Timer(gs.pc.powers[i], parent=icon, origin=(-.5, .5),
-                                     position=(i / self.num_slots, 0, -5), 
+                                     position=(0, 0, -5), 
                                      model='quad', color=color.gray, alpha=0.6,
-                                     scale_x = 1 / self.num_slots)
+                                     scale_x = 1)
 
 
 class PowerBar(Entity):
@@ -110,8 +110,7 @@ class Timer(Entity):
         #     cd_ratio = 1 - self.power.timer / self.power.cooldown
         # else:
         #     cd_ratio = 0
-        self.scale_x = max(gcd_ratio, cd_ratio) / gs.pc.num_powers
+        self.scale_x = max(gcd_ratio, cd_ratio)
         if self.scale_x <= 0:
-            print("Destroying this timer")
             destroy(self)
             self.parent.cd_overlay = None
