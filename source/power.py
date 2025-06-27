@@ -2,10 +2,11 @@ from ursina import *
 import os
 import json
 
+from .base import data_path
 from .effect import Effect
 from .gamestate import gs
 
-power_path = os.path.join(os.path.dirname(__file__), "..", "data", "powers.json")
+power_path = os.path.join(data_path, "powers.json")
 with open(power_path) as power_json:
     id_to_power_data = json.load(power_json)
 

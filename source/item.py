@@ -2,13 +2,13 @@ from ursina import *
 import json
 import copy
 
-from .base import default_equipment, default_inventory, slot_to_ind, equipment_slots
+from .base import default_equipment, default_inventory, slot_to_ind, equipment_slots, data_path
 from .gamestate import gs
 # This import might be a problem eventually
 from .states import Stats
 
 # Eventually, this will be a database connection rather than a json stored in memory
-items_file = os.path.join(os.path.dirname(__file__), "..", "data", "items.json")
+items_file = os.path.join(data_path, "items.json")
 with open(items_file) as items:
     items_dict = json.load(items)
 

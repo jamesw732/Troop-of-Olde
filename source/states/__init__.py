@@ -3,12 +3,13 @@ import json
 
 from ursina import *
 
+from ..base import data_path
 from ..gamestate import gs
 from .state import *
 
 def get_character_states_from_json(pname):
     """Does all the work needed to get inputs to Character from a player name in players.json.  """
-    players_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "players.json")
+    players_path = os.path.join(data_path, "players.json")
     with open(players_path) as players:
         d = json.load(players)[pname]
     pstate_raw = d.get("pstate", {})

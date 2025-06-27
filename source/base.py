@@ -1,6 +1,12 @@
 from ursina import *
 
 import math
+import os
+
+# File/Directory paths
+data_path = os.path.join(os.path.dirname(__file__), "..", "data")
+asset_path = os.path.join(os.path.dirname(__file__), "..", "assets")
+
 
 fists_base_dmg = 2
 default_num_powers = 10

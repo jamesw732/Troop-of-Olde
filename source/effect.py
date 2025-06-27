@@ -3,11 +3,12 @@ import os
 import json
 import copy
 
+from .base import data_path
 from .gamestate import gs
 from .states import Stats
 
 
-effects_path = os.path.join(os.path.dirname(__file__), "..", "data", "effects.json")
+effects_path = os.path.join(data_path, "effects.json")
 with open(effects_path) as effects_json:
     id_to_effect_data = json.load(effects_json)
 

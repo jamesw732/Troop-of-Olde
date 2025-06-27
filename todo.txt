@@ -1,13 +1,11 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Fix powers not costing any energy
+Start adding some character assets and animations. Maybe start with just some premade stuff.
 
 
 
 ===================================NEXT================================================
-Start adding some character assets and animations. Maybe start with just some premade stuff.
-
 Move to a database instead of using json.
 
 =========================================BACKLOG=================================================

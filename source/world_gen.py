@@ -3,6 +3,7 @@ from ursina import Entity, Sky, color
 import json
 import os
 
+from .base import data_path
 from .character import ServerCharacter
 from .states import BaseCombatState, PhysicalState
 
@@ -12,8 +13,7 @@ class GenerateWorld:
         """Create world.
 
         file: str, name of file to load in data/zones. Not full path."""
-        path = os.path.abspath(os.path.dirname(__file__))
-        self.zones_path = os.path.join(path, "..", "data", "zones")
+        self.zones_path = os.path.join(data_path, "zones")
         zonepath = os.path.join(self.zones_path, file)
         self.headless = headless
         if "json" in zonepath:
