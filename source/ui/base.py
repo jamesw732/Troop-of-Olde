@@ -1,7 +1,7 @@
 from ursina import *
 import os
 
-from ..base import data_path
+from ..base import asset_path
 
 # COLORS:
 header_color = color.hex("8a6240")
@@ -11,8 +11,8 @@ window_fg_color = color.hex("666666")
 text_color = color.hex("caffd7")
 slot_color=color.hex("aaaaaa")
 
-item_icons_dir = os.path.abspath(os.path.join(data_path, "item_icons"))
-effect_icons_dir = os.path.abspath(os.path.join(data_path, "effect_icons"))
+item_icons_dir = os.path.abspath(os.path.join(asset_path, "item_icons"))
+effect_icons_dir = os.path.abspath(os.path.join(asset_path, "effect_icons"))
 
 def grid(entity, num_rows, num_cols, margin_x=0, margin_y=0, color=color.white):
     """Helper function for drawing a grid over a UI element
