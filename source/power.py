@@ -75,6 +75,7 @@ class ServerPower(Power):
             return
         if self.char.energy < self.cost:
             return
+        super().use()
         effect = Effect(self.effect_id, self.char, tgt)
         # Would like some better logic here eventually, like auto-targetting based on beneficial
         # or harmful

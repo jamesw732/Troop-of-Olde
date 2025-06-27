@@ -1,10 +1,7 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Work on powers:
-Add individual cooldowns for powers.
-Add a channeled power.
-Consider adding client-side reconciliation for powers
+Fix powers not costing any energy
 
 
 
@@ -18,6 +15,7 @@ Generic Code cleanup:
 Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
 I should instead leverage warnings that don't break the game.
 
+
 Physics:
 Implement momentum, make it be a list of the 5 most recent keyboard movement vectors. They are
 averaged and added as a displacement factor if no keyboard inputs for that physics tick.
@@ -26,7 +24,8 @@ Use a loop for raycasts to not collide through concave intersections
 Improve wall collision logic, namely removing ability to jump up walls.
 Jumping is sometimes very buggy, but sometimes fine?
 
-Combat/Character:
+
+Combat:
 Neglected formulas:
 - probability to upgrade skill
 - hit chance/accuracy
@@ -43,29 +42,40 @@ Incomplete stat implementations:
 - Regeneration
 - Hardiness
 
-Stats object should probably have a more elegant interaction with Characters.
+
+Character:
+Stats object should probably have a more elegant interaction with Characters. Would
+be nice to unify Stats with all the different Effect types.
+
+
+Powers:
+Add a channeled power.
+Need to add client-side reconciliation for powers
+Add a UI window showing persistent powers
+Make persistent powers unique per character
+Improve powers/effects database, will need to think about this a lot
+
 
 UI:
-UI is quite incomplete, there is a lot of helpful information that should be tracked by the UI.
-Off the top of my head:
+UI is quite incomplete, there is a lot of helpful information that should be tracked by the UI:
 - player's target's health
 - in combat/not
-- persistent effects (future)
-- Enemy drops (future)
+- persistent effects
 
-Current UI functionality is also quite lacking.
+Some missing functionality:
+- Loot window
 - Hover and right click tooltips, which will be the primary visual guide for the UI
-- Allow swapping of action bar slots
-- Allow destroying items
+- Swapping of action bar slots
+- Destroying items
 
 There are some bugs as well:
 - Scrolling with mousewheel while scrollbar is full results in division by zero
-- Transparency handling for the game window is buggy since the scrollbar has its own collider. Basically,
-the current handling for mouse enter/exit is fragile - entering on and exiting from a child entity
-with a collider doesn't correctly trigger the transparency change. Unclear how to fix this, worst case
-can remove the collider.
-- There's also a bug with new text entering the game window with the wrong transparency. I think text should
-probably be ignored by set_alpha altogether.
+- Transparency handling for the game window is buggy since the scrollbar has its own collider.
+Basically, the current handling for mouse enter/exit is fragile - entering on and exiting from a
+child entity with a collider doesn't correctly trigger the transparency change. Unclear how to fix
+this, worst case can remove the collider.
+- There's also a bug with new text entering the game window with the wrong transparency. I think
+text should probably be ignored by set_alpha altogether.
 
 
 Database:
@@ -73,8 +83,9 @@ Move to sql
 
 
 Documentation:
-Ideally, I want some big tex files that document everything important, such as code architecture, formulas used,
-philosophy, game mechanics, class content. These files essentially serves as the implementation definition.
+Ideally, I want some big tex files that document everything important, such as code architecture,
+formulas used, philosophy, game mechanics, class content. These files essentially serves as the
+implementation definition.
 
 Also, should eventually move things onto Github issues once the repository is more stable.
 
@@ -87,12 +98,11 @@ writing the code.
 
 
 
-
 =====================================DISTANT==============================================
 - Save system
-- Icons for items/powers/etc
-- Character models - Blender (AI?)
-- Character textures - Blender (AI?)
-- World terrain - Perlin noise (+ Panda3D or maybe handwritten)
-- World structures - Blender (AI?)
-- World textures - Blender builtin https://cloud.blender.org/p/textures/5813449c1f474213fb4babc5
+- Character/item models/textures
+- World building; terrain, textures, buildings
+- NPC logic
+- Music
+- Icons
+- UI Art
