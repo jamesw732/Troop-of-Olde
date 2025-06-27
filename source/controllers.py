@@ -98,7 +98,7 @@ class PlayerController(Entity):
         # Performance: This probably doesn't need to happen every frame, just when we move.
         if char.get_on_gcd():
             char.tick_gcd()
-        elif char.next_power is not None:
+        elif char.next_power is not None and not char.next_power.on_cooldown:
             # Client-side power queueing basically just waits to request to use the power
             power = char.next_power
             tgt = power.get_target()
@@ -320,7 +320,7 @@ class MobController(Entity):
             char.oh_combat_timer = 0
         if char.get_on_gcd():
             char.tick_gcd()
-        elif char.next_power is not None:
+        elif char.next_power is not None and not char.next_power.on_cooldown:
             tgt = char.next_power.get_target()
             char.next_power.use(tgt)
 

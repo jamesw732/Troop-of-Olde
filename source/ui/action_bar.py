@@ -34,14 +34,14 @@ class ActionBar(UIWindow):
         
         grid(self.powerbar, 1, 10, color=color.black)
 
-    def start_gcd_animation(self):
+    def start_cd_animation(self):
         for i, icon in enumerate(self.powerbar.power_icons):
-            if icon is None:
+            if icon is None or icon.cd_overlay is not None:
                 continue
-            icon.gcd_overlay = Timer(parent=self.powerbar, origin=(-.5, .5),
+            icon.cd_overlay = Timer(gs.pc.powers[i], parent=icon, origin=(-.5, .5),
                                      position=(i / self.num_slots, 0, -5), 
                                      model='quad', color=color.gray, alpha=0.6,
-                                     scale_x = (1 - gs.pc.gcd_timer / gs.pc.gcd) / self.num_slots)
+                                     scale_x = 1 / self.num_slots)
 
 
 class PowerBar(Entity):
@@ -57,6 +57,7 @@ class PowerBar(Entity):
                                              scale=(1 / self.parent.num_slots, 1), 
                                              position=(i / self.parent.num_slots, 0, -1),
                                              model='quad', texture=power.icon)
+                self.power_icons[i].cd_overlay = None
             label = str(i + 1)
             self.labels.append(Text(text=label, parent=self, world_scale=(12, 12),
                                          position=((i + 0.05) / self.parent.num_slots, -.95, -2),
@@ -96,13 +97,21 @@ class PowerBar(Entity):
 
 
 class Timer(Entity):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, power, *args, **kwargs):
+        self.power = power
         super().__init__(*args, **kwargs)
         self.ignore_focus = True
 
     def update(self):
         self.alpha = 0.6
-        self.scale_x = (1 - gs.pc.gcd_timer / gs.pc.gcd) / gs.pc.num_powers
+        gcd_ratio = 1 - gs.pc.gcd_timer / gs.pc.gcd
+        cd_ratio = 1 - self.power.timer / self.power.cooldown
+        # if self.power.on_cooldown:
+        #     cd_ratio = 1 - self.power.timer / self.power.cooldown
+        # else:
+        #     cd_ratio = 0
+        self.scale_x = max(gcd_ratio, cd_ratio) / gs.pc.num_powers
         if self.scale_x <= 0:
+            print("Destroying this timer")
             destroy(self)
-            self.parent.gcd_overlay = None
+            self.parent.cd_overlay = None

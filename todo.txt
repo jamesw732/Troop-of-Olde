@@ -1,20 +1,17 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Work on powers.
-Add individual cooldowns for powers, and animations for cooldowns
-
-Add more types of powers.
-Want one of each of the following:
-Persistent curse (a debuff)
-Persistent enchantment (a buff),
-Channeled curse (a channeled damage spell)
-Channeled enchantment (a channeled heal)
+Work on powers:
+Add individual cooldowns for powers.
+Add a channeled power.
+Consider adding client-side reconciliation for powers
 
 
 
 ===================================NEXT================================================
 Start adding some character assets and animations. Maybe start with just some premade stuff.
+
+Move to a database instead of using json.
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:
