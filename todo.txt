@@ -10,8 +10,15 @@ Move to a database instead of using json.
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:
-Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
-I should instead leverage warnings that don't break the game.
+- Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
+- I should instead leverage warnings that don't break the game.
+- Change usage of States in the code. I don't like sending entire physical states for typical
+networking updates, and in fact the player character movement code already has moved away from
+this. PhysicalState should pretty much only be used for login, I think? Definitely shouldn't
+be used for NPC lerping.
+I wonder if I should just have a State called "LoginState"? Might cause issues with size, but it
+would be a lot more clear what's actually going on.
+Should, at the very least, make "State" a more well-defined class.
 
 
 Physics:

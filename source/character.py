@@ -8,7 +8,7 @@ to the respective controllers in controllers.py.
 from ursina import *
 
 from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, \
-    all_skills, sqdist, default_num_powers
+    all_skills, sqdist, default_num_powers, asset_path
 from .combat import get_wpn_range
 from .gamestate import gs
 from .item import Item, ServerItem, Container, ServerContainer
@@ -17,6 +17,7 @@ from .power import ServerPower, ClientPower
 from .skills import *
 from .states import *
 
+model_path = os.path.join(asset_path, "models")
 
 class Character(Entity):
     def __init__(self, uuid=None, pstate=None, cbstate=None, skills={}):
@@ -35,7 +36,6 @@ class Character(Entity):
         self.controller = None
         self.namelabel = None
 
-        # Physical attrs
         # First, initialize Entity
         super().__init__()
 

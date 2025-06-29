@@ -14,7 +14,7 @@ def get_character_states_from_json(pname):
         d = json.load(players)[pname]
     pstate_raw = d.get("pstate", {})
     for k, v in pstate_raw.items():
-        if hasattr(v, "__iter__"):
+        if isinstance(v, list):
             pstate_raw[k] = Vec3(*v)
     pstate_raw["cname"] = pname
     basestate_raw = d.get("basestate", {})

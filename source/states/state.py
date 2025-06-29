@@ -1,5 +1,8 @@
-from ursina import Vec3, color
-from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs
+import os
+from ursina import Vec3, color, load_model
+from ursina.mesh_importer import imported_meshes
+
+from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs, model_path
 
 class State(dict):
     """Base class for all State types. Never meant to be initialized, only
@@ -221,6 +224,8 @@ class PhysicalState(State):
         # Colors can't be strings, need to be color objects
         if attr == "color" and isinstance(val, str):
             val = color.colors[val]
+        if attr == "model" and val is not "cube" and val not in imported_meshes:
+            load_model(os.path.join(model_path, val))
         setattr(dst, attr, val)
         if attr == "model":
             # When updating a model, origin gets reset, so we fix

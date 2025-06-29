@@ -2,9 +2,9 @@
     "NPC": {
         "physical": {
             "cname": "NPC",
-            "model": "cube",
+            "model": "humanoid_base.glb",
             "color": "red",
-            "scale": [1, 2, 1],
+            "scale": [2, 2, 2],
             "position": [10, 1, 10]
         },
         "combat": {

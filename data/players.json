@@ -1,7 +1,10 @@
 {
     "Demo Player": {
         "pstate": {
-            "position": [0, 1, 0]
+            "position": [0, 1, 0],
+            "model": "humanoid_base.glb",
+            "scale": [2, 2, 2],
+            "color": "black"
         },
         "basestate": {
             "haste": 100
