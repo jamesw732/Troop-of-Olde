@@ -8,7 +8,7 @@ to the respective controllers in controllers.py.
 from ursina import *
 
 from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, \
-    all_skills, sqdist, default_num_powers, asset_path
+    all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
 from .item import Item, ServerItem, Container, ServerContainer
@@ -16,8 +16,6 @@ from .physics import *
 from .power import ServerPower, ClientPower
 from .skills import *
 from .states import *
-
-model_path = os.path.join(asset_path, "models")
 
 class Character(Entity):
     def __init__(self, uuid=None, pstate=None, cbstate=None, skills={}):
@@ -50,6 +48,7 @@ class Character(Entity):
             cbstate.apply(self)
 
         self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
+
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -261,7 +260,6 @@ class ClientCharacter(Character):
         for attr in ["health", "energy", "armor"]:
              maxval = getattr(self, "max" + attr)
              setattr(self, attr, maxval)
-
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""

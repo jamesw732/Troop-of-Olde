@@ -2,7 +2,7 @@
     "NPC": {
         "physical": {
             "cname": "NPC",
-            "model": "humanoid_base.glb",
+            "model": "humanoid.glb",
             "color": "red",
             "scale": [2, 2, 2],
             "position": [10, 1, 10]

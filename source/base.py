@@ -5,8 +5,8 @@ import os
 
 # File/Directory paths
 data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
-asset_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets"))
-model_path = os.path.join(asset_path, "models")
+assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets"))
+models_path = os.path.join(assets_path, "models")
 
 
 fists_base_dmg = 2

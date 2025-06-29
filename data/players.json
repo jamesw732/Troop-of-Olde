@@ -2,7 +2,7 @@
     "Demo Player": {
         "pstate": {
             "position": [0, 1, 0],
-            "model": "humanoid_base.glb",
+            "model": "humanoid.glb",
             "scale": [2, 2, 2],
             "color": "black"
         },
