@@ -18,6 +18,7 @@ class State(dict):
     }
 
     def __init__(self, src={}):
+        """src: dict or Character object"""
         for attr in self.statedef:
             self[attr] = self._get_val_from_src(attr, src)
 
@@ -189,6 +190,9 @@ class Stats(State):
         return state
 
 class PhysicalState(State):
+    """Encodes the physical, engine-based attributes used for Character creation.
+
+    Not to be used for generic Character updates, only for creation."""
     statedef = {
         "model": str,
         "scale": Vec3,

@@ -174,6 +174,6 @@ def request_update_pstate(connection, time_received, uuid: int,
     if network.peer.is_hosting():
         for conn in network.peer.get_connections():
             if conn is not connection:
-                network.peer.update_lerp_pstate(conn, uuid, phys_state)
+                network.peer.update_npc_lerp_attrs(conn, uuid, phys_state)
 
 

@@ -223,7 +223,7 @@ class NPCController(Entity):
     def update(self):
         self.namelabel.adjust_position()
         self.namelabel.adjust_rotation()
-
+        # Lerp attrs updated by network.peer.update_npc_lerp_attrs
         if self.lerping and self.prev_state:
             self.lerp_timer += time.dt
             # If timer finished, just apply the new state
@@ -337,10 +337,10 @@ class MobController(Entity):
             if conn not in gs.network.connection_to_char:
                 continue
             if self.character is gs.network.connection_to_char[conn]:
-                gs.network.peer.update_target_attrs(conn, self.sequence_number, self.character.position,
+                gs.network.peer.update_pc_lerp_attrs(conn, self.sequence_number, self.character.position,
                                                      self.character.rotation_y)
             else:
-                gs.network.peer.update_lerp_pstate(conn, self.character.uuid, npc_pstate)
+                gs.network.peer.update_npc_lerp_attrs(conn, self.character.uuid, npc_pstate)
 
 
 class NameLabel(Text):

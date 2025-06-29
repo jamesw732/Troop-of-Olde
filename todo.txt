@@ -1,8 +1,20 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Start adding some character assets and animations. Maybe start with just some premade stuff.
+Have basic model, try to get basic animations for everything in the game.
+This will be placeholder for a pretty good while.
 
+I think the easiest approach will be to use Panda3D's Actor class.
+Unfortunately, this means reconciling PhysicalState to be able to handle actors OR
+models. Models will probably only ever be used when they're cubes, but should still
+keep their functionality.
+
+To avoid future confusion about what a PhysicalState actually is, I should confine their
+use case to character creation only. They encode everything physical about a Character
+necessary to create it, but afterwards, the client/server should use the raw attrs or
+a different State class.
+Should remove PhysicalState from update_lerp_state, and also remove cname as an attr of
+PhysicalState.
 
 
 ===================================NEXT================================================
@@ -12,10 +24,7 @@ Move to a database instead of using json.
 Generic Code cleanup:
 - Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
 - I should instead leverage warnings that don't break the game.
-- Change usage of States in the code. I don't like sending entire physical states for typical
-networking updates, and in fact the player character movement code already has moved away from
-this. PhysicalState should pretty much only be used for login, I think? Definitely shouldn't
-be used for NPC lerping.
+- Consider changing usage of States in the code. Maybe remove cname from PhysicalState
 I wonder if I should just have a State called "LoginState"? Might cause issues with size, but it
 would be a lot more clear what's actually going on.
 Should, at the very least, make "State" a more well-defined class.
