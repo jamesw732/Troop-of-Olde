@@ -1,6 +1,6 @@
 import os
 
-from ursina import Vec3, color, load_model, Entity, destroy
+from ursina import Vec3, Vec4, color, load_model, Entity, destroy
 from ursina.mesh_importer import imported_meshes
 
 from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs, models_path
@@ -198,7 +198,7 @@ class PhysicalState(State):
         "scale": Vec3,
         "position": Vec3,
         "rotation": Vec3,
-        "color": str,
+        "color": Vec4,
         "cname": str
     }
     defaults = default_phys_attrs
@@ -213,15 +213,20 @@ class PhysicalState(State):
             val = src[attr]
         # src is a typical data structure and contains attr
         elif hasattr(src, attr):
-            val = getattr(src, attr)
+            if attr == "collider":
+                val = src.collider.name
+            elif attr == "color":
+                val = Vec4(src.color)
+            elif attr == "model":
+                val = src.model_name
+            else:
+                val = getattr(src, attr)
         # couldn't find attr in src, look in defaults
         if val is None:
             # If not in class's defaults, infer based on type of attr
             if attr not in self.defaults:
                 return self.type_to_default[self.statedef[attr]]
             val = self.defaults[attr]
-        if attr in ["collider", "color", "model"] and not isinstance(val, str):
-            val = val.name
         return val
 
     def serialize(writer, state):

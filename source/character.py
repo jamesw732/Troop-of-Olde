@@ -8,6 +8,8 @@ import os
 
 from ursina import *
 from ursina.mesh_importer import imported_meshes
+from direct.actor.Actor import Actor
+from panda3d.core import NodePath
 
 from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, \
     all_skills, sqdist, default_num_powers
@@ -53,7 +55,12 @@ class Character(Entity):
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
-        self.model_child = Entity(parent=self, world_rotation_y=180)
+        self.model_root = NodePath('model_root')
+        self.model_root.reparentTo(self)
+        self.model_root.setPos(0, 0, 0)
+        self.model_child = Actor()
+        self.model_child.setColor(color.orange)
+        self.model_name = ""
         for attr, val in default_phys_attrs.items():
             setattr(self, attr, copy(val))
         self.ignore_traverse = [self]
@@ -69,24 +76,47 @@ class Character(Entity):
 
     @property
     def model(self):
+        if isinstance(self.model_child, Actor):
+            return self.model_child
         return self.model_child.model
 
     @model.setter
     def model(self, new_model):
-        if new_model not in imported_meshes:
-            load_model(os.path.join(models_path, new_model))
-        self.model_child.model = new_model
-        self.model_child.origin = (0, -0.5, 0)
+        if isinstance(self.model_child, Actor):
+            self.model_child.detachNode()
+        else:
+            destroy(self.model_child)
+        try:
+            # Prioritize dynamic Actor model
+            path = os.path.join(models_path, new_model)
+            self.model_child = Actor(path)
+            self.model_child.reparent_to(self.model_root)
+            self.model_child.setPos(0, 0.5, 0)
+            self.model_child.setH(180)
+            self.model_child.setColor(self.color)
+        except IOError:
+            # Settle for a static Entity model otherwise
+            self.model_child = Entity(parent=self, world_rotation_y=180)
+            if new_model not in imported_meshes:
+                load_model(os.path.join(models_path, new_model))
+            self.model_child.model = new_model
+            self.model_child.origin = (0, -0.5, 0)
+        self.model_name = new_model
 
     @property
     def color(self):
+        if isinstance(self.model_child, Actor):
+            return self.model_child.getColor()
         return self.model_child.color
 
     @color.setter
     def color(self, new_color):
         if isinstance(new_color, str):
             new_color = color.colors[new_color]
-        self.model_child.color = new_color
+        if isinstance(self.model_child, Actor):
+            self.model_child.setColor(new_color)
+        else:
+            self.model_child.color = new_color
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""

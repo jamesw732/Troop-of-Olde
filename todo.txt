@@ -9,12 +9,6 @@ Unfortunately, this means reconciling PhysicalState to be able to handle actors 
 models. Models will probably only ever be used when they're cubes, but should still
 keep their functionality.
 
-To avoid future confusion about what a PhysicalState actually is, I should confine their
-use case to character creation only. They encode everything physical about a Character
-necessary to create it, but afterwards, the client/server should use the raw attrs or
-a different State class.
-Should remove PhysicalState from update_lerp_state, and also remove cname as an attr of
-PhysicalState.
 
 
 ===================================NEXT================================================

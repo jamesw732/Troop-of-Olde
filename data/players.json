@@ -4,7 +4,7 @@
             "position": [0, 1, 0],
             "model": "humanoid.glb",
             "scale": [2, 2, 2],
-            "color": "black"
+            "color": [0, 0, 0, 1]
         },
         "basestate": {
             "haste": 100
