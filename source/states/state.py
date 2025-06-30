@@ -1,6 +1,6 @@
 import os
 
-from ursina import Vec3, color, load_model
+from ursina import Vec3, color, load_model, Entity, destroy
 from ursina.mesh_importer import imported_meshes
 
 from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs, models_path
@@ -223,19 +223,6 @@ class PhysicalState(State):
         if attr in ["collider", "color", "model"] and not isinstance(val, str):
             val = val.name
         return val
-
-    def _apply_attr(self, dst, attr, val):
-        """Essentially just setattr but with handling for color/model"""
-        # Colors can't be strings, need to be color objects
-        if attr == "color" and isinstance(val, str):
-            val = color.colors[val]
-        if attr == "model" and val is not "cube" and val not in imported_meshes:
-            model_path = os.path.join(models_path, val)
-            load_model(model_path)
-        setattr(dst, attr, val)
-        if attr == "model":
-            # When updating a model, origin gets reset, so we fix
-            dst.origin = Vec3(0, -0.5, 0)
 
     def serialize(writer, state):
         statedef = PhysicalState.statedef

@@ -49,8 +49,9 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
                         network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
                                               inventory_ids, skills, power_ids, pc_cbstate)
                     else:
+                        npc_pstate = PhysicalState(ch)
                         npc_cbstate = NPCCombatState(ch)
-                        network.peer.spawn_npc(conn, ch.uuid, pstate, npc_cbstate)
+                        network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
             # Existing users just need new character
             else:
                 network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
@@ -158,22 +159,4 @@ def request_auto_unequip(connection, time_received, itemid: int, slot: int):
         container = container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
         network.broadcast_cbstate_update(char)
-
-# State Updates
-@rpc(network.peer)
-def request_update_pstate(connection, time_received, uuid: int,
-                       phys_state: PhysicalState):
-    """Client-authoritatively apply physical state updates.
-    Don't apply new state directly, instead add it as the new LERP state.
-    Host will broadcast the new state to all other peers.
-    """
-    char = network.uuid_to_char.get(uuid, None)
-    if char is None:
-        return
-    phys_state.apply(char)
-    if network.peer.is_hosting():
-        for conn in network.peer.get_connections():
-            if conn is not connection:
-                network.peer.update_npc_lerp_attrs(conn, uuid, phys_state)
-
 

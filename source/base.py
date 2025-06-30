@@ -52,7 +52,7 @@ default_cb_attrs = {
 
 default_phys_attrs = {
     "model": "cube",
-    "scale": Vec3(1, 2, 1),
+    "scale": Vec3(2, 2, 2),
     "origin": Vec3(0, -.5, 0),
     "collider": "box",
     "color": color.orange,

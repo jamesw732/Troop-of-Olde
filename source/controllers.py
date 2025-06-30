@@ -14,10 +14,26 @@ class PlayerController(Entity):
         assert not gs.network.peer.is_hosting()
         super().__init__()
         if character is not None:
-            self.bind_character(character)
+            self.character = character
+            self.focus = Entity(
+                parent=self.character,
+                world_rotation_y=0,
+                world_scale = (1, 1, 1),
+                position = Vec3(0, 0.75, 0)
+            )
+            self.namelabel = NameLabel(character)
+            self.fix_namelabel()
+            # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
+            #                      color=color.yellow, rotation=self.character.rotation,
+            #                      position=self.character.position)
         else:
             self.character = None
-        self.bind_camera()
+            self.focus = None
+        # Bind camera
+        self.camdistance = 20
+        camera.parent = self.focus
+        camera.position = (0, 0, -1 * self.camdistance)
+
         self.bind_keys()
 
         self.prev_mouse_position = mouse.position
@@ -43,25 +59,6 @@ class PlayerController(Entity):
         self.predict_timer = 0
         # Amount of time it should take client to match server given no inputs
         self.offset_duration = 0.5
-
-    def bind_character(self, character):
-        self.character = character
-        self.focus = Entity(
-            parent=self.character,
-            world_scale = (1, 1, 1),
-            position = Vec3(0, 0.75, 0)
-        )
-        self.namelabel = NameLabel(character)
-        self.fix_namelabel()
-        # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
-        #                      color=color.yellow, rotation=self.character.rotation,
-        #                      position=self.character.position)
-
-    def bind_camera(self):
-        self.camdistance = 20
-
-        camera.parent = self.focus
-        camera.position = (0, 0, -1 * self.camdistance)
 
     def fix_namelabel(self):
         """Simplify player character's namelabel"""
@@ -89,8 +86,21 @@ class PlayerController(Entity):
             mouse_rotation = self.get_mouse_rotation()
             self.focus.rotation_x += mouse_rotation[0]
             self.mouse_y_rotation += mouse_rotation[1]
-        self.fix_camera_rotation()
-        self.adjust_camera_zoom()
+        # Fix character rotation
+        self.character.rotation_x = 0
+        self.character.rotation_z = 0
+        self.focus.rotation_z = 0
+        max_vert_rotation = 80
+        self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
+        # Adjust camera zoom
+        direction = camera.world_position - self.focus.world_position
+        ray = raycast(self.focus.world_position, direction=direction, distance=self.camdistance,
+                      ignore=self.character.ignore_traverse)
+        if ray.hit:
+            dist = math.dist(ray.world_point, self.focus.world_position)
+            camera.z = -1 * min(self.camdistance, dist)
+        else:
+            camera.z = -1 * self.camdistance
         # Client-side prediction for movement
         # pct = self.predict_timer / self.offset_duration
         # char.position += lerp(Vec3(0, 0, 0), self.pos_offset, pct)
@@ -153,26 +163,6 @@ class PlayerController(Entity):
         vel = Vec3(-1 * offset[1], offset[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
         return vel * 200
 
-    def fix_camera_rotation(self):
-        """Handles all the problems that results from the camera rotating.
-        Caps vertical rotation, removes z rotation, rotates character."""
-        max_vert_rotation = 80
-        self.character.world_rotation_x = 0
-        self.character.world_rotation_z = 0
-        self.focus.world_rotation_z = 0
-        self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
-
-    def adjust_camera_zoom(self):
-        """Set camera zoom. Handles camera collision with entities"""
-        direction = camera.world_position - self.focus.world_position
-        ray = raycast(self.focus.world_position, direction=direction, distance=self.camdistance,
-                      ignore=self.character.ignore_traverse)
-        if ray.hit:
-            dist = math.dist(ray.world_point, self.focus.world_position)
-            camera.z = -1 * min(self.camdistance, dist)
-        else:
-            camera.z = -1 * self.camdistance
-
     def input(self, key):
         """Updates from single client inputs"""
         tgt = mouse.hovered_entity
@@ -207,59 +197,41 @@ class PlayerController(Entity):
         del self.character
 
 class NPCController(Entity):
-    """Handles everything about characters besides the PC on the client.
-    
-    Todo: LERPing"""
+    """Handles everything about characters besides the PC on the client."""
     def __init__(self, character):
         assert not gs.network.peer.is_hosting()
         super().__init__()
-        self.bind_character(character)
-        self._init_lerp_attrs()
-
-    def bind_character(self, character):
         self.character = character
         self.namelabel = NameLabel(character)
+        self._init_lerp_attrs()
 
     def update(self):
         self.namelabel.adjust_position()
         self.namelabel.adjust_rotation()
         # Lerp attrs updated by network.peer.update_npc_lerp_attrs
-        if self.lerping and self.prev_state:
+        if self.lerping:
             self.lerp_timer += time.dt
-            # If timer finished, just apply the new state
+            # If timer finished, just apply the new attrs
             if self.lerp_timer >= self.lerp_rate:
                 self.lerping = False
-                self.new_state.apply(self.character)
+                self.character.position = self.target_pos
+                self.character.rotation_y = self.target_rot
             # Otherwise, LERP normally
             else:
-                self.position = lerp(self.prev_state.get("position", self.position),
-                                     self.new_state.get("position", self.position),
-                                     self.lerp_timer / self.lerp_rate)
-                self.rotation = lerp(self.prev_state.get("rotation", self.rotation),
-                                     self.new_state.get("rotation", self.rotation),
-                                     self.lerp_timer / self.lerp_rate)
+                pct = self.lerp_timer / self.lerp_rate
+                self.character.position = lerp(self.prev_pos, self.target_pos, pct)
+                self.character.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
     
     def _init_lerp_attrs(self):
         """Initialize lerp logic"""
-        self.prev_state = None
-        self.new_state = PhysicalState(self)
+        self.prev_pos = Vec3(0, 0, 0)
+        self.prev_rot = 0
+        self.target_pos = Vec3(0, 0, 0)
+        self.target_rot = 0
         self.prev_lerp_recv = 0
         self.lerping = False
         self.lerp_rate = 0
         self.lerp_timer = 0.2
-
-    def update_lerp_state(self, state, time):
-        """Essentially just increments the lerp setup.
-        Slide prev and new state, set self.lerping = True, and apply old state"""
-        self.prev_state = self.new_state
-        self.new_state = state
-        if self.prev_state:
-            self.lerping = True
-            self.lerp_rate = time - self.prev_lerp_recv
-            self.prev_lerp_recv = time
-            self.lerp_timer = 0
-            # Apply old state to ensure synchronization and update non-lerp attrs
-            self.prev_state.apply(self.character)
 
     def on_destroy(self):
         destroy(self.namelabel)
@@ -340,7 +312,8 @@ class MobController(Entity):
                 gs.network.peer.update_pc_lerp_attrs(conn, self.sequence_number, self.character.position,
                                                      self.character.rotation_y)
             else:
-                gs.network.peer.update_npc_lerp_attrs(conn, self.character.uuid, npc_pstate)
+                gs.network.peer.update_npc_lerp_attrs(conn, self.character.uuid, self.character.position,
+                                                      self.character.rotation_y)
 
 
 class NameLabel(Text):

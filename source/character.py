@@ -4,8 +4,10 @@ The functionality of Characters on the client and server is very different,
 (and also player characters vs NPCs), but these distinctions are delegated
 to the respective controllers in controllers.py.
 """
+import os
 
 from ursina import *
+from ursina.mesh_importer import imported_meshes
 
 from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, \
     all_skills, sqdist, default_num_powers
@@ -49,9 +51,9 @@ class Character(Entity):
 
         self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
 
-
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
+        self.model_child = Entity(parent=self, world_rotation_y=180)
         for attr, val in default_phys_attrs.items():
             setattr(self, attr, copy(val))
         self.ignore_traverse = [self]
@@ -64,6 +66,27 @@ class Character(Entity):
     def _init_powers(self):
         self.num_powers = default_num_powers
         self.powers = [None] * self.num_powers
+
+    @property
+    def model(self):
+        return self.model_child.model
+
+    @model.setter
+    def model(self, new_model):
+        if new_model not in imported_meshes:
+            load_model(os.path.join(models_path, new_model))
+        self.model_child.model = new_model
+        self.model_child.origin = (0, -0.5, 0)
+
+    @property
+    def color(self):
+        return self.model_child.color
+
+    @color.setter
+    def color(self, new_color):
+        if isinstance(new_color, str):
+            new_color = color.colors[new_color]
+        self.model_child.color = new_color
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""
