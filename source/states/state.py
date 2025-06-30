@@ -211,6 +211,10 @@ class PhysicalState(State):
         # src is a keyed data structure like a dict and contains attr
         if isinstance(src, dict) and attr in src:
             val = src[attr]
+            # some attrs stored as lists in json
+            if isinstance(val, list):
+                T = {3: Vec3, 4: Vec4}[len(val)]
+                val = T(*val)
         # src is a typical data structure and contains attr
         elif hasattr(src, attr):
             if attr == "collider":

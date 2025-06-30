@@ -13,10 +13,6 @@ def get_character_states_from_json(pname):
     with open(players_path) as players:
         d = json.load(players)[pname]
     pstate_raw = d.get("pstate", {})
-    for k, v in pstate_raw.items():
-        if isinstance(v, list):
-            T = {3: Vec3, 4: Vec4}[len(v)]
-            pstate_raw[k] = T(*v)
     pstate_raw["cname"] = pname
     basestate_raw = d.get("basestate", {})
     skills_raw = d.get("skills", {})
