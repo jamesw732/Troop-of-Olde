@@ -1,3 +1,7 @@
+"""Controllers objects attached to Characters which serve as the bridge between inputs
+and the game engine/logic API. Functionality is split between client-side player characters,
+client-side NPCs, and server-side Characters.
+"""
 from ursina import *
 import json
 
@@ -9,7 +13,11 @@ from .skills import *
 from .states import *
 
 class PlayerController(Entity):
-    """Handles player inputs and eventually client-side interpolation"""
+    """Controller for the player character.
+
+    Handles most player inputs, client-side physics and interpolation, network updates.
+    Future: handles animations.
+    """
     def __init__(self, character=None):
         assert not gs.network.peer.is_hosting()
         super().__init__()
@@ -197,7 +205,11 @@ class PlayerController(Entity):
         del self.character
 
 class NPCController(Entity):
-    """Handles everything about characters besides the PC on the client."""
+    """Controller for all client-side Characters besides the player character.
+
+    To the client, anything besides the player character is an NPC. Even other players.
+    Handles client-side updates and linearly interpolates for smoothness.
+    Future: Handles animations."""
     def __init__(self, character):
         assert not gs.network.peer.is_hosting()
         super().__init__()
@@ -239,8 +251,14 @@ class NPCController(Entity):
         del self.character
 
 class MobController(Entity):
-    """Handles server-side character logic such as combat and (eventually)
-    movement"""
+    """Controller for all server-side characters.
+
+    Handles server-side combat and physics.
+    Does not, and will not, handle NPC logic such as pathing, aggression, etc.
+    These will instead be handled by an NPCLogic (tentative name) class which reads the
+    game state and makes "inputs" to be processed by this class. These "inputs" should be
+    compatible with the processed outputs sent by PlayerController.
+    """
     def __init__(self, character):
         assert gs.network.peer.is_hosting()
         super().__init__()

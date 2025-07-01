@@ -55,9 +55,6 @@ class Character(Entity):
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
-        self.model_root = NodePath('model_root')
-        self.model_root.reparentTo(self)
-        self.model_root.setPos(0, 0, 0)
         self.model_child = Actor()
         self.model_child.setColor(color.orange)
         self.model_name = ""
@@ -90,10 +87,10 @@ class Character(Entity):
             # Prioritize dynamic Actor model
             path = os.path.join(models_path, new_model)
             self.model_child = Actor(path)
-            self.model_child.reparent_to(self.model_root)
-            self.model_child.setPos(0, 0.5, 0)
+            self.model_child.reparent_to(self)
             self.model_child.setH(180)
             self.model_child.setColor(self.color)
+            self.model_child.loop("Idle")
         except IOError:
             # Settle for a static Entity model otherwise
             self.model_child = Entity(parent=self, world_rotation_y=180)

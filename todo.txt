@@ -1,15 +1,21 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Have basic model, try to get basic animations for everything in the game.
-This will be placeholder for a pretty good while.
+General goal is to get basic placeholder animations for everything in the game.
+This will be placeholder until stage 2 of development.
 
-I think the easiest approach will be to use Panda3D's Actor class.
-Unfortunately, this means reconciling PhysicalState to be able to handle actors OR
-models. Models will probably only ever be used when they're cubes, but should still
-keep their functionality.
+Fix the issue where we try to make a cube Actor, not sure what the cause is but almost
+definitely from the PhysicalState default. The default probably could just be humanoid.glb,
+but we shouldn't be using the default regardless, so this is worthwhile to fix.
 
+Is the flexibility provided by allowing model_child to be either an Actor or an Entity really
+worthwhile? It allows models to still be Ursina models, which maybe is worthwhile.
 
+I predict that it will be worthwhile to encapsulate animation logic in its own class, and probably
+attach it to controllers. It *could* be part of the controller classes by default, but this
+might be overshooting. I prefer the Controller classes to be drivers that depend on the
+game logic API, and the game logic API is pretty much just everything outside of the controller
+classes.
 
 ===================================NEXT================================================
 Move to a database instead of using json.
