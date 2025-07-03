@@ -320,6 +320,8 @@ class MobController(Entity):
         set_gravity_vel(self.character)
         set_jump_vel(self.character)
         displacement = get_displacement(self.character)
+        if displacement == Vec3(0, 0, 0):
+            return
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
         npc_pstate = PhysicalState(self.character)

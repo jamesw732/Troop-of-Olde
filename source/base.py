@@ -51,7 +51,7 @@ default_cb_attrs = {
 }
 
 default_phys_attrs = {
-    "model": "cube",
+    "model_name": "humanoid.glb",
     "scale": Vec3(2, 2, 2),
     "origin": Vec3(0, -.5, 0),
     "collider": "box",

@@ -194,7 +194,7 @@ class PhysicalState(State):
 
     Not to be used for generic Character updates, only for creation."""
     statedef = {
-        "model": str,
+        "model_name": str,
         "scale": Vec3,
         "position": Vec3,
         "rotation": Vec3,
@@ -219,10 +219,6 @@ class PhysicalState(State):
         elif hasattr(src, attr):
             if attr == "collider":
                 val = src.collider.name
-            elif attr == "color":
-                val = Vec4(src.color)
-            elif attr == "model":
-                val = src.model_name
             else:
                 val = getattr(src, attr)
         # couldn't find attr in src, look in defaults

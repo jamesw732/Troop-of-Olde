@@ -4,18 +4,9 @@ Implementation todo list.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 
-Fix the issue where we try to make a cube Actor, not sure what the cause is but almost
-definitely from the PhysicalState default. The default probably could just be humanoid.glb,
-but we shouldn't be using the default regardless, so this is worthwhile to fix.
-
-Is the flexibility provided by allowing model_child to be either an Actor or an Entity really
-worthwhile? It allows models to still be Ursina models, which maybe is worthwhile.
-
-I predict that it will be worthwhile to encapsulate animation logic in its own class, and probably
-attach it to controllers. It *could* be part of the controller classes by default, but this
-might be overshooting. I prefer the Controller classes to be drivers that depend on the
-game logic API, and the game logic API is pretty much just everything outside of the controller
-classes.
+It may be worthwhile to encapsulate animation logic in its own class.
+Try to do the animation logic without its own class, but if it becomes too cumbersome,
+don't hesitate to extract it to its own class.
 
 ===================================NEXT================================================
 Move to a database instead of using json.

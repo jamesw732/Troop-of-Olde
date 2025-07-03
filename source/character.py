@@ -57,7 +57,7 @@ class Character(Entity):
         """Initialize base physical attributes. These are likely to change."""
         self.model_child = Actor()
         self.model_child.setColor(color.orange)
-        self.model_name = ""
+        self._model_name = ""
         for attr, val in default_phys_attrs.items():
             setattr(self, attr, copy(val))
         self.ignore_traverse = [self]
@@ -70,50 +70,6 @@ class Character(Entity):
     def _init_powers(self):
         self.num_powers = default_num_powers
         self.powers = [None] * self.num_powers
-
-    @property
-    def model(self):
-        if isinstance(self.model_child, Actor):
-            return self.model_child
-        return self.model_child.model
-
-    @model.setter
-    def model(self, new_model):
-        if isinstance(self.model_child, Actor):
-            self.model_child.detachNode()
-        else:
-            destroy(self.model_child)
-        try:
-            # Prioritize dynamic Actor model
-            path = os.path.join(models_path, new_model)
-            self.model_child = Actor(path)
-            self.model_child.reparent_to(self)
-            self.model_child.setH(180)
-            self.model_child.setColor(self.color)
-            self.model_child.loop("Idle")
-        except IOError:
-            # Settle for a static Entity model otherwise
-            self.model_child = Entity(parent=self, world_rotation_y=180)
-            if new_model not in imported_meshes:
-                load_model(os.path.join(models_path, new_model))
-            self.model_child.model = new_model
-            self.model_child.origin = (0, -0.5, 0)
-        self.model_name = new_model
-
-    @property
-    def color(self):
-        if isinstance(self.model_child, Actor):
-            return self.model_child.getColor()
-        return self.model_child.color
-
-    @color.setter
-    def color(self, new_color):
-        if isinstance(new_color, str):
-            new_color = color.colors[new_color]
-        if isinstance(self.model_child, Actor):
-            self.model_child.setColor(new_color)
-        else:
-            self.model_child.color = new_color
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""
@@ -257,6 +213,19 @@ class ServerCharacter(Character):
              maxval = getattr(self, "max" + attr)
              setattr(self, attr, maxval)
 
+    @property
+    def model_name(self):
+        """Get model name."""
+        return self._model_name
+
+    @model_name.setter
+    def model_name(self, new_model):
+        """Update model. Unlike ClientCharacter, does not update anything else
+        since server only needs the name of the model.
+        If this changes, just move corresponding ClientCharacter functions to Character
+        new_model: name of model file (no other path information)"""
+        self._model_name = new_model
+
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
         gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
@@ -310,6 +279,35 @@ class ClientCharacter(Character):
         for attr in ["health", "energy", "armor"]:
              maxval = getattr(self, "max" + attr)
              setattr(self, attr, maxval)
+
+    @property
+    def model_name(self):
+        """When accessing model, return the name of the model"""
+        return self._model_name
+
+    @model_name.setter
+    def model_name(self, new_model):
+        """When setting model, update actor and name
+
+        new_model: name of model file (no other path information)"""
+        self.model_child.detachNode()
+        path = os.path.join(models_path, new_model)
+        self.model_child = Actor(path)
+        self.model_child.reparent_to(self)
+        self.model_child.setH(180)
+        self.model_child.setColor(self.color)
+        self.model_child.loop("Idle")
+        self._model_name = new_model
+
+    @property
+    def color(self):
+        return Vec4(self.model_child.getColor())
+
+    @color.setter
+    def color(self, new_color):
+        if isinstance(new_color, str):
+            new_color = color.colors[new_color]
+        self.model_child.setColor(new_color)
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
