@@ -22,7 +22,7 @@ from .skills import *
 from .states import *
 
 class Character(Entity):
-    def __init__(self, uuid=None, pstate=None, cbstate=None, skills=SkillsState()):
+    def __init__(self, uuid=None, pstate=PhysicalState(), cbstate=BaseCombatState(), skills=SkillsState()):
         """Base Character class representing the intersection of server and client-side Characters.
 
         Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
@@ -46,10 +46,8 @@ class Character(Entity):
         self._init_powers()
         self._init_cb_attrs()
         # Populate all attrs
-        if pstate:
-            pstate.apply(self)
-        if cbstate:
-            cbstate.apply(self)
+        pstate.apply(self)
+        cbstate.apply(self)
 
         # self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
         self.skills = {skill: skills[i] for i, skill in enumerate(all_skills)}
@@ -174,7 +172,7 @@ class Character(Entity):
         return self.gcd_timer < self.gcd
 
 class ServerCharacter(Character):
-    def __init__(self, uuid=None, pstate=None, cbstate=None,
+    def __init__(self, uuid=None, pstate=PhysicalState(), cbstate=BaseCombatState(),
                  equipment=[], inventory=[], skills=SkillsState(), powers=[]):
         """Initialize a Character for the server.
         Args obtained from states.get_character_states_from_json.
@@ -210,9 +208,6 @@ class ServerCharacter(Character):
             self.powers[i] = ServerPower(self, power_id)
 
         self.update_max_ratings()
-        for attr in ["health", "energy", "armor"]:
-             maxval = getattr(self, "max" + attr)
-             setattr(self, attr, maxval)
 
     @property
     def model_name(self):
@@ -234,7 +229,7 @@ class ServerCharacter(Character):
         destroy(self)
 
 class ClientCharacter(Character):
-    def __init__(self, uuid=None, pstate=None, cbstate=None,
+    def __init__(self, uuid=None, pstate=PhysicalState(), cbstate=BaseCombatState(),
                  equipment=[], inventory=[], skills=SkillsState(), powers=[]):
         """Initialize a Character for the Client.
         Args obtained from states.get_character_states_from_json.
@@ -275,11 +270,6 @@ class ClientCharacter(Character):
             if power_ids[0] < 0 or power_ids[1] < 0:
                 continue
             self.powers[i] = ClientPower(self, *power_ids)
-
-        self.update_max_ratings()
-        for attr in ["health", "energy", "armor"]:
-             maxval = getattr(self, "max" + attr)
-             setattr(self, attr, maxval)
 
     @property
     def model_name(self):

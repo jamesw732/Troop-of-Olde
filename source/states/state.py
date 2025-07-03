@@ -83,6 +83,8 @@ class State(list):
 
 class BaseCombatState(State):
     statedef = {
+        "health": int,
+        "energy": int,
         "statichealth": int,
         "staticenergy": int,
         "staticarmor": int,

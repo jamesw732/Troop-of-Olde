@@ -34,8 +34,7 @@ class BarWindow(UIWindow):
 
         grid(self.bar_bg, num_rows=2, num_cols=1, color=color.black)
 
-        self.update_rate = 1.0
-        self.update_timer = 0.0
+        self.update_display()
 
     def update_display(self):
         self.update_health()

@@ -22,11 +22,11 @@ some stat that scales power damage
 crit damage/rate
 """
 default_cb_attrs = {
-    "maxhealth": 0,
+    "maxhealth": 100,
     "health": 100,
     "statichealth": 100,
     "maxenergy": 100,
-    "energy": 0,
+    "energy": 100,
     "staticenergy": 100,
     "maxarmor": 0,
     "armor": 0,
