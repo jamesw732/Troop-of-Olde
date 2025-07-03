@@ -7,7 +7,7 @@ from .network import network
 from .register import *
 from .world_requests import request_enter_world
 from ..gamestate import gs
-from ..states import get_player_states_from_json
+from ..states import get_player_states_from_data
 
 def input(key):
     """Right now, handles login inputs. Very temporary framework.
@@ -28,7 +28,9 @@ def on_connect(connection, time_connected):
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done on "enter world"."""
     if not network.peer.is_hosting():
-        gs.pname = "Demo Player"
-        pstate, cbstate, equipment, inventory, skills, powers = \
-            get_player_states_from_json(gs.pname)
-        network.peer.request_enter_world(connection, pstate, cbstate, equipment, inventory, skills, powers)
+        player_name = "Demo Player"
+        players_path = os.path.join(data_path, "players.json")
+        with open(players_path) as players:
+            pc_data = json.load(players)[player_name]
+        states = get_player_states_from_data(pc_data, player_name)
+        network.peer.request_enter_world(connection, *states)
