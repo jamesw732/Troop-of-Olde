@@ -5,7 +5,7 @@ import os
 
 from .base import data_path
 from .character import ServerCharacter
-from .states import BaseCombatState, PhysicalState
+from .states import get_npc_states_from_data
 
 
 class GenerateWorld:
@@ -38,10 +38,8 @@ class GenerateWorld:
         path = os.path.join(self.zones_path, file)
         with open(path) as f:
             npc_data = json.load(f)
-        states = [(PhysicalState(data["physical"]),
-                   BaseCombatState(data["combat"]))
-                   for (npc, data) in npc_data.items()]
-        return [ServerCharacter(pstate=tup[0], cbstate=tup[1]) for tup in states]
+        return [ServerCharacter(**get_npc_states_from_data(data, name))
+                                for name, data in npc_data.items()]
 
     def parse_colors(self, data):
         """Parses colors from a json, which are just formatted as strings.

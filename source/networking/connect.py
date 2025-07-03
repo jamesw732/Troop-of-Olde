@@ -7,7 +7,7 @@ from .network import network
 from .register import *
 from .world_requests import request_enter_world
 from ..gamestate import gs
-from ..states import get_character_states_from_json
+from ..states import get_player_states_from_json
 
 def input(key):
     """Right now, handles login inputs. Very temporary framework.
@@ -30,5 +30,5 @@ def on_connect(connection, time_connected):
     if not network.peer.is_hosting():
         gs.pname = "Demo Player"
         pstate, cbstate, equipment, inventory, skills, powers = \
-            get_character_states_from_json(gs.pname)
+            get_player_states_from_json(gs.pname)
         network.peer.request_enter_world(connection, pstate, cbstate, equipment, inventory, skills, powers)

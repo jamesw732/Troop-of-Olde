@@ -22,16 +22,16 @@ from .skills import *
 from .states import *
 
 class Character(Entity):
-    def __init__(self, uuid=None, pstate=None, cbstate=None, skills={}):
+    def __init__(self, uuid=None, pstate=None, cbstate=None, skills=SkillsState()):
         """Base Character class representing the intersection of server and client-side Characters.
 
         Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
         when necessary.
         cname: name of character, str
         uuid: unique id. Used to encode which player you're talking about online.
-        pstate: State; defines physical attrs, these are updated client-authoritatively
-        base_state: State; used to build the character's stats from the ground up
-        skills: State dict mapping str skill names to int skill levels
+        pstate: PhysicalState; defines physical attrs, these are updated client-authoritatively
+        base_state: BaseCombatState; used to build the character's stats from the ground up
+        skills: SkillsState dict mapping str skill names to int skill levels
         """
         self.uuid = uuid
 
@@ -51,7 +51,8 @@ class Character(Entity):
         if cbstate:
             cbstate.apply(self)
 
-        self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
+        # self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
+        self.skills = {skill: skills[i] for i, skill in enumerate(all_skills)}
 
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
@@ -174,7 +175,7 @@ class Character(Entity):
 
 class ServerCharacter(Character):
     def __init__(self, uuid=None, pstate=None, cbstate=None,
-                 equipment=[], inventory=[], skills={}, powers=[]):
+                 equipment=[], inventory=[], skills=SkillsState(), powers=[]):
         """Initialize a Character for the server.
         Args obtained from states.get_character_states_from_json.
 
@@ -234,7 +235,7 @@ class ServerCharacter(Character):
 
 class ClientCharacter(Character):
     def __init__(self, uuid=None, pstate=None, cbstate=None,
-                 equipment=[], inventory=[], skills={}, powers=[]):
+                 equipment=[], inventory=[], skills=SkillsState(), powers=[]):
         """Initialize a Character for the Client.
         Args obtained from states.get_character_states_from_json.
 

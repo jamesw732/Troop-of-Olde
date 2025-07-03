@@ -5,9 +5,9 @@ from ursina.mesh_importer import imported_meshes
 
 from ..base import all_skills, default_equipment, default_phys_attrs, default_cb_attrs, models_path
 
-class State(dict):
-    """Base class for all State types. Never meant to be initialized, only
-    inherited by other State types."""
+class State(list):
+    """Base class for all State types. Never meant to be initialized directly,
+    always inherited by other State types."""
     statedef = {}
     defaults = {}
     type_to_default = {
@@ -18,22 +18,26 @@ class State(dict):
     }
 
     def __init__(self, src={}):
-        """src: dict or Character object"""
+        """Populates self as a flat list, with defaults if missing.
+        Will never have gaps.
+
+        src: dict or Character object"""
         for attr in self.statedef:
-            self[attr] = self._get_val_from_src(attr, src)
+            self.append(self._get_val_from_src(attr, src))
+
 
     def apply(self, dst):
         """Apply attrs to a destination object by overwriting the attrs
         
         dst: Character or container object, this may expand"""
-        for k, v in self.items():
+        for k, v in zip(self.statedef, self):
             self._apply_attr(dst, k, v)
     
     def apply_diff(self, dst, remove=False):
         """Apply attrs to a destination object by adding/subtracting the attrs
         
         dst: Character"""
-        for attr, val in self.items():
+        for attr, val in zip(self.statedef, self):
             original_val = self._get_val_from_src(attr, dst)
             if remove:
                 self._apply_attr(dst, attr, original_val - val)
@@ -72,9 +76,9 @@ class State(dict):
     def deserialize(reader):
         statedef = State.statedef
         state = State()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state
 
 class BaseCombatState(State):
@@ -94,16 +98,16 @@ class BaseCombatState(State):
 
     def serialize(writer, state):
         statedef = BaseCombatState.statedef
-        for k in statedef:
-            v = state[k]
+        for i, k in enumerate(statedef):
+            v = state[i]
             writer.write(v)
 
     def deserialize(reader):
         statedef = BaseCombatState.statedef
         state = BaseCombatState()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state
 
 class PlayerCombatState(State):
@@ -129,16 +133,16 @@ class PlayerCombatState(State):
 
     def serialize(writer, state):
         statedef = PlayerCombatState.statedef
-        for k in statedef:
-            v = state[k]
+        for i, k in enumerate(statedef):
+            v = state[i]
             writer.write(v)
 
     def deserialize(reader):
         statedef = PlayerCombatState.statedef
         state = PlayerCombatState()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state
 
 class NPCCombatState(State):
@@ -150,16 +154,16 @@ class NPCCombatState(State):
 
     def serialize(writer, state):
         statedef = NPCCombatState.statedef
-        for k in statedef:
-            v = state[k]
+        for i, k in enumerate(statedef):
+            v = state[i]
             writer.write(v)
 
     def deserialize(reader):
         statedef = NPCCombatState.statedef
         state = NPCCombatState()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state
 
 class Stats(State):
@@ -177,16 +181,16 @@ class Stats(State):
 
     def serialize(writer, state):
         statedef = Stats.statedef
-        for k in statedef:
-            v = state[k]
+        for i, k in enumerate(statedef):
+            v = state[i]
             writer.write(v)
 
     def deserialize(reader):
         statedef = Stats.statedef
         state = Stats()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state
 
 class PhysicalState(State):
@@ -231,16 +235,16 @@ class PhysicalState(State):
 
     def serialize(writer, state):
         statedef = PhysicalState.statedef
-        for k in statedef:
-            v = state[k]
+        for i, k in enumerate(statedef):
+            v = state[i]
             writer.write(v)
 
     def deserialize(reader):
         statedef = PhysicalState.statedef
         state = PhysicalState()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state
 
 class SkillsState(State):
@@ -251,14 +255,14 @@ class SkillsState(State):
 
     def serialize(writer, state):
         statedef = SkillsState.statedef
-        for k in statedef:
-            v = state[k]
+        for i, k in enumerate(statedef):
+            v = state[i]
             writer.write(v)
 
     def deserialize(reader):
         statedef = SkillsState.statedef
         state = SkillsState()
-        for k, t in statedef.items():
+        for i, t in enumerate(statedef.values()):
             v = reader.read(t)
-            state[k] = v
+            state[i] = v
         return state

@@ -1,6 +1,15 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
+Kinda large impromptu refactoring project:
+Turned State into a list
+Want to make get_player_states_from_json a bit better, shouldn't need to assign
+5 variables or whatever. Also rename "pstate" to "physical" in players.json.
+Shouldn't need to initialize default attrs on a character now, because we know everything
+will be populated if there's a State. Instead, should make default the corresponding
+State.
+
+
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 
@@ -19,6 +28,8 @@ Generic Code cleanup:
 I wonder if I should just have a State called "LoginState"? Might cause issues with size, but it
 would be a lot more clear what's actually going on.
 Should, at the very least, make "State" a more well-defined class.
+- Refine the split between networking code and game logic. Try to keep gs.network.peer
+calls confined to controllers.py and the UI code. And maybe only the former.
 
 
 Physics:

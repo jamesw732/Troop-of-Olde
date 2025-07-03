@@ -324,7 +324,6 @@ class MobController(Entity):
             return
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-        npc_pstate = PhysicalState(self.character)
         for conn in gs.network.peer.get_connections():
             if conn not in gs.network.connection_to_char:
                 continue
