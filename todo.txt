@@ -36,9 +36,10 @@ Generic Code cleanup:
 I wonder if I should just have a State called "LoginState"? Might cause issues with size, but it
 would be a lot more clear what's actually going on.
 Should, at the very least, make "State" a more well-defined class.
-- Refine the split between networking code and game logic. Try to keep gs.network.peer
-calls confined to controllers.py and the UI code. And maybe only the former.
 
+Networking:
+Add sequence count to network calls where order of arrival matters, for example
+skill level ups.
 
 Physics:
 Implement momentum, make it be a list of the 5 most recent keyboard movement vectors. They are

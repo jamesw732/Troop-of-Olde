@@ -281,6 +281,8 @@ class MobController(Entity):
                 mh_skill = get_wpn_style(mh)
                 if hit and check_raise_skill(char, mh_skill):
                     raise_skill(char, mh_skill)
+                    connection = gs.network.uuid_to_connection[char.uuid]
+                    gs.network.peer.remote_update_skill(connection, mh_skill, char.skills[mh_skill])
                 conn = gs.network.uuid_to_connection.get(char.uuid, None)
                 if conn is not None:
                     gs.network.peer.remote_print(conn, msg)
@@ -301,6 +303,8 @@ class MobController(Entity):
                 oh_skill = get_wpn_style(char.equipment[oh_slot])
                 if hit and check_raise_skill(char, oh_skill):
                     raise_skill(char, oh_skill)
+                    connection = gs.network.uuid_to_connection[char.uuid]
+                    gs.network.peer.remote_update_skill(connection, oh_skill, char.skills[oh_skill])
                 conn = gs.network.uuid_to_connection.get(char.uuid, None)
                 if conn is not None:
                     gs.network.peer.remote_print(conn, msg)

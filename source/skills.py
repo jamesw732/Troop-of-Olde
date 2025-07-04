@@ -10,8 +10,5 @@ def check_raise_skill(char, skill):
     return random.random() < prob
 
 def raise_skill(char, skill):
-    assert gs.network.peer.is_hosting()
     char.skills[skill] += 1
-    connection = gs.network.uuid_to_connection[char.uuid]
-    gs.network.peer.remote_update_skill(connection, skill, char.skills[skill])
 
