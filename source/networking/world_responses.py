@@ -7,10 +7,11 @@ from ursina.networking import rpc
 from .network import network
 from ..base import sqnorm, PHYSICS_UPDATE_RATE
 from ..client.character import ClientCharacter
-from ..controllers import *
+from ..client.controllers import PlayerController, NPCController
+# from ..controllers import PlayerController, NPCController
 from ..item import *
 from ..gamestate import gs
-from ..states import State
+from ..states import *
 from ..ui import UI, make_all_ui
 from ..world_gen import GenerateWorld
 

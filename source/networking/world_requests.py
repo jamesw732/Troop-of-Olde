@@ -8,8 +8,9 @@ from ursina.networking import rpc
 
 from .network import network
 from .world_responses import *
+from ..base import *
 from ..character import ServerCharacter
-from ..controllers import *
+from ..server.controllers import MobController
 from ..item import *
 from ..gamestate import gs
 from ..states import State, container_to_ids
