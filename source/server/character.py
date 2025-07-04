@@ -14,10 +14,8 @@ from panda3d.core import NodePath
 from ..base import default_equipment, default_inventory
 from ..character import Character
 from ..gamestate import gs
-from ..item import ServerItem, ServerContainer
-from ..physics import *
+from .item import ServerItem, ServerContainer
 from ..power import ServerPower
-from ..skills import *
 from ..states import *
 
 class ServerCharacter(Character):

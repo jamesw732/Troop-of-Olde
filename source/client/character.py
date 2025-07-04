@@ -7,9 +7,7 @@ from panda3d.core import NodePath
 
 from ..character import Character
 from ..item import Item, Container
-from ..physics import *
 from ..power import ClientPower
-from ..skills import *
 from ..states import *
 
 

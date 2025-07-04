@@ -90,13 +90,6 @@ class Item:
     def __str__(self):
         return self.name
 
-class ServerItem(Item):
-    def __init__(self, item_id):
-        # Set the instance ID. Server needs to externally transmit this upon item creation.
-        self.inst_id = gs.network.item_inst_id_ct
-        gs.network.item_inst_id_ct += 1
-        super().__init__(item_id, self.inst_id)
-
 class Container(list):
     def __init__(self, container_id, name, items):
         self.container_id = container_id
@@ -121,13 +114,6 @@ class Container(list):
                 if it is None or s in extra_includes:
                     return s
         return -1
-
-class ServerContainer(Container):
-    def __init__(self, name, items):
-        container_id = gs.network.container_inst_id_ct
-        gs.network.container_inst_id_ct += 1
-        super().__init__(container_id, name, items)
-
 
 def internal_autoequip(char, container, slot):
     """Auto equips an item internally"""

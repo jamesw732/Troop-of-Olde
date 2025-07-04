@@ -11,14 +11,9 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from .base import default_cb_attrs, default_phys_attrs, default_equipment, default_inventory, \
-    all_skills, sqdist, default_num_powers
+from .base import default_cb_attrs, default_phys_attrs, all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
 from .gamestate import gs
-from .item import Item, ServerItem, Container, ServerContainer
-from .physics import *
-from .power import ServerPower, ClientPower
-from .skills import *
 from .states import *
 
 class Character(Entity):

@@ -9,9 +9,9 @@ from ursina.networking import rpc
 from .network import network
 from .world_responses import *
 from ..base import *
+from ..item import full_item_move, internal_autoequip, internal_autounequip
 from ..server.character import ServerCharacter
 from ..server.controllers import MobController
-from ..item import *
 from ..gamestate import gs
 from ..states import State, container_to_ids
 
