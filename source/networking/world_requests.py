@@ -9,7 +9,7 @@ from ursina.networking import rpc
 from .network import network
 from .world_responses import *
 from ..base import *
-from ..character import ServerCharacter
+from ..server.character import ServerCharacter
 from ..server.controllers import MobController
 from ..item import *
 from ..gamestate import gs
