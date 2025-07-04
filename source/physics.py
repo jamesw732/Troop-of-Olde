@@ -57,7 +57,8 @@ def apply_physics(char, displacement):
                 char.grounded = True
                 displacement = ray.world_point - char.world_position + Vec3(0, 1e-3, 0)
                 return displacement
-            # Intersection of the plane ax + by + cz = 0 with the plane defined by (0, 0, 0), (0, 1, 0), and original displacement
+            # Intersection of the plane ax + by + cz = 0 with the plane defined by (0, 0, 0),
+            # (0, 1, 0), and original displacement
             direction = Vec3(displacement[0] * normal[1],
                              -displacement[2] * normal[2] - displacement[0] * normal[0],
                              displacement[2] * normal[1]).normalized()

@@ -16,11 +16,16 @@ via public API as well as the UI
 - Internal API: Internal state and helper functions, shared between client and server.
 
 Steps:
-- Remove networking requests from lower level modules, including UI
-- Consider pulling out PlayerController into an InputHandler class and
+Build input handler layer:
+- Pull input-handling parts of PlayerController into an InputHandler class and
 keep PlayerController as part of the Client API, rather than part of the input
-layer. This should make the UI network requests easier to extract. Might require
-a bit of a logical leap for repeated updates like combat and movement.
+layer. This should make the UI network requests easier to extract.
+- Remove networking requests from lower level modules, including UI
+- Pull UI input handling into the input handler
+
+
+
+
 - Update developer.tex
 
 ===================================NEXT================================================

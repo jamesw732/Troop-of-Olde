@@ -101,8 +101,27 @@ Checklist for this phase:
 
 \section{Code Infrastructure}
 This section describes the key development choices made in the source code
-for this game.  This is organized by ``code layers'', which are essentially just
-mental folders I use to try to organize the code.
+for this game.
+
+The first several subsections here outline a well-defined logical stack that has
+arisen as a result of development. This stack is:
+\begin{enumerate}
+    \item Project Root
+    \item Input Handling
+    \item Request layer
+    \item Server API
+    \item Response layer
+    \item Client API
+    \item Shared API
+\end{enumerate}
+Each of these layers is explained in detail below. When developing new features, it
+is useful to think in terms of this stack - ask yourself, which functionality belongs
+to the input handler? The server API? and so on. This stack enforces downward
+dependence - input handling relies on the request layer, but the request layer
+does not rely on the input handling.
+
+This does not actually represent the current state of the repository, but it is
+an active development task to move towards this structure.
 
 \subsection{Project Root}
 These are the \codeword{main.py}, \codeword{server.py}, \codeword{main_multiplayer.py}
@@ -119,154 +138,38 @@ to it from \codeword{main_multiplayer.py}.
 
 Of course, this launch process is subject to change once this becomes more of a real game.
 
-\subsection{External API}
-The external API is the gateway between ``external'' inputs and the internal game logic.
-Namely, this mainly includes the whole UI module and \codeword{controllers.py}, but I
-also include the networking module.
+\subsection{Input Handling}
+The role of the input handling layer is to parse player inputs, update the local
+game state through the client API, and send networking requests.
 
-The role of the UI module is to display necessary parts of the game state, 
-handle relevant inputs from the player, and send networking requests. Networking responses
-are capable of updating the state of the UI, for example when the player's health is updated,
-the health bar decreases.
+This layer is not yet separated out, but it will be encapsulated in a singleton InputHandler class.
+Only clients will create one. This will be the sole class responsible for making networking
+requests. Furthermore, UI-based inputs will be handled here. This is a tradeoff, because it means
+the behavior of the UI is no longer restricted to the UI modules, but it also means the input
+handling all happens in one place. So really, the functionality of the UI should remain in the
+UI code, it should just be encapsulated as an API for the input handler to see.
 
-The role of \codeword{controllers.py} is to perform operations which affect the state of
-Characters. Controllers are attached to single Characters. They are not sentient, but they
-do respond to inputs.\\
-PlayerController handles (some) player input, updating the local game state and sending
-network requests. Networking responses is able to modify the state of PlayerController as
-well, for example the controller is responsible for the interpolation that corrects
-client-side prediction for player movement.\\
-NPCController handles networking responses for client-side NPCs.\\
-MobController is the server-side Character controller. It handles server-side operations such as
-combat and physics.
+There will eventually be a class that handles NPC logic. Since the whole point of this is to
+essentially emulate player inputs, this will go in here.
+\subsection{Request Layer}
+The request layer is responsible for remote procedure calls sent by the client to
+the server. Authoritative game state is updated via the server API and shared API, and
+then remote states are updated via the response layer.
 
-The role of the networking module is, really, to keep the client and server on the same page
-about the game state. But the way it does this is by interfacing between the functions of the
-external API. So it's ``sort of'' part of the external API, or more like the glue that keeps
-it together. See below for an in-depth description of the networking module.
+The interface to the request layer should be public to the client, but the implementation
+should not be.
+\subsection{Server API}
+The server API is responsible for encapsulating server-specific objects and functions.
+\subsection{Response Layer}
+The response layer is responsible for remote procedure calls sent by the server to
+the client. The local game state is updated via the client API.
 
-Eventually, NPC logic will be built into an external server-side only class, and not be part
-of MobController. This won't be part of the external API layer, since the role of an NPC logic
-class is to emulate ``player'' inputs.
+The interface to the response layer should be public to the server, but the implementation
+does not need to be.
+\subsection{Client API}
+The client API is responsible for encapsulating client-specific objects and functions.
+The UI is part of the client API.
 
-I am not extremely happy with the structure of this layer. I think the input handling should be
-moved into a separate class, which would call Controller methods and send network requests.
-This class would be solely responsible for sending network responses, so there would be none
-in the external API. This paradigm would allow for a cleaner divide between the code layers:
-The input handler would be the highest logical layer under the root, then the networking module,
-then the external API, and finally the internal API.
-
-\subsubsection{Networking}
-This game runs on a client-server framework. Currently, it is only tested to
-support one device launching multiple clients.
-All networking code is built on Ursina's \codeword{networking} submodule, which
-is built on TCP and based on remote procedure calls (RPCs). It is located in
-the \codeword{networking} submodule of this repository. The organization is
-under consideration, but below is a brief description of the files in this
-directory:
-\begin{itemize}
-    \item \codeword{connect.py} is a small file that handles the work required
-        when establishing a new connection to the server. It essentially just
-        defines the \codeword{on_connect} function and an \codeword{input}
-        function for connecting. Eventually, this input function will be
-        extracted into an external login sequence that uses actual GUI,
-        but this is low priority right now.
-    \item \codeword{disconnect.py}, similarly, handles the work required when
-        leaving the server. Disconnection logic is currently buggy, but this
-        is a low priority at the moment.
-    \item \codeword{network.py} defines the \codeword{Network} class, which is
-        mostly just a centralized location for crucial network information
-        such as the \codeword{Peer} instance and dicts mapping ids and connections
-        to objects in memory. The \codeword{Network} object is added as a
-        variable of the \codeword{GameState} object, so that RPCs can be accessed
-        without having to import the corresponding files. This provides a great
-        deal of separation between the internal game logic and the networking
-        code at the cost of a global variable.
-    \item \codeword{register.py} is a simple procedural file that registers all
-        custom data types to be sent across the network. For the most part, these
-        data types are \codeword{State}s, which will be explained later, but these
-        are essentially just large groups of arguments attached together in a single
-        object.
-    \item \codeword{world_requests.py} is a file containing all in-game networking
-        requests sent by clients. All functions in this file are remote procedure
-        calls that are {\it called} by clients, and {\it executed} on the server.
-        Relies on the game code and on \codeword{world_responses.py}.
-    \item \codeword{world_responses.py} is a file containing all in-game networking
-        responses sent by the server. All functions in this file are remote procedure
-        item calls that are called by the server, executed on a client. Relies on the
-        item game code.
-\end{itemize}
-See the top-level files \codeword{server.py}, \codeword{main_multiplayer.py}, and
-\codeword{main.py} to see how connections are made.
-
-\subsection{Internal API}
-The internal API governs the internal game mechanics. This is the largest layer,
-many of the files deserve their own explanations.
-
-\subsubsection{States}
-States are essentially simplified versions of objects that are sendable over
-the network. The typical usage is like:\\
-Object $\rightarrow$ State $\rightarrow$ RPC call $\rightarrow$ State
-$\rightarrow$ Object,\\
-where the last arrow represents either an overwrite of a portion of the object's state,
-or applying the state as a difference.
-
-States are defined in \codeword{state_defs.py}. They are currently based on dicts,
-but I'm realizing as I type this that this is unnecessary, and could be based on
-lists. State definitions are basically mappings of variables to types, and as long as
-the state is filled and the ordering is guaranteed and consistent between the
-client and server, we can represent a State with just a list. Would need to convert
-dicts to lists of tuples.
-\subsubsection{Physics}
-Implementing physics has proved to be challenging, but the current implementation seems
-good.
-
-There are currently three (well, 4, but I'll get to the fourth later) movement
-factors. Player keyboard (WASD) movement, jumping, and gravity. Velocity
-components are multiplied by the physics timestep (1/20th of a second) and then
-added together, along with the displacement factors. After we obtain a single
-velocity vector, we send it to the collision logic.
-
-Collision rules are different when the character is grounded or not.
-When not grounded, the character essentially just looks in the direction it's
-falling, and if it would clip into the floor, it adjusts its movement to not clip
-into the floor and sets the \codeword{grounded} boolean to True.
-When grounded, it's a lot more complicated. We look ahead of where our initial
-displacement would take us, and if there is anything in the way, first check
-whether it's a wall or not (normalized $x$ component less than 0.2). If it's a wall,
-we essentially move along the wall without changing our $y$ height.
-The formula for this is obtained by a plane intersection, the intersection of the
-plane $ax + by + cz = 0$ and $y = 0$. This yields the parameterization
-\[
-\begin{pmatrix}
-    x\\
-    y\\
-    z 
-\end{pmatrix} =
-\begin{pmatrix}
-    b\\0\\-a
-\end{pmatrix}s,\]
-and rescaling this and multiplying by the dot product gives us the displacement
-we want.
-
-When the colliding surface is a feasible slope to walk up, we instead keep
-the $(x, z)$ direction from our original movement, and deduce the correct
-$y$ from this and the plane normal. This is the same as finding the
-intersection of the planes $ax + by + cz = 0$ and the plane defined by
-$(0, 0, 0), (0, 1, 0), (\alpha, 0, \beta)$ (we look straight up because gravity goes
-straight down), where $(\alpha, \beta)$ is the $(x, z)$ direction of our
-original displacement. Then our line is defined by
-\[
-\begin{pmatrix}
-    x\\y\\z
-\end{pmatrix} = 
-\begin{pmatrix}
-    \alpha b\\-\beta c - \alpha a\\\beta b
-\end{pmatrix}s.\]
-Rescaling to match our original displacement gives us our final result.
-\subsubsection{Characters}
-Characters have different classes depending on whether they were created on the client
-or the server.
 \subsubsection{Client-Side Prediction}
 To ensure smooth play while enforcing server-authoritative character movement,
 we simulate the game physics client-side. Unfortunately, the simulation
@@ -288,7 +191,80 @@ to the client, it's in the past, so we look back in time to what our
 target state was at the retransmitted sequence number. We compute the
 difference, and add it to the current target. Crucially, we add the
 displacement to the \codeword{Character}'s \codeword{displacement_components}
-to be processed for collision logic. Without applying the collision logic, it's easy to clip through the world and have an irrecoverable state.
+to be processed for collision logic. Without applying the collision logic, it's easy to clip through
+the world and have an irrecoverable state.
+\subsection{Shared API}
+The shared API contains objects and functions shared between the client and server.
+
+\subsubsection{States}
+States are essentially lists of arguments that make building large objects
+and sending RPCs easier.
+
+The base State class defines the blueprint for States, but should never be initialized.
+Instead, subclasses give the definition for what the State will contain, and
+allow for flexibility in how they are constructed.
+
+Every State is able to read from a \codeword{src} object, which is either a Character
+or a dict (these possibilities may grow). They read based on the type, but are always
+written as a list. The order of the list is defined by its \codeword{statedef}.
+
+States can also be applied to Characters by overwriting the attributes, or by adding them
+(for example, Stats).
+
+\subsubsection{Physics}
+Physics is probably the most technically challenging module to understand in this
+repository.
+
+There are currently three (well, 4, but I'll get to the fourth later) movement
+factors. Player keyboard (WASD) movement, jumping, and gravity. Velocity
+components are multiplied by the physics timestep (1/20th of a second) and then
+added together, along with the displacement factors. After we obtain a single
+displacement vector, we send it to the collision logic.
+
+We first send a ray in the direction of the displacement vector.
+If there's a hit, we infer whether it's a wall or not based on its y normal -
+less than 0.2 means it's pretty vertical. If it is a wall, we project the
+displacement vector onto the horizontal line along the wall, and treat the character
+as grounded.
+The formula for this is obtained by a plane intersection, the intersection of the
+plane $ax + by + cz = 0$ and $y = 0$. This yields the parameterization
+\[
+\begin{pmatrix}
+    x\\
+    y\\
+    z 
+\end{pmatrix} =
+\begin{pmatrix}
+    b\\0\\-a
+\end{pmatrix}s,\]
+and rescaling this and multiplying by the dot product gives us the displacement
+we want.
+
+If the colliding surface is a feasible slope to walk up, then we change
+our handling depending on whether we are grounded or not. If we are grounded,
+then we simply overwrite the displacement with the displacement obtained
+by subtracting the character position from the collision point, and
+add a small ($10^{-3}$) amount of y displacement to make sure we don't
+clip through.
+
+If we are already grounded, then we walk up the slope. We do this by keeping
+the $(x, z)$ direction from our original movement, and deduce the correct
+$y$ from this and the plane normal. This is the same as finding the
+intersection of the planes $ax + by + cz = 0$ and the plane defined by
+$(0, 0, 0), (0, 1, 0), (\alpha, 0, \beta)$ (we look straight up because gravity goes
+straight down), where $(\alpha, \beta)$ is the $(x, z)$ direction of our
+original displacement. Then our line is defined by
+\[
+\begin{pmatrix}
+    x\\y\\z
+\end{pmatrix} = 
+\begin{pmatrix}
+    \alpha b\\-\beta c - \alpha a\\\beta b
+\end{pmatrix}s.\]
+Rescaling to match our original displacement gives us our final result.
+\subsubsection{Characters}
+The shared API includes a base Character class that both ServerCharacters and
+ClientCharacters should inherit.
 
 \subsection{Design Patterns}
 To deal with circular dependencies in the networking code, I have chosen to attach top-level objects to
