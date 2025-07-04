@@ -11,7 +11,7 @@ from ..client.controllers import PlayerController, NPCController
 from ..gamestate import gs
 from ..states import *
 from ..ui import UI, make_all_ui
-from ..world_gen import GenerateWorld
+from ..server.world_gen import GenerateWorld
 
 # LOGIN
 @rpc(network.peer)
