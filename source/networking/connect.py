@@ -9,15 +9,6 @@ from .world_requests import request_enter_world
 from ..gamestate import gs
 from ..states import get_player_states_from_data
 
-def input(key):
-    """Right now, handles login inputs. Very temporary framework.
-    If hosting, do all the things needed to create the world.
-    If not hosting, just connect and let on_connect handle the rest.
-    """
-    if not network.peer.is_running():
-        if key == "c":
-            print("Attempting to connect")
-            network.peer.start("localhost", 8080, is_host=False)
 
 @rpc(network.peer)
 def on_connect(connection, time_connected):

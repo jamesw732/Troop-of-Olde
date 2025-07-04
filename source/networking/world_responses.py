@@ -8,10 +8,10 @@ from .network import network
 from ..base import sqnorm, PHYSICS_UPDATE_RATE
 from ..client.character import ClientCharacter
 from ..client.controllers import PlayerController, NPCController
+from ..client.world_gen import ClientWorld
 from ..gamestate import gs
 from ..states import *
 from ..ui import UI, make_all_ui
-from ..client.world_gen import ClientWorld
 
 # LOGIN
 @rpc(network.peer)
@@ -45,7 +45,6 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     gs.pc = ClientCharacter(pstate=pstate, equipment=equipment,
                       inventory=inventory, skills=skills,
                       powers=powers, cbstate=cbstate)
-
     gs.playercontroller = PlayerController(gs.pc)
     gs.pc.controller = gs.playercontroller
 

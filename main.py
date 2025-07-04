@@ -4,6 +4,7 @@ import time
 
 from ursina import *
 
+from source.client.input_handler import InputHandler
 from source.networking import network
 from source.networking.connect import *
 from source.networking.disconnect import *
@@ -14,6 +15,7 @@ try:
     server = subprocess.Popen(["python", "server.py"], cwd=parent_dir)
     time.sleep(1)
     app = Ursina(borderless=False)
+    input_handler = InputHandler()
     network.peer.start("localhost", 8080, is_host=False)
 
     app.run()

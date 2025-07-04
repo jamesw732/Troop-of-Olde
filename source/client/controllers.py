@@ -3,7 +3,6 @@ and the game engine/logic API. Functionality is split between client-side player
 client-side NPCs, and server-side Characters.
 """
 from ursina import *
-import json
 
 from ..base import *
 from ..combat import *
@@ -42,8 +41,6 @@ class PlayerController(Entity):
         camera.parent = self.focus
         camera.position = (0, 0, -1 * self.camdistance)
 
-        self.bind_keys()
-
         self.prev_mouse_position = mouse.position
 
         # The sequence number of movement inputs
@@ -72,13 +69,6 @@ class PlayerController(Entity):
         """Simplify player character's namelabel"""
         self.namelabel.parent = self.focus
         self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
-
-    def bind_keys(self):
-        """Load and read data/key_mappings.json and bind them in ursina.input_handler"""
-        with open("data/key_mappings.json") as keymap:
-            keymap_json = json.load(keymap)
-            for k, v in keymap_json.items():
-                input_handler.bind(k, v)
 
     def update(self):
         char = self.character

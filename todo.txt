@@ -23,8 +23,14 @@ layer. This should make the UI network requests easier to extract.
 - Remove networking requests from lower level modules, including UI
 - Pull UI input handling into the input handler
 
-
-
+- Refactor networking so that client has world_requests interface, world_responses implementation,
+and server has world_responses interface, world_requests implementation.
+- Make InputHandler and server.controllers import requests/responses code, remove all other imports.
+- Consider refactoring GameState to depend on client/server. This will probably only be possible
+if shared code doesn't have to rely on the gamestate, which it probably shouldn't.
+Or, maybe, the GameState object shouldn't exist at all, since it only exists to avoid circular dependencies,
+which the new structure should avoid.
+- Consider refactoring singletons to be created more intelligently, not immediately after definition.
 
 - Update developer.tex
 
