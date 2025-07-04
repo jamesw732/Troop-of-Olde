@@ -290,6 +290,16 @@ difference, and add it to the current target. Crucially, we add the
 displacement to the \codeword{Character}'s \codeword{displacement_components}
 to be processed for collision logic. Without applying the collision logic, it's easy to clip through the world and have an irrecoverable state.
 
+\subsection{Design Patterns}
+To deal with circular dependencies in the networking code, I have chosen to attach top-level objects to
+the global GameState object. This allows referencing and using these objects without importing the
+corresponding modules. This is a dangerous choice, but I have found it to be a necessary evil (or maybe
+just too difficult for me to avoid). The greatest cost is that it blurs the line between the different
+layers. Actually, a big part of why I've focused on documenting the layers is to give the code design
+more structure, because this choice could, if abused, create some eldritch spaghetti code.
+The choice to use layers is not out of immediate necessity, but rather to prevent bad habits before
+they arise. 
+
 
 \section{Ursina Usage}
 \subsection{Common Bugs}
