@@ -15,7 +15,7 @@ from ..base import default_equipment, default_inventory
 from ..character import Character
 from ..gamestate import gs
 from .item import ServerItem, ServerContainer
-from ..power import ServerPower
+from .power import ServerPower
 from ..states import *
 
 class ServerCharacter(Character):
