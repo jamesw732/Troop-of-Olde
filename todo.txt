@@ -1,24 +1,32 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Kinda large impromptu refactoring project:
-Turned State into a list
-Want to make get_player_states_from_json a bit better, shouldn't need to assign
-5 variables or whatever. Also rename "pstate" to "physical" in players.json.
-Shouldn't need to initialize default attrs on a character now, because we know everything
-will be populated if there's a State. Instead, should make default the corresponding
-State.
+Refine the splits between the code layers.
+I want layers like:
+- Controllers: Handle player/npc inputs, send networking requests, update local game state
+through external API
+- Networking: Updates game state between server/client through the use of external API
+- UI: Displays game relevant parts of the game state to the player
+- Public API: Public-facing interface for modifying the game state
+- Private API: Internal state and helper functions.
 
+The least important layer difference is public/private API, I can get away with being
+lazy with this, but that wouldn't be great.
 
+- Move all networking and UI references to controllers
+- Add classes between controllers and characters which serve as the public API for
+characters, used by controllers and networking. Remove NPCController.
+- Remove all references to controllers in the networking code, instead use the new
+public API for characters.
+- Update developer.tex
+
+===================================NEXT================================================
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 
 It may be worthwhile to encapsulate animation logic in its own class.
 Try to do the animation logic without its own class, but if it becomes too cumbersome,
 don't hesitate to extract it to its own class.
-
-===================================NEXT================================================
-Move to a database instead of using json.
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:
@@ -95,7 +103,7 @@ text should probably be ignored by set_alpha altogether.
 
 
 Database:
-Move to sql
+Move to an SQL database instead of using json.
 
 
 Documentation:
