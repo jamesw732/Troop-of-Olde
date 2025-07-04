@@ -26,13 +26,21 @@ layer. This should make the UI network requests easier to extract.
 - Refactor networking so that client has world_requests interface, world_responses implementation,
 and server has world_responses interface, world_requests implementation.
 - Make InputHandler and server.controllers import requests/responses code, remove all other imports.
-- Consider refactoring GameState to depend on client/server. This will probably only be possible
-if shared code doesn't have to rely on the gamestate, which it probably shouldn't.
-Or, maybe, the GameState object shouldn't exist at all, since it only exists to avoid circular dependencies,
-which the new structure should avoid.
-- Consider refactoring singletons to be created more intelligently, not immediately after definition.
 
 - Update developer.tex
+
+
+Considerations:
+For now, GameState exists as the bottom-most dependency whose state is modified globally to
+get the best of both worlds.  I don't want this to stay true for long. I think the best way
+to handle this will be to eventually do one of the following (leaning towards the last one):
+- Remove GameState entirely (might be bad for non-singletons)
+- Remove all singletons from GameState to make it a true bottom dependency
+- Make GameState the highest level class in the server/client APIs, and make it construct
+default singletons. Attach necessary data, such as the player character, upon login.
+
+Camera should probably be handled separately from PlayerController.
+
 
 ===================================NEXT================================================
 General goal is to get basic placeholder animations for everything in the game.
