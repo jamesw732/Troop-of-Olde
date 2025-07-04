@@ -4,11 +4,11 @@ import json
 import os
 
 from ..base import data_path
-from .character import ServerCharacter
+from .character import ClientCharacter
 from ..states import get_npc_states_from_data
 
 
-class ServerWorld:
+class ClientWorld:
     def __init__(self, file):
         """Create world.
 
@@ -26,8 +26,9 @@ class ServerWorld:
             world_data = json.load(f)
         for (entity, data) in world_data.items():
             if entity == "Sky":
-                continue
-            Entity(**self.parse_colors(data))
+                Sky(**data)
+            else:
+                Entity(**self.parse_colors(data))
 
     def create_npcs(self, file):
         """Spawn from the npc source file. Called only by server.

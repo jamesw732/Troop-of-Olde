@@ -7,13 +7,13 @@ from source.networking.connect import *
 from source.networking.disconnect import *
 from source.networking.register import *
 from source.networking.world_requests import *
-from source.world_gen import GenerateWorld
+from source.server.world_gen import ServerWorld
 
 def start_server(name, port):
     network.peer.start(name, port, is_host=True)
     network.my_uuid = network.uuid_counter
     network.uuid_counter += 1
-    gs.world = GenerateWorld("demo.json", headless=True)
+    gs.world = ServerWorld("demo.json")
     npcs = gs.world.create_npcs("demo_npcs.json")
     gs.chars += npcs
     for npc in npcs:

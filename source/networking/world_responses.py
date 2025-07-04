@@ -11,13 +11,13 @@ from ..client.controllers import PlayerController, NPCController
 from ..gamestate import gs
 from ..states import *
 from ..ui import UI, make_all_ui
-from ..server.world_gen import GenerateWorld
+from ..client.world_gen import ClientWorld
 
 # LOGIN
 @rpc(network.peer)
 def remote_generate_world(connection, time_received, zone:str):
     """Remotely generate the world"""
-    gs.world = GenerateWorld(zone)
+    gs.world = ClientWorld(zone)
 
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipment: list[int],

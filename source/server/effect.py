@@ -3,9 +3,9 @@ import os
 import json
 import copy
 
-from .base import data_path
-from .gamestate import gs
-from .states import Stats
+from ..base import data_path
+from ..gamestate import gs
+from ..states import Stats
 
 
 effects_path = os.path.join(data_path, "effects.json")

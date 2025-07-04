@@ -3,7 +3,6 @@ import os
 import json
 
 from .base import data_path
-from .effect import Effect
 from .gamestate import gs
 
 power_path = os.path.join(data_path, "powers.json")

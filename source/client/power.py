@@ -2,7 +2,6 @@ from ursina import *
 import os
 import json
 
-from ..effect import Effect
 from ..gamestate import gs
 from ..power import Power
 
