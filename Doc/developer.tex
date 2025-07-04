@@ -23,8 +23,9 @@
 I expect pre-release development to basically take place in three stages.
 I don't expect to confine
 myself to these stages, but I think they will help structure my development. Currently
-in the first stage, maybe like 60\% of the way through it.
+in the first stage, maybe like 50\% of the way through it.
 
+\subsection{Stage 1}
 First is the prototyping stage, where I simply try to implement the relevant features
 of the game. Building combat mechanics, physics, networking, all that sort of stuff.
 The key is functionality, not aesthetics. Animations and models will play a role in this stage,
@@ -52,6 +53,7 @@ Checklist for this phase:
 At the end of this phase, this will not be a game, it will be more like a blueprint for a game.
 Should also consider closing the source code after declaring this phase to be done.
 
+\subsection{Stage 2}
 Second is the content generation stage. The basic idea here is to get a minimal working
 example for the game. Once the basic prototypes and mechanics are nailed down,
 it's time to start extending them into actual content used to build the world.
@@ -84,6 +86,7 @@ I should place a high standard on the quality of art entering the game. At the e
 it should look like a marketable product. It doesn't need to be a finished product, but I should
 be able to release a Steam page and be able to find playtesters.
 
+\subsection{Stage 3}
 Third is the release stage. The goal here is to enter alpha and push out a finished product.
 This is far-out still, so I'm guaranteed to miss a lot here, but I'm expecting some things to
 be certain.
@@ -98,23 +101,76 @@ Checklist for this phase:
 
 \section{Code Infrastructure}
 This section describes the key development choices made in the source code
-for this game. This document is not intended to be a complete design
-document, merely an aid for the developer, so I won't talk about everything
-in here, but will try to hit the most important pieces. Code that seems
-self-explanatory to me is ignored.
-\subsection{Networking}
+for this game.  This is organized by ``code layers'', which are essentially just
+mental folders I use to try to organize the code.
+
+\subsection{Project Root}
+These are the \codeword{main.py}, \codeword{server.py}, \codeword{main_multiplayer.py}
+files which pretty much just import everything necessary initialize the game. 
+There is not currently any build process. This is subject to change.
+
+The recommended way to launch the client is by simply running \codeword{main.py}, which
+launches a child \codeword{server.py} process and connects to it automatically.
+If you'd like to connect to the same local server on multiple clients, you can then run
+\codeword{main_multiplayer.py} and press "c" to connect.
+
+Alternatively, you may run \codeword{server.py} as its own process, and then connect
+to it from \codeword{main_multiplayer.py}.
+
+Of course, this launch process is subject to change once this becomes more of a real game.
+
+\subsection{External API}
+The external API is the gateway between ``external'' inputs and the internal game logic.
+Namely, this mainly includes the whole UI module and \codeword{controllers.py}, but I
+also include the networking module.
+
+The role of the UI module is to display necessary parts of the game state, 
+handle relevant inputs from the player, and send networking requests. Networking responses
+are capable of updating the state of the UI, for example when the player's health is updated,
+the health bar decreases.
+
+The role of \codeword{controllers.py} is to perform operations which affect the state of
+Characters. Controllers are attached to single Characters. They are not sentient, but they
+do respond to inputs.\\
+PlayerController handles (some) player input, updating the local game state and sending
+network requests. Networking responses is able to modify the state of PlayerController as
+well, for example the controller is responsible for the interpolation that corrects
+client-side prediction for player movement.\\
+NPCController handles networking responses for client-side NPCs.\\
+MobController is the server-side Character controller. It handles server-side operations such as
+combat and physics.
+
+The role of the networking module is, really, to keep the client and server on the same page
+about the game state. But the way it does this is by interfacing between the functions of the
+external API. So it's ``sort of'' part of the external API, or more like the glue that keeps
+it together. See below for an in-depth description of the networking module.
+
+Eventually, NPC logic will be built into an external server-side only class, and not be part
+of MobController. This won't be part of the external API layer, since the role of an NPC logic
+class is to emulate ``player'' inputs.
+
+I am not extremely happy with the structure of this layer. I think the input handling should be
+moved into a separate class, which would call Controller methods and send network requests.
+This class would be solely responsible for sending network responses, so there would be none
+in the external API. This paradigm would allow for a cleaner divide between the code layers:
+The input handler would be the highest logical layer under the root, then the networking module,
+then the external API, and finally the internal API.
+
+\subsubsection{Networking}
 This game runs on a client-server framework. Currently, it is only tested to
 support one device launching multiple clients.
-All networking code is built on Ursina's
-\codeword{networking} submodule, which is built on TCP and based on remote
-procedure calls (RPCs).
-
-All networking code is part of the \codeword{networking} submodule of this
-repository. The structure of this code is under consideration, but below is a
-brief description of the files in this directory:
+All networking code is built on Ursina's \codeword{networking} submodule, which
+is built on TCP and based on remote procedure calls (RPCs). It is located in
+the \codeword{networking} submodule of this repository. The organization is
+under consideration, but below is a brief description of the files in this
+directory:
 \begin{itemize}
     \item \codeword{connect.py} is a small file that handles the work required
-        when establishing a new connection to the server.
+        when establishing a new connection to the server. It essentially just
+        defines the \codeword{on_connect} function and an \codeword{input}
+        function for connecting. Eventually, this input function will be
+        extracted into an external login sequence that uses actual GUI,
+        but this is low priority right now.
     \item \codeword{disconnect.py}, similarly, handles the work required when
         leaving the server. Disconnection logic is currently buggy, but this
         is a low priority at the moment.
@@ -127,28 +183,27 @@ brief description of the files in this directory:
         deal of separation between the internal game logic and the networking
         code at the cost of a global variable.
     \item \codeword{register.py} is a simple procedural file that registers all
-        custom data types to be sent across the network.
+        custom data types to be sent across the network. For the most part, these
+        data types are \codeword{State}s, which will be explained later, but these
+        are essentially just large groups of arguments attached together in a single
+        object.
     \item \codeword{world_requests.py} is a file containing all in-game networking
         requests sent by clients. All functions in this file are remote procedure
-        calls that are called by clients, executed on the server. Relies on the
-        game code and on \codeword{world_responses.py}.
+        calls that are {\it called} by clients, and {\it executed} on the server.
+        Relies on the game code and on \codeword{world_responses.py}.
     \item \codeword{world_responses.py} is a file containing all in-game networking
         responses sent by the server. All functions in this file are remote procedure
         item calls that are called by the server, executed on a client. Relies on the
         item game code.
 \end{itemize}
-To see how connections are made, it is best to look at some files in the root of the
-repository.
+See the top-level files \codeword{server.py}, \codeword{main_multiplayer.py}, and
+\codeword{main.py} to see how connections are made.
 
-The file \codeword{server.py} launches a headless Ursina app, and initializes
-\codeword{network.peer} with \codeword{is_host=True} and a pre-set hsot name and port.
-If run on its own, the user can launch \codeword{main_multiplayer.py} from a separate
-terminal and press the "c" key to connect to the server.
+\subsection{Internal API}
+The internal API governs the internal game mechanics. This is the largest layer,
+many of the files deserve their own explanations.
 
-Alternatively, one may simply launch \codeword{main.py}, which launches a child
-\codeword{server.py} process and connects to it automatically.
-
-\subsection{States}
+\subsubsection{States}
 States are essentially simplified versions of objects that are sendable over
 the network. The typical usage is like:\\
 Object $\rightarrow$ State $\rightarrow$ RPC call $\rightarrow$ State
@@ -162,7 +217,7 @@ lists. State definitions are basically mappings of variables to types, and as lo
 the state is filled and the ordering is guaranteed and consistent between the
 client and server, we can represent a State with just a list. Would need to convert
 dicts to lists of tuples.
-\subsection{Physics}
+\subsubsection{Physics}
 Implementing physics has proved to be challenging, but the current implementation seems
 good.
 
@@ -209,26 +264,9 @@ original displacement. Then our line is defined by
     \alpha b\\-\beta c - \alpha a\\\beta b
 \end{pmatrix}s.\]
 Rescaling to match our original displacement gives us our final result.
-\subsection{Characters and Controllers}
-All characters in the game - NPCs, player characters, and on the client vs server,
-are all represented by the same Character class. The Character class should actually
-be more or less the intersection of all these functionalities. The differences
-are captured by their controllers.
-
-The PlayerController is responsible for handling most client-side inputs
-and sending them to the server. This class is not the complete authority
-for this, as some inputs are handled by the UI code, but pretty much any
-generic input is handled here. Handles client-side prediction for character
-movement (explained below).
-
-The NPCController actually doesn't do much controlling, it's what controls
-every character besides the player character. NPCs and other players are handled
-pretty much the same. The most complicated functionality of this class is
-linearly interpolating between states received by the server.
-
-The MobController class is the server-side controller class. It's responsible
-for handling all server-side character computations, such as movement and
-combat. Relays combat state changes and movement updates to the clients.
+\subsubsection{Characters}
+Characters have different classes depending on whether they were created on the client
+or the server.
 \subsubsection{Client-Side Prediction}
 To ensure smooth play while enforcing server-authoritative character movement,
 we simulate the game physics client-side. Unfortunately, the simulation
