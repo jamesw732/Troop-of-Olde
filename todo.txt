@@ -3,21 +3,23 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Refine the splits between the code layers.
 I want layers like:
-- Controllers: Handle player/npc inputs, send networking requests, update local game state
-through external API
-- Networking: Updates game state between server/client through the use of external API
+- Input Layer: Handle player/npc inputs, send networking requests, update local game state
+through external API, potentially update UI
+- Request Layer: Send networking requests to server which update game state via public
+API, update server managers, and send networking updates
+- Server API: public-facing functions and classes which update the server's game
+state and sends networking responses
+- Response Layer: Send networking responses to client which update the game state
+via public API as well as the UI
+- Client API: public-facing functions and classes which update the client's game state
 - UI: Displays game relevant parts of the game state to the player
-- Public API: Public-facing interface for modifying the game state
-- Private API: Internal state and helper functions.
+- Internal API: Internal state and helper functions, shared between client and server.
 
-The least important layer difference is public/private API, I can get away with being
-lazy with this, but that wouldn't be great.
+Steps:
+- Organize code into client and server directories
+- Recover functionality
+- Decide what to do next
 
-- Move all networking and UI references to controllers
-- Add classes between controllers and characters which serve as the public API for
-characters, used by controllers and networking. Remove NPCController.
-- Remove all references to controllers in the networking code, instead use the new
-public API for characters.
 - Update developer.tex
 
 ===================================NEXT================================================

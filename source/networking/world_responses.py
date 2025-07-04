@@ -6,7 +6,7 @@ from ursina.networking import rpc
 
 from .network import network
 from ..base import sqnorm, PHYSICS_UPDATE_RATE
-from ..character import ClientCharacter
+from ..client.character import ClientCharacter
 from ..controllers import *
 from ..item import *
 from ..gamestate import gs
