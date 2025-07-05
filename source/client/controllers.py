@@ -118,27 +118,34 @@ class PlayerController(Entity):
         self.mouse_y_rotation = 0
         self.sequence_number += 1
 
-    def update_keyboard_velocity(self, fwdback, strafe):
-        """Update velocity obtained from player inputs.
+    def update_movement_inputs(self, fwdback, strafe, rightleft_rot):
+        """Update local keyboard velocity and target rotation, send
+        request for server to do the same
 
-        This velocity will be consumed in tick_physics."""
+        Performed at the end of the frame, and relies on handle_mouse_rotation
+        to correctly update target_rot according to mouse rotation."""
+        # Local updates
         char = self.character
+        # Keyboard velocity
         char_speed = get_speed_modifier(char.speed)
         kb_vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
         char.velocity_components["keyboard"] = kb_vel
-
-    def update_target_rotation(self, rightleft_rot):
-        """Combines keyboard/mouse rotation factors to determine a target rotation"""
+        # Target rotation
         rotation = rightleft_rot * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
         self.prev_rot = self.target_rot
-        self.target_rot = self.character.rotation_y + rotation + self.rot_offset
+        self.target_rot = char.rotation_y + rotation + self.rot_offset
         self.sn_to_rot[self.sequence_number] = self.target_rot
+        # Server update
+        conn = gs.network.server_connection
+        keyboard_direction = Vec2(strafe, fwdback)
+        gs.network.peer.request_move(conn, self.sequence_number, keyboard_direction,
+                                     rightleft_rot, self.mouse_y_rotation)
 
     def handle_updown_keyboard_rotation(self, updown):
         """Handles up/down arrow key rotation.
 
-        Only affects up-down rotation, which is irrelevant to server.
-        Nothing sent to server as a result of this method."""
+        Only affects up-down rotation, which is irrelevant to server,
+        so nothing sent to server."""
         self.focus.rotate(Vec3(updown * 100 * time.dt, 0, 0))
 
     def handle_mouse_rotation(self):
@@ -146,7 +153,7 @@ class PlayerController(Entity):
 
         Does not update the character's rotation directly, instead this
         quantity is stored cumulatively over one physics tick period, then
-        used to determine the next target rotation."""
+        used to determine the next target_rot."""
         offset = mouse.position - self.prev_mouse_position
         self.prev_mouse_position = mouse.position
         vel = Vec3(-1 * offset[1], offset[0] * math.cos(math.radians(self.focus.rotation_x)), 0)

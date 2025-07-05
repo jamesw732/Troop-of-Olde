@@ -17,6 +17,8 @@ class InputHandler(Entity):
                 ursina.input_handler.bind(k, v)
 
     def input(self, key):
+        # This is temporary handling of logins when launching client from
+        # main_multiplayer.py
         if not network.peer.is_running():
             if key == "c":
                 print("Attempting to connect")
@@ -38,7 +40,7 @@ class InputHandler(Entity):
             ctrl.handle_mouse_rotation()
 
     @every(PHYSICS_UPDATE_RATE)
-    def tick_movement(self):
+    def tick_movement_inputs(self):
         ctrl = gs.playercontroller
         if ctrl is None:
             # Eventually, this class will depend on PlayerController and this check will
@@ -51,13 +53,6 @@ class InputHandler(Entity):
         # Keyboard Movement
         fwdback = held_keys['move_forward'] - held_keys['move_backward']
         strafe = held_keys['strafe_right'] - held_keys['strafe_left']
-        keyboard_direction = Vec2(strafe, fwdback)
         # Keyboard Rotation
         rightleft_rot = held_keys['rotate_right'] - held_keys['rotate_left']
-
-        conn = gs.network.server_connection
-        gs.network.peer.request_move(conn, ctrl.sequence_number, keyboard_direction,
-                                     rightleft_rot, ctrl.mouse_y_rotation)
-        # Predict movement/rotation updates client-side
-        ctrl.update_keyboard_velocity(fwdback, strafe)
-        ctrl.update_target_rotation(rightleft_rot)
+        ctrl.update_movement_inputs(fwdback, strafe, rightleft_rot)
