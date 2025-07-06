@@ -4,6 +4,7 @@ import json
 
 from .base import data_path
 from .gamestate import gs
+from .network import network
 
 power_path = os.path.join(data_path, "powers.json")
 with open(power_path) as power_json:
@@ -25,7 +26,7 @@ class Power(Entity):
         self.char = char
         self.power_id = power_id
         self.inst_id = inst_id
-        gs.network.inst_id_to_power[self.inst_id] = self
+        network.inst_id_to_power[self.inst_id] = self
         power_data = id_to_power_data[str(power_id)]
         # Would it be better to be more explicit about this?
         for k, v in power_data.items():

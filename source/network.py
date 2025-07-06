@@ -29,6 +29,13 @@ class Network(Entity):
         self.inst_id_to_container = dict()
         self.container_inst_id_ct = 0
 
+        self.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
+        self.peer.register_type(SkillsState, SkillsState.serialize, SkillsState.deserialize)
+        self.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
+        self.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)
+        self.peer.register_type(PhysicalState, PhysicalState.serialize, PhysicalState.deserialize)
+        self.peer.register_type(Stats, Stats.serialize, Stats.deserialize)
+
     @every(UPDATE_RATE)
     def fixed_update(self):
         self.peer.update()
@@ -70,11 +77,3 @@ class Network(Entity):
 
 # RPC needs to know about network at compile time, so this global seems necessary
 network = Network()
-gs.network = network
-
-network.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
-network.peer.register_type(SkillsState, SkillsState.serialize, SkillsState.deserialize)
-network.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
-network.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)
-network.peer.register_type(PhysicalState, PhysicalState.serialize, PhysicalState.deserialize)
-network.peer.register_type(Stats, Stats.serialize, Stats.deserialize)

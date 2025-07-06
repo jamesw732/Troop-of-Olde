@@ -13,7 +13,7 @@ from panda3d.core import NodePath
 
 from ..base import default_equipment, default_inventory
 from ..character import Character
-from ..gamestate import gs
+from ..network import network
 from .item import ServerItem, ServerContainer
 from .power import ServerPower
 from ..states import *
@@ -71,6 +71,6 @@ class ServerCharacter(Character):
 
     def die(self):
         """Essentially just destroy self and make sure the rest of the network knows if host."""
-        gs.network.broadcast(gs.network.peer.remote_death, self.uuid)
+        network.broadcast(network.peer.remote_death, self.uuid)
         self.alive = False
         destroy(self)

@@ -7,6 +7,7 @@ from ursina import *
 from ..base import *
 from ..combat import *
 from ..gamestate import gs
+from ..network import network
 from ..physics import get_displacement, set_jump_vel, set_gravity_vel
 from ..skills import *
 
@@ -17,7 +18,7 @@ class PlayerController(Entity):
     Handles client-side physics and interpolation, network updates.
     """
     def __init__(self, character=None):
-        assert not gs.network.peer.is_hosting()
+        assert not network.peer.is_hosting()
         super().__init__()
         if character is not None:
             self.character = character
@@ -95,7 +96,7 @@ class PlayerController(Entity):
             power = char.next_power
             tgt = power.get_target()
             power.use()
-            gs.network.peer.request_use_power(gs.network.server_connection, power.power_id)
+            network.peer.request_use_power(network.server_connection, power.power_id)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):
@@ -136,9 +137,9 @@ class PlayerController(Entity):
         self.target_rot = char.rotation_y + rotation + self.rot_offset
         self.sn_to_rot[self.sequence_number] = self.target_rot
         # Server update
-        conn = gs.network.server_connection
+        conn = network.server_connection
         keyboard_direction = Vec2(strafe, fwdback)
-        gs.network.peer.request_move(conn, self.sequence_number, keyboard_direction,
+        network.peer.request_move(conn, self.sequence_number, keyboard_direction,
                                      rightleft_rot, self.mouse_y_rotation)
 
     def handle_updown_keyboard_rotation(self, updown):
@@ -168,7 +169,7 @@ class PlayerController(Entity):
         if self.character is None:
             return
         self.character.start_jump()
-        gs.network.peer.request_jump(gs.network.server_connection)
+        network.peer.request_jump(network.server_connection)
 
     def zoom_in(self):
         self.camdistance = max(self.camdistance - 1, 0)
@@ -181,10 +182,10 @@ class PlayerController(Entity):
 
         target: Character"""
         self.character.target = target
-        gs.network.peer.request_set_target(gs.network.server_connection, target.uuid)
+        network.peer.request_set_target(network.server_connection, target.uuid)
 
     def toggle_combat(self):
-        gs.network.peer.request_toggle_combat(gs.network.server_connection)
+        network.peer.request_toggle_combat(network.server_connection)
 
     def on_destroy(self):
         destroy(self.namelabel)
@@ -199,7 +200,7 @@ class NPCController(Entity):
     Handles client-side updates and linearly interpolates for smoothness.
     Future: Handles animations."""
     def __init__(self, character):
-        assert not gs.network.peer.is_hosting()
+        assert not network.peer.is_hosting()
         super().__init__()
         self.character = character
         self.namelabel = NameLabel(character)

@@ -3,13 +3,14 @@ import os
 import json
 
 from ..gamestate import gs
+from ..network import network
 from ..power import Power
 
 
 class ClientPower(Power):
     def __init__(self, char, power_id, inst_id):
         """Make power"""
-        assert not gs.network.peer.is_hosting()
+        assert not network.peer.is_hosting()
         super().__init__(char, power_id, inst_id)
 
     def handle_power_input(self):
@@ -24,7 +25,7 @@ class ClientPower(Power):
                 self.queue()
         else:
             self.use()
-            gs.network.peer.request_use_power(gs.network.server_connection, self.inst_id)
+            network.peer.request_use_power(network.server_connection, self.inst_id)
 
     def use(self):
         """Does the client-side things involved with using a power.

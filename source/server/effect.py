@@ -4,7 +4,7 @@ import json
 import copy
 
 from ..base import data_path
-from ..gamestate import gs
+from ..network import network
 from ..states import Stats
 
 
@@ -39,7 +39,7 @@ class Effect(Entity):
         if not self.tgt.alive or self.timer >= self.duration:
             self.persistent_state.apply_diff(self.tgt, remove=True)
             self.tgt.update_max_ratings()
-            gs.network.broadcast_cbstate_update(self.tgt)
+            network.broadcast_cbstate_update(self.tgt)
             destroy(self)
         self.tick_timer += time.dt
         if self.tick_rate and self.tick_timer >= self.tick_rate:
@@ -47,20 +47,20 @@ class Effect(Entity):
             for name, val in self.tick_effects.items():
                 val = self.get_modified_val(name, val)
                 self.apply_subeffect(name, val)
-            gs.network.broadcast_cbstate_update(self.tgt)
+            network.broadcast_cbstate_update(self.tgt)
         self.timer += time.dt
 
     def attempt_apply(self):
         """Main driving method called by the server for applying an effect to a target"""
-        assert gs.network.peer.is_hosting()
+        assert network.peer.is_hosting()
         if self.tgt is None:
             return
         self.check_land()
         if self.hit:
             self.apply()
-            gs.network.broadcast_cbstate_update(self.src)
+            network.broadcast_cbstate_update(self.src)
             if self.src != self.tgt:
-                gs.network.broadcast_cbstate_update(self.tgt)
+                network.broadcast_cbstate_update(self.tgt)
 
     def check_land(self):
         """Performs a random roll to determine whether the effect is applied or not"""
@@ -71,7 +71,7 @@ class Effect(Entity):
         """Handle instant effects and begin persistent effects"""
         if not self.hit:
             msg = f"{self.src.cname} misses {self.tgt.cname}."
-            gs.network.broadcast(gs.network.peer.remote_print, msg)
+            network.broadcast(network.peer.remote_print, msg)
             return
         for name, val in self.instant_effects.items():
             val = self.get_modified_val(name, val)
@@ -86,7 +86,7 @@ class Effect(Entity):
         elif name == "heal":
             self.tgt.increase_health(val)
         msg = self.get_msg(name, val)
-        gs.network.broadcast(gs.network.peer.remote_print, msg)
+        network.broadcast(network.peer.remote_print, msg)
 
     def get_modified_val(self, name, val):
         """Modify value based on self.src/self.tgt"""

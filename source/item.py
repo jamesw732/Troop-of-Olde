@@ -3,8 +3,7 @@ import json
 import copy
 
 from .base import default_equipment, default_inventory, slot_to_ind, equipment_slots, data_path
-from .gamestate import gs
-# This import might be a problem eventually
+from .network import network
 from .states import Stats
 
 # Eventually, this will be a database connection rather than a json stored in memory
@@ -31,7 +30,7 @@ class Item:
         inst_id: unique id used to refer to this item over the network"""
         self.item_id = item_id
         self.inst_id = inst_id
-        gs.network.inst_id_to_item[self.inst_id] = self
+        network.inst_id_to_item[self.inst_id] = self
         data = copy.deepcopy(items_dict[str(item_id)])
 
         self.name = data.get("name", "")
@@ -95,7 +94,7 @@ class Container(list):
         self.container_id = container_id
         self.name = name
         super().__init__(items)
-        gs.network.inst_id_to_container[self.container_id] = self
+        network.inst_id_to_container[self.container_id] = self
 
     def get_first_empty(self, item=None, extra_includes=[]):
         """Find the first empty slot in this container

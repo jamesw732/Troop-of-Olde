@@ -3,15 +3,15 @@ import os
 import json
 
 from .effect import Effect
-from ..gamestate import gs
+from ..network import network
 from ..power import Power
 
 class ServerPower(Power):
     def __init__(self, char, power_id):
         """Create unique power instance id and make Power"""
-        assert gs.network.peer.is_hosting()
-        inst_id = gs.network.power_inst_id_ct
-        gs.network.power_inst_id_ct += 1
+        assert network.peer.is_hosting()
+        inst_id = network.power_inst_id_ct
+        network.power_inst_id_ct += 1
         super().__init__(char, power_id, inst_id)
 
     def use(self, tgt):

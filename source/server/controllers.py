@@ -7,7 +7,7 @@ import json
 
 from ..base import *
 from ..combat import *
-from ..gamestate import gs
+from ..network import network
 from ..physics import get_displacement, set_jump_vel, set_gravity_vel
 from ..skills import *
 from ..states import *
@@ -23,7 +23,7 @@ class MobController(Entity):
     compatible with the processed outputs sent by PlayerController.
     """
     def __init__(self, character):
-        assert gs.network.peer.is_hosting()
+        assert network.peer.is_hosting()
         super().__init__()
         self.character = character
         # Relayed back to client to determine where in history this state was updated, always use most recent
@@ -44,13 +44,13 @@ class MobController(Entity):
                 mh_skill = get_wpn_style(mh)
                 if hit and check_raise_skill(char, mh_skill):
                     raise_skill(char, mh_skill)
-                    connection = gs.network.uuid_to_connection[char.uuid]
-                    gs.network.peer.remote_update_skill(connection, mh_skill, char.skills[mh_skill])
-                conn = gs.network.uuid_to_connection.get(char.uuid, None)
+                    connection = network.uuid_to_connection[char.uuid]
+                    network.peer.remote_update_skill(connection, mh_skill, char.skills[mh_skill])
+                conn = network.uuid_to_connection.get(char.uuid, None)
                 if conn is not None:
-                    gs.network.peer.remote_print(conn, msg)
+                    network.peer.remote_print(conn, msg)
                     # Should add some sort of check to make sure this isn't happening too often
-                    gs.network.broadcast_cbstate_update(char.target)
+                    network.broadcast_cbstate_update(char.target)
             # See if we should progress offhand timer too
             # (if has skill dw):
             mh_is_1h = not (mh is not None
@@ -66,12 +66,12 @@ class MobController(Entity):
                 oh_skill = get_wpn_style(char.equipment[oh_slot])
                 if hit and check_raise_skill(char, oh_skill):
                     raise_skill(char, oh_skill)
-                    connection = gs.network.uuid_to_connection[char.uuid]
-                    gs.network.peer.remote_update_skill(connection, oh_skill, char.skills[oh_skill])
-                conn = gs.network.uuid_to_connection.get(char.uuid, None)
+                    connection = network.uuid_to_connection[char.uuid]
+                    network.peer.remote_update_skill(connection, oh_skill, char.skills[oh_skill])
+                conn = network.uuid_to_connection.get(char.uuid, None)
                 if conn is not None:
-                    gs.network.peer.remote_print(conn, msg)
-                    gs.network.broadcast_cbstate_update(char.target)
+                    network.peer.remote_print(conn, msg)
+                    network.broadcast_cbstate_update(char.target)
         else:
             char.mh_combat_timer = 0
             char.oh_combat_timer = 0
@@ -91,33 +91,12 @@ class MobController(Entity):
             return
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-        for conn in gs.network.peer.get_connections():
-            if conn not in gs.network.connection_to_char:
+        for conn in network.peer.get_connections():
+            if conn not in network.connection_to_char:
                 continue
-            if self.character is gs.network.connection_to_char[conn]:
-                gs.network.peer.update_pc_lerp_attrs(conn, self.sequence_number, self.character.position,
+            if self.character is network.connection_to_char[conn]:
+                network.peer.update_pc_lerp_attrs(conn, self.sequence_number, self.character.position,
                                                      self.character.rotation_y)
             else:
-                gs.network.peer.update_npc_lerp_attrs(conn, self.character.uuid, self.character.position,
+                network.peer.update_npc_lerp_attrs(conn, self.character.uuid, self.character.position,
                                                       self.character.rotation_y)
-
-
-class NameLabel(Text):
-    def __init__(self, char):
-        """Creates a namelabel above a character
-        
-        Todo: Change parent to character"""
-        super().__init__(char.cname, parent=scene, scale=10, origin=(0, 0, 0),
-                         position=char.position + Vec3(0, char.height + 1, 0))
-        self.char = char
-
-    def adjust_rotation(self):
-        """Aim the namelabel at the player with the right direction"""
-        if gs.pc:
-            direction = gs.pc.position - camera.world_position
-            self.look_at(direction + self.world_position)
-            self.rotation_z = 0
-
-    def adjust_position(self):
-        """Position the namelabel above the character"""
-        self.position = self.char.position + Vec3(0, self.char.height + 1, 0)

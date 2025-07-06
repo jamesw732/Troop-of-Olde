@@ -6,6 +6,7 @@ from ..base import equipment_slots
 from ..base import slot_to_ind
 from ..gamestate import gs
 from ..item import *
+from ..network import network
 
 """Explanation of terminology used in this file:
 Item objects represent the invisible data of an item. They inherit dict and are mostly used just like dicts.
@@ -195,8 +196,8 @@ class ItemFrame(Entity):
             if other_slot not in my_icon.get_equippable_slots():
                 my_icon.position = Vec3(0, 0, -1)
                 return
-        conn = gs.network.server_connection
-        gs.network.peer.request_swap_items(conn, other_box.container.container_id, other_slot,
+        conn = network.server_connection
+        network.peer.request_swap_items(conn, other_box.container.container_id, other_slot,
                                            self.container.container_id, my_slot)
 
     def update(self):
@@ -226,14 +227,14 @@ class ItemIcon(Entity):
 
     def auto_equip(self):
         """UI/networking wrapper for Item.internal_autoequip"""
-        conn = gs.network.server_connection
-        gs.network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
+        conn = network.server_connection
+        network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
                                            self.parent.container.container_id)
 
     def auto_unequip(self):
         """UI/networking wrapper for Item.internal_autounequip"""
-        conn = gs.network.server_connection
-        gs.network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
+        conn = network.server_connection
+        network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
 
     def get_equippable_slots(self):
         """Returns available equipment slots for item"""
