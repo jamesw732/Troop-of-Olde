@@ -2,8 +2,6 @@ Implementation todo list.
 
 ===========================ACTIVE===============================
 Definite Steps:
-Build input handler layer:
-Remove state as a subpackage, just make it a module.
 
 - Update developer.tex
 

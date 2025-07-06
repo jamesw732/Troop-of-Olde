@@ -141,7 +141,7 @@ def remote_update_container(connection, time_received, container_id: int, contai
     this will only be done by non-hosts"""
     if network.peer.is_hosting():
         return
-    new_container = ids_to_container(container)
+    new_container = network.ids_to_container(container)
     container = network.inst_id_to_container[container_id]
 
     for slot, item in enumerate(container):

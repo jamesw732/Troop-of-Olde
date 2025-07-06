@@ -13,7 +13,7 @@ from ..network import network
 from ..base import *
 from ..item import full_item_move, internal_autoequip, internal_autounequip
 from ..gamestate import gs
-from ..states import State, container_to_ids
+from ..states import *
 
 # LOGIN
 @rpc(network.peer)
@@ -35,11 +35,11 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         network.connection_to_char[connection] = new_pc
         network.peer.remote_generate_world(connection, "demo.json")
         # extend instance id-based objects to include database id and instance id
-        inventory_ids = container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
+        inventory_ids = network.container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
         inventory_ids = [new_pc.inventory.container_id] + inventory_ids
-        equipment_ids = container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
+        equipment_ids = network.container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
         equipment_ids = [new_pc.equipment.container_id] + equipment_ids
-        power_ids = container_to_ids(new_pc.powers, ("power_id", "inst_id"))
+        power_ids = network.container_to_ids(new_pc.powers, ("power_id", "inst_id"))
         # The new pc will be an npc for everybody else
         new_char_cbstate = NPCCombatState(new_pc)
         for conn in network.peer.get_connections():
@@ -134,7 +134,7 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
     full_item_move(char, to_container, to_slot, from_container, from_slot)
     unique_containers = {to_id: to_container, from_id: from_container}
     for container_id, container in unique_containers.items():
-        container = container_to_ids(container)
+        container = network.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
         network.broadcast_cbstate_update(char)
 
@@ -146,7 +146,7 @@ def request_auto_equip(connection, time_received, itemid: int, slot: int, contai
     internal_autoequip(char, container, slot)
     for container in [container, char.equipment]:
         container_id = container.container_id
-        container = container_to_ids(container)
+        container = network.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
         network.broadcast_cbstate_update(char)
 
@@ -157,7 +157,7 @@ def request_auto_unequip(connection, time_received, itemid: int, slot: int):
     internal_autounequip(char, slot)
     for container in [char.equipment, char.inventory]:
         container_id = container.container_id
-        container = container_to_ids(container)
+        container = network.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
         network.broadcast_cbstate_update(char)
 
