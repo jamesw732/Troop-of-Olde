@@ -6,12 +6,12 @@ These are essentially networking wrappers for procedures done by the server. If 
 needs something done by the server, they call a function from here."""
 from ursina.networking import rpc
 
-from .network import network
+from .character import ServerCharacter
+from .controllers import MobController
 from .world_responses import *
+from ..networking.network import network
 from ..base import *
 from ..item import full_item_move, internal_autoequip, internal_autounequip
-from ..server.character import ServerCharacter
-from ..server.controllers import MobController
 from ..gamestate import gs
 from ..states import State, container_to_ids
 

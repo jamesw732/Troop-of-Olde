@@ -1,10 +1,9 @@
 """Handles all procedures relevant to connecting to the server. This should probably be re-segmented
 since the networking refactoring"""
-from ursina import destroy
 from ursina.networking import rpc
 
-from .network import network
-from .register import *
+from ..networking.network import network
+from ..networking.register import *
 from .world_requests import request_enter_world
 from ..gamestate import gs
 from ..states import get_player_states_from_data
@@ -17,11 +16,10 @@ def on_connect(connection, time_connected):
     and send the new character to peers.
     Will need to generate world on peer, spawn all characters including
     peer's, and bind peer's character to my_uuid.
-    Eventually, this will not be done on connection, it will be done on "enter world"."""
-    if not network.peer.is_hosting():
-        player_name = "Demo Player"
-        players_path = os.path.join(data_path, "players.json")
-        with open(players_path) as players:
-            pc_data = json.load(players)[player_name]
-        states = get_player_states_from_data(pc_data, player_name)
-        network.peer.request_enter_world(connection, *states)
+    Eventually, this will not be done on connection, it will be done upon entering the world."""
+    player_name = "Demo Player"
+    players_path = os.path.join(data_path, "players.json")
+    with open(players_path) as players:
+        pc_data = json.load(players)[player_name]
+    states = get_player_states_from_data(pc_data, player_name)
+    network.peer.request_enter_world(connection, *states)

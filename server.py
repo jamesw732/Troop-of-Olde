@@ -3,10 +3,9 @@ from ursina.networking import rpc
 
 from source.gamestate import gs
 from source.networking import network
-from source.networking.connect import *
 from source.networking.disconnect import *
 from source.networking.register import *
-from source.networking.world_requests import *
+from source.server.world_requests import *
 from source.server.world_gen import ServerWorld
 
 def start_server(name, port):

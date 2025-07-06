@@ -4,11 +4,11 @@ These will typically only be called by functions in world_requests as part
 of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
-from .network import network
+from .character import ClientCharacter
+from .controllers import PlayerController, NPCController
+from .world_gen import ClientWorld
+from ..networking.network import network
 from ..base import sqnorm, PHYSICS_UPDATE_RATE
-from ..client.character import ClientCharacter
-from ..client.controllers import PlayerController, NPCController
-from ..client.world_gen import ClientWorld
 from ..gamestate import gs
 from ..states import *
 from ..ui import UI, make_all_ui
