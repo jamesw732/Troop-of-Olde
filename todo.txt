@@ -3,10 +3,7 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Definite Steps:
 Build input handler layer:
-- Refactor networking so that client has world_requests interface, world_responses implementation,
-and server has world_responses interface, world_requests implementation. Remove networking module,
-and just keep it as part of the rest of the shared API.
-
+Remove state as a subpackage, just make it a module.
 
 - Update developer.tex
 
