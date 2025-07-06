@@ -7,7 +7,7 @@ from ursina.networking import rpc
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
 from .world_gen import ClientWorld
-from .ui import UI, make_all_ui
+from .ui import ui
 from .. import *
 
 # LOGIN
@@ -53,8 +53,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     network.my_uuid = uuid
     network.server_connection = connection
 
-    gs.ui = UI()
-    make_all_ui(gs.ui)
+    ui.make_all_ui()
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
@@ -74,18 +73,18 @@ def spawn_npc(connection, time_received, uuid: int,
 def toggle_combat(connection, time_received, toggle: bool):
     my_char = network.uuid_to_char.get(network.my_uuid)
     my_char.in_combat = toggle
-    if gs.ui.gamewindow:
+    if ui.gamewindow:
         msg = "Now entering combat" if toggle else "Now leaving combat"
-        gs.ui.gamewindow.add_message(msg)
+        ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def remote_death(connection, time_received, char_uuid: int):
     """Tell clients that a character died. Only to be called by host."""
     char = network.uuid_to_char.get(char_uuid)
     if char:
-        if gs.ui.gamewindow:
+        if ui.gamewindow:
             msg = f"{char.cname} perishes"
-            gs.ui.gamewindow.add_message(msg)
+            ui.gamewindow.add_message(msg)
         char.die()
 
 @rpc(network.peer)
@@ -93,9 +92,9 @@ def remote_set_target(connection, time_received, uuid: int):
     """Update player character's target"""
     tgt = network.uuid_to_char[uuid]
     gs.pc.target = tgt
-    if gs.ui.gamewindow:
+    if ui.gamewindow:
         msg = f"Now targeting: {tgt.cname}"
-        gs.ui.gamewindow.add_message(msg)
+        ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerCombatState):
@@ -104,10 +103,10 @@ def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerComba
         return
     cbstate.apply(char)
     if uuid is network.my_uuid:
-        if gs.ui.bars:
-            gs.ui.bars.update_display()
-        if gs.ui.playerwindow:
-            gs.ui.playerwindow.stats.update_labels()
+        if ui.bars:
+            ui.bars.update_display()
+        if ui.playerwindow:
+            ui.playerwindow.stats.update_labels()
 
 @rpc(network.peer)
 def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatState):
@@ -116,18 +115,18 @@ def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatS
         return
     cbstate.apply(char)
     if uuid is network.my_uuid:
-        if gs.ui.bars:
-            gs.ui.bars.update_display()
-        if gs.ui.playerwindow:
-            gs.ui.playerwindow.stats.update_labels()
+        if ui.bars:
+            ui.bars.update_display()
+        if ui.playerwindow:
+            ui.playerwindow.stats.update_labels()
 
 # Skills
 @rpc(network.peer)
 def remote_update_skill(connection, time_received, skill: str, val: int):
     char = gs.pc
     char.skills[skill] = val
-    if gs.ui.playerwindow:
-        gs.ui.playerwindow.skills.set_label_text(skill)
+    if ui.playerwindow:
+        ui.playerwindow.skills.set_label_text(skill)
 
 # Items
 @rpc(network.peer)
@@ -147,7 +146,7 @@ def remote_update_container(connection, time_received, container_id: int, contai
         if new_item is not None:
             new_item.auto_set_leftclick(container)
 
-    item_frame = gs.ui.item_frames.get(container_id)
+    item_frame = ui.item_frames.get(container_id)
     if item_frame:
         item_frame.update_ui_icons()
 
@@ -224,5 +223,5 @@ def update_rotation(connection, time_received, uuid: int, rot: Vec3):
 @rpc(network.peer)
 def remote_print(connection, time_received, msg: str):
     """Remotely print a message for another player"""
-    if gs.ui and gs.ui.gamewindow:
-        gs.ui.gamewindow.add_message(msg)
+    if ui.gamewindow:
+        ui.gamewindow.add_message(msg)

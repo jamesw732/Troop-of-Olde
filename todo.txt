@@ -3,14 +3,10 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Current Steps:
 - Remove GameState entirely:
-input_handler is unused
 playercontroller can be a global singleton, will need to rewrite some stuff but shouldn't be hard
 world can be a global singleton
-ui can just be a global singleton
-The hard part will be figuring out what to do with gs.pc and gs.chars. chars is hardly used at all,
-maybe it can just be taken out until I need it. pc is harder, but could maybe just get it through
+Move pc and chars to world?
 PlayerController?
-- Remove disconnect.py from shared API. The best way to do this is uncertain.
 
 
 - Update developer.tex
@@ -32,6 +28,7 @@ Cleanup level steps:
 but this is probably not a huge deal.
 - Should probably encapsulate server and client creation in Server and Client classes. 
 - Move all networking calls into controllers.py
+- Remove disconnect.py from shared API. The best way to do this is uncertain.
 
 
 ===================================NEXT================================================
@@ -101,13 +98,13 @@ UI is quite incomplete, there is a lot of helpful information that should be tra
 - in combat/not
 - persistent effects
 
-Some missing functionality:
+Some missing functionality
 - Loot window
 - Hover and right click tooltips, which will be the primary visual guide for the UI
 - Swapping of action bar slots
 - Destroying items
 
-There are some bugs as well:
+Bugs
 - Scrolling with mousewheel while scrollbar is full results in division by zero
 - Transparency handling for the game window is buggy since the scrollbar has its own collider.
 Basically, the current handling for mouse enter/exit is fragile - entering on and exiting from a
@@ -115,6 +112,11 @@ child entity with a collider doesn't correctly trigger the transparency change. 
 this, worst case can remove the collider.
 - There's also a bug with new text entering the game window with the wrong transparency. I think
 text should probably be ignored by set_alpha altogether.
+
+Cleanup
+- make init functions simpler, for example make the player window just draw the outer window, not
+the subwindows. This will allow for more flexibility with mapping item frames, and any similar
+future functionality.
 
 
 Database:

@@ -16,7 +16,6 @@ class UIWindow(Entity):
         # Invisible "canvas" entity
         super().__init__(origin=(-0.5, 0.5), scale=scale, position=position, parent=camera.ui, collider='box',
                          model='quad', alpha=0)
-        gs.ui.colliders.append(self)
         self.header_ratio = header_ratio
         self.body_ratio = 1 - self.header_ratio
 

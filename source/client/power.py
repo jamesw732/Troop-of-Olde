@@ -3,6 +3,7 @@ import os
 import json
 
 from .. import gs, network, Power
+from .ui import ui
 
 
 class ClientPower(Power):
@@ -35,4 +36,4 @@ class ClientPower(Power):
         if self.char.energy < self.cost:
             return
         super().use()
-        gs.ui.actionbar.start_cd_animation()
+        ui.actionbar.start_cd_animation()

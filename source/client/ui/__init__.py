@@ -9,12 +9,21 @@ class UI:
         self.bars = None
         self.playerwindow = None
         self.gamewindow = None
+        self.actionbar = None
         self.item_frames = {}
-        self.colliders = []
 
-def make_all_ui(ui):
-    # pass
-    ui.bars = BarWindow()
-    ui.playerwindow = PlayerWindow()
-    ui.gamewindow = GameWindow()
-    ui.actionbar = ActionBar()
+    def make_all_ui(self):
+        self.bars = BarWindow()
+        self.playerwindow = PlayerWindow()
+        self.gamewindow = GameWindow()
+        self.actionbar = ActionBar()
+
+        # Should probably not do this post-hoc, pull parts of PlayerWindow.__init__
+        # into functions and call them here
+        items_window = self.playerwindow.items
+        equipment = items_window.equipment_frame
+        inventory = items_window.inventory_frame
+        self.item_frames[equipment.container.container_id] = equipment
+        self.item_frames[inventory.container.container_id] = inventory
+
+ui = UI()

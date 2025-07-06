@@ -68,8 +68,6 @@ class ItemFrame(Entity):
     def __init__(self, grid_size, container, slot_labels=[], **kwargs):
         self.grid_size = grid_size
         self.container = container
-        # store this frame by name so that the server can easily update it from item movements
-        gs.ui.item_frames[container.container_id] = self
         # pad the slot labels with empty strings
         self.slot_labels = slot_labels + ([""] * (len(container) - len(slot_labels)))
 
@@ -77,7 +75,6 @@ class ItemFrame(Entity):
         self.icons = [None] * len(container)
 
         super().__init__(collider="box", origin=(-0.5, 0.5), model='quad', color=slot_color, **kwargs)
-        gs.ui.colliders.append(self)
         box_spacing = 0
         box_w = 1 / (grid_size[0] + box_spacing * (grid_size[0] - 1))
         box_h = 1 / (grid_size[1] + box_spacing * (grid_size[1] - 1))
