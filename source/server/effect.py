@@ -3,9 +3,7 @@ import os
 import json
 import copy
 
-from ..base import data_path
-from ..network import network
-from ..states import Stats
+from .. import data_path, network, Stats
 
 
 effects_path = os.path.join(data_path, "effects.json")

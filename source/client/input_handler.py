@@ -3,10 +3,8 @@ import json
 from ursina import Entity, held_keys, every, Vec2, mouse, camera
 import ursina.input_handler
 
-from ..base import PHYSICS_UPDATE_RATE
-from ..gamestate import gs
-from ..network import network
 from .character import Character
+from .. import PHYSICS_UPDATE_RATE, gs, network
 
 class InputHandler(Entity):
     def __init__(self):

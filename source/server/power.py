@@ -3,8 +3,7 @@ import os
 import json
 
 from .effect import Effect
-from ..network import network
-from ..power import Power
+from .. import network, Power
 
 class ServerPower(Power):
     def __init__(self, char, power_id):

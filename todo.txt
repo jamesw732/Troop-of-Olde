@@ -1,7 +1,19 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Definite Steps:
+Current Steps:
+- Remove GameState entirely:
+input_handler is unused
+playercontroller can be a global singleton, will need to rewrite some stuff but shouldn't be hard
+world can be a global singleton
+ui can just be a global singleton
+The hard part will be figuring out what to do with gs.pc and gs.chars. chars is hardly used at all,
+maybe it can just be taken out until I need it. pc is harder, but could maybe just get it through
+PlayerController?
+- Remove disconnect.py from shared API. The best way to do this is uncertain.
+- Move UI directory into client
+- add imports to __init__.py and make client/server import from there, rather than individual files.
+
 
 - Update developer.tex
 
@@ -22,7 +34,6 @@ Cleanup level steps:
 but this is probably not a huge deal.
 - Should probably encapsulate server and client creation in Server and Client classes. 
 - Move networking calls 
-- Move UI directory into client.
 
 
 ===================================NEXT================================================

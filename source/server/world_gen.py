@@ -3,9 +3,8 @@ from ursina import Entity, Sky, color
 import json
 import os
 
-from ..base import data_path
 from .character import ServerCharacter
-from ..states import get_npc_states_from_data
+from .. import data_path, get_npc_states_from_data
 
 
 class ServerWorld:

@@ -4,12 +4,7 @@ client-side NPCs, and server-side Characters.
 """
 from ursina import *
 
-from ..base import *
-from ..combat import *
-from ..gamestate import gs
-from ..network import network
-from ..physics import get_displacement, set_jump_vel, set_gravity_vel
-from ..skills import *
+from .. import *
 
 
 class PlayerController(Entity):

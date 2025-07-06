@@ -8,7 +8,6 @@ from ursina.mesh_importer import imported_meshes
 
 from .base import all_skills, data_path, default_equipment, default_phys_attrs, \
         default_cb_attrs, models_path
-from .gamestate import gs
 
 class State(list):
     """Base class for all State types. Never meant to be initialized directly,

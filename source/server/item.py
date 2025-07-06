@@ -2,8 +2,7 @@ from ursina import *
 import json
 import copy
 
-from ..item import Item, Container
-from ..network import network
+from .. import Item, Container, network
 
 class ServerItem(Item):
     def __init__(self, item_id):

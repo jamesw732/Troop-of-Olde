@@ -4,8 +4,7 @@ These will typically only be called by functions in world_requests as part
 of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
-from ..network import network
-from ..states import *
+from .. import *
 
 # LOGIN
 @rpc(network.peer)

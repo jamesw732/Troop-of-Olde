@@ -11,12 +11,9 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from ..base import default_equipment, default_inventory
-from ..character import Character
-from ..network import network
 from .item import ServerItem, ServerContainer
 from .power import ServerPower
-from ..states import *
+from .. import *
 
 class ServerCharacter(Character):
     def __init__(self, uuid=None, pstate=PhysicalState(), cbstate=BaseCombatState(),

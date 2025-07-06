@@ -2,7 +2,6 @@
 from ursina import *
 
 from .base import PHYSICS_UPDATE_RATE, sqnorm, dot
-from .gamestate import gs
 
 dt = PHYSICS_UPDATE_RATE
 

@@ -5,10 +5,8 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from ..character import Character
-from ..item import Item, Container
 from .power import ClientPower
-from ..states import *
+from .. import *
 
 
 class ClientCharacter(Character):

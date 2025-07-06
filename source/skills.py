@@ -1,7 +1,5 @@
 import random
 
-from .gamestate import gs
-
 
 def check_raise_skill(char, skill):
     """Perform a random check to raise a skill level.

@@ -3,9 +3,7 @@ from ursina import Entity, Sky, color
 import json
 import os
 
-from ..base import data_path
-from .character import ClientCharacter
-from ..states import get_npc_states_from_data
+from .. import data_path, get_npc_states_from_data
 
 
 class ClientWorld:
@@ -29,16 +27,6 @@ class ClientWorld:
                 Sky(**data)
             else:
                 Entity(**self.parse_colors(data))
-
-    def create_npcs(self, file):
-        """Spawn from the npc source file. Called only by server.
-
-        file: str, name of file to load in data/zones. Not full path"""
-        path = os.path.join(self.zones_path, file)
-        with open(path) as f:
-            npc_data = json.load(f)
-        return [ServerCharacter(**get_npc_states_from_data(data, name))
-                                for name, data in npc_data.items()]
 
     def parse_colors(self, data):
         """Parses colors from a json, which are just formatted as strings.

@@ -9,11 +9,8 @@ from ursina.networking import rpc
 from .character import ServerCharacter
 from .controllers import MobController
 from .world_responses import *
-from ..network import network
-from ..base import *
-from ..item import full_item_move, internal_autoequip, internal_autounequip
-from ..gamestate import gs
-from ..states import *
+from .. import *
+
 
 # LOGIN
 @rpc(network.peer)

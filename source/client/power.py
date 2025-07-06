@@ -2,9 +2,7 @@ from ursina import *
 import os
 import json
 
-from ..gamestate import gs
-from ..network import network
-from ..power import Power
+from .. import gs, network, Power
 
 
 class ClientPower(Power):
@@ -16,10 +14,10 @@ class ClientPower(Power):
     def handle_power_input(self):
         """Handles client's input to use a power"""
         tgt = self.get_target()
-        if gs.pc.get_on_gcd() or self.on_cooldown:
-            if gs.pc.next_power is self:
+        if self.char.get_on_gcd() or self.on_cooldown:
+            if self.char.next_power is self:
                 # Attempted to queue an already queued power, just remove it
-                gs.pc.next_power = None
+                self.char.next_power = None
             else:
                 # Queued powers are currently handled by PlayerController
                 self.queue()

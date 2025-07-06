@@ -5,12 +5,7 @@ client-side NPCs, and server-side Characters.
 from ursina import *
 import json
 
-from ..base import *
-from ..combat import *
-from ..network import network
-from ..physics import get_displacement, set_jump_vel, set_gravity_vel
-from ..skills import *
-from ..states import *
+from .. import *
 
 
 class MobController(Entity):
