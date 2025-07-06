@@ -1,11 +1,14 @@
 """Handles all procedures relevant to connecting to the server. This should probably be re-segmented
 since the networking refactoring"""
+import os
+import json
+
 from ursina.networking import rpc
 
-from ..networking.network import network
-from ..networking.register import *
 from .world_requests import request_enter_world
+from ..base import data_path
 from ..gamestate import gs
+from ..network import network
 from ..states import get_player_states_from_data
 
 

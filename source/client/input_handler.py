@@ -5,7 +5,7 @@ import ursina.input_handler
 
 from ..base import PHYSICS_UPDATE_RATE
 from ..gamestate import gs
-from ..networking import network
+from ..network import network
 from .character import Character
 
 class InputHandler(Entity):

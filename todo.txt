@@ -41,15 +41,16 @@ don't hesitate to extract it to its own class.
 =========================================BACKLOG=================================================
 Generic Code cleanup:
 - Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
-- I should instead leverage warnings that don't break the game.
-- Consider changing usage of States in the code. Maybe remove cname from PhysicalState
-I wonder if I should just have a State called "LoginState"? Might cause issues with size, but it
-would be a lot more clear what's actually going on.
-Should, at the very least, make "State" a more well-defined class.
+I should instead leverage warnings that don't break the game.
 
 Networking:
 Add sequence count to network calls where order of arrival matters, for example
-skill level ups.
+skill level ups and receiving containers.
+
+Player Controller:
+Jumping is sometimes very buggy, but sometimes fine? I think I need to smooth out the client
+side prediction. Maybe take the average of the past 5 diffs or something?
+
 
 Physics:
 Implement momentum, make it be a list of the 5 most recent keyboard movement vectors. They are
@@ -57,7 +58,6 @@ averaged and added as a displacement factor if no keyboard inputs for that physi
 Add more raycasts for collision logic.
 Use a loop for raycasts to not collide through concave intersections
 Improve wall collision logic, namely removing ability to jump up walls.
-Jumping is sometimes very buggy, but sometimes fine?
 
 
 Combat:

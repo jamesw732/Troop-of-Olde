@@ -2,7 +2,7 @@ from ursina import destroy
 from ursina.networking import rpc
 
 from .network import network
-from ..gamestate import gs
+from .gamestate import gs
 
 
 @rpc(network.peer)

@@ -1,8 +1,8 @@
 from ursina import *
 from ursina.networking import RPCPeer, rpc
 
-from ..gamestate import gs
-from ..states import *
+from .gamestate import gs
+from .states import *
 
 UPDATE_RATE = 1 / 20
 
@@ -55,3 +55,10 @@ class Network(Entity):
 # RPC needs to know about network at compile time, so this global seems necessary
 network = Network()
 gs.network = network
+
+network.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
+network.peer.register_type(SkillsState, SkillsState.serialize, SkillsState.deserialize)
+network.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
+network.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)
+network.peer.register_type(PhysicalState, PhysicalState.serialize, PhysicalState.deserialize)
+network.peer.register_type(Stats, Stats.serialize, Stats.deserialize)

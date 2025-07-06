@@ -8,9 +8,8 @@ from source.client.input_handler import InputHandler
 from source.client.connect import *
 from source.client.world_requests import *
 from source.client.world_responses import *
-from source.networking import network
-from source.networking.disconnect import *
-from source.networking.register import *
+from source.network import network
+from source.disconnect import *
 
 try:
     parent_dir = os.path.dirname(os.path.abspath(__file__))
