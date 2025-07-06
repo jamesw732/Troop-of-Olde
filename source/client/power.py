@@ -36,4 +36,3 @@ class ClientPower(Power):
         if self.char.energy < self.cost:
             return
         super().use()
-        ui.actionbar.start_cd_animation()

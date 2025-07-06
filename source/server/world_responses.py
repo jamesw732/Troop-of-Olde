@@ -9,7 +9,7 @@ from .. import network, PhysicalState, BaseCombatState, PlayerCombatState, \
 
 # LOGIN
 @rpc(network.peer)
-def remote_generate_world(connection, time_received, zone:str):
+def remote_load_world(connection, time_received, zone:str):
     """Remotely generate the world"""
     pass
 

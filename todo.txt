@@ -32,6 +32,8 @@ but this is probably not a huge deal.
 
 
 ===================================NEXT================================================
+Fix character origin bug
+
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 

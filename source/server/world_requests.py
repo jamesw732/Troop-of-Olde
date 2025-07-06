@@ -30,7 +30,7 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         network.uuid_to_connection[new_pc.uuid] = connection
         gs.chars.append(new_pc)
         network.connection_to_char[connection] = new_pc
-        network.peer.remote_generate_world(connection, "demo.json")
+        network.peer.remote_load_world(connection, "demo.json")
         # extend instance id-based objects to include database id and instance id
         inventory_ids = network.container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
         inventory_ids = [new_pc.inventory.container_id] + inventory_ids

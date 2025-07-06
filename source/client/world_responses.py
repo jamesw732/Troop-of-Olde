@@ -6,15 +6,15 @@ from ursina.networking import rpc
 
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
-from .world_gen import ClientWorld
+from .world import world
 from .ui import ui
 from .. import *
 
 # LOGIN
 @rpc(network.peer)
-def remote_generate_world(connection, time_received, zone:str):
+def remote_load_world(connection, time_received, zone:str):
     """Remotely generate the world"""
-    gs.world = ClientWorld(zone)
+    world.load_zone(zone)
 
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipment: list[int],
