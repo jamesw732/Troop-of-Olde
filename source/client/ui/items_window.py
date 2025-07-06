@@ -2,11 +2,7 @@ from ursina import *
 import copy
 
 from .base import *
-from ..base import equipment_slots
-from ..base import slot_to_ind
-from ..gamestate import gs
-from ..item import *
-from ..network import network
+from ... import *
 
 """Explanation of terminology used in this file:
 Item objects represent the invisible data of an item. They inherit dict and are mostly used just like dicts.

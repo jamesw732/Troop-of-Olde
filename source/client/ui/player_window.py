@@ -6,7 +6,7 @@ from .skills_window import *
 from .stats_window import *
 from .window import UIWindow
 
-from ..gamestate import gs
+from ... import gs
 
 class PlayerWindow(UIWindow):
     def __init__(self):

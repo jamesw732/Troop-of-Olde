@@ -1,8 +1,7 @@
 from ursina import *
 
 from .base import *
-from ..base import all_skills
-from ..gamestate import gs
+from ... import all_skills, gs
 
 class SkillsWindow(Entity):
     def __init__(self, *args, **kwargs):

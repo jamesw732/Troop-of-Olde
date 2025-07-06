@@ -7,8 +7,8 @@ from ursina.networking import rpc
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
 from .world_gen import ClientWorld
+from .ui import UI, make_all_ui
 from .. import *
-from ..ui import UI, make_all_ui
 
 # LOGIN
 @rpc(network.peer)

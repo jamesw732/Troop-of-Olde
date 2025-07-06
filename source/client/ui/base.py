@@ -1,7 +1,7 @@
 from ursina import *
 import os
 
-from ..base import assets_path
+from ... import assets_path
 
 # COLORS:
 header_color = color.hex("8a6240")

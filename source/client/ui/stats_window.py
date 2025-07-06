@@ -2,8 +2,7 @@ from ursina import *
 import itertools
 
 from .base import *
-from ..base import all_stats
-from ..gamestate import gs
+from ... import all_stats, gs
 
 class StatsWindow(Entity):
     def __init__(self, *args, **kwargs):

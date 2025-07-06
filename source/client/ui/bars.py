@@ -3,7 +3,7 @@ from ursina import *
 from .base import *
 from .window import UIWindow
 
-from ..gamestate import gs
+from ... import gs
 
 class BarWindow(UIWindow):
     def __init__(self):

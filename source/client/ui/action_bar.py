@@ -1,8 +1,8 @@
 from ursina import *
 
 from .base import *
-from ..gamestate import gs
 from .window import UIWindow
+from ... import gs
 
 
 class ActionBar(UIWindow):
