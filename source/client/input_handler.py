@@ -1,11 +1,12 @@
 import json
 
-from ursina import Entity, held_keys, every, Vec2
+from ursina import Entity, held_keys, every, Vec2, mouse, camera
 import ursina.input_handler
 
 from ..base import PHYSICS_UPDATE_RATE
 from ..gamestate import gs
 from ..networking import network
+from .character import Character
 
 class InputHandler(Entity):
     def __init__(self):
@@ -23,6 +24,27 @@ class InputHandler(Entity):
             if key == "c":
                 print("Attempting to connect")
                 network.peer.start("localhost", 8080, is_host=False)
+                return
+        ctrl = gs.playercontroller
+        char = ctrl.character
+        tgt = mouse.hovered_entity
+        if ctrl is None:
+            return
+        if key == "jump":
+            ctrl.do_jump()
+        elif key == "scroll up":
+            if tgt is None or not tgt.has_ancestor(camera.ui):
+                ctrl.zoom_in()
+        elif key == "scroll down":
+            if tgt is None or not tgt.has_ancestor(camera.ui):
+                ctrl.zoom_out()
+        elif key == "right mouse down":
+            ctrl.start_mouse_rotation()
+        elif key == "toggle_combat":
+            ctrl.toggle_combat()
+        elif key == "left mouse down":
+            if isinstance(tgt, Character):
+                ctrl.set_target(tgt)
 
     def update(self):
         ctrl = gs.playercontroller

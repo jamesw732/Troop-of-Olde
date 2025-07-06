@@ -148,6 +148,9 @@ class PlayerController(Entity):
         so nothing sent to server."""
         self.focus.rotate(Vec3(updown * 100 * time.dt, 0, 0))
 
+    def start_mouse_rotation(self):
+        self.prev_mouse_position = mouse.position
+
     def handle_mouse_rotation(self):
         """Updates self.mouse_y_rotation according to mouse rotation.
 
@@ -161,26 +164,17 @@ class PlayerController(Entity):
         self.focus.rotation_x += mouse_rotation[0]
         self.mouse_y_rotation += mouse_rotation[1]
 
-    def input(self, key):
-        """Updates from single client inputs"""
-        tgt = mouse.hovered_entity
-        if key == "jump":
-            self.character.start_jump()
-            gs.network.peer.request_jump(gs.network.server_connection)
-        elif key == "scroll up":
-            if tgt is None:
-                return
-            if not tgt.has_ancestor(camera.ui):
-                self.camdistance = max(self.camdistance - 1, 0)
-        elif key == "scroll down":
-            if tgt is None:
-                return
-            if not tgt.has_ancestor(camera.ui):
-                self.camdistance = min(self.camdistance + 1, 75)
-        elif key == "right mouse down":
-            self.prev_mouse_position = mouse.position
-        elif key == "toggle_combat":
-            gs.network.peer.request_toggle_combat(gs.network.server_connection)
+    def do_jump(self):
+        if self.character is None:
+            return
+        self.character.start_jump()
+        gs.network.peer.request_jump(gs.network.server_connection)
+
+    def zoom_in(self):
+        self.camdistance = max(self.camdistance - 1, 0)
+
+    def zoom_out(self):
+        self.camdistance = min(self.camdistance + 1, 75)
 
     def set_target(self, target):
         """Set character's target.
@@ -188,6 +182,9 @@ class PlayerController(Entity):
         target: Character"""
         self.character.target = target
         gs.network.peer.request_set_target(gs.network.server_connection, target.uuid)
+
+    def toggle_combat(self):
+        gs.network.peer.request_toggle_combat(gs.network.server_connection)
 
     def on_destroy(self):
         destroy(self.namelabel)

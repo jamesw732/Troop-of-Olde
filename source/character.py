@@ -107,10 +107,6 @@ class Character(Entity):
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
 
-    def on_click(self):
-        gs.playercontroller.set_target(self)
-
-
     def get_tgt_los(self, target):
         """Returns whether the target is in line of sight"""
         sdist = sqdist(self.position, self.target.position)

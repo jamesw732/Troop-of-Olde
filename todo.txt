@@ -1,45 +1,33 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Refine the splits between the code layers.
-I want layers like:
-- Input Layer: Handle player/npc inputs, send networking requests, update local game state
-through external API, potentially update UI
-- Request Layer: Send networking requests to server which update game state via public
-API, update server managers, and send networking updates
-- Server API: public-facing functions and classes which update the server's game
-state and sends networking responses
-- Response Layer: Send networking responses to client which update the game state
-via public API as well as the UI
-- Client API: public-facing functions and classes which update the client's game state
-- UI: Displays game relevant parts of the game state to the player
-- Internal API: Internal state and helper functions, shared between client and server.
-
-Steps:
+Definite Steps:
 Build input handler layer:
-- Pull input-handling parts of PlayerController into an InputHandler class and
-keep PlayerController as part of the Client API, rather than part of the input
-layer. This should make the UI network requests easier to extract.
-- Remove networking requests from lower level modules, including UI
-- Pull UI input handling into the input handler
-
 - Refactor networking so that client has world_requests interface, world_responses implementation,
-and server has world_responses interface, world_requests implementation.
-- Make InputHandler and server.controllers import requests/responses code, remove all other imports.
+and server has world_responses interface, world_requests implementation. Remove networking module,
+and just keep it as part of the rest of the shared API.
+
 
 - Update developer.tex
 
 
-Considerations:
-For now, GameState exists as the bottom-most dependency whose state is modified globally to
-get the best of both worlds.  I don't want this to stay true for long. I think the best way
-to handle this will be to eventually do one of the following (leaning towards the last one):
-- Remove GameState entirely (might be bad for non-singletons)
-- Remove all singletons from GameState to make it a true bottom dependency
-- Make GameState the highest level class in the server/client APIs, and make it construct
-default singletons. Attach necessary data, such as the player character, upon login.
+Unclear steps:
+I think it would be good to remove patterns of avoiding circular dependence by mutating class
+variables. This really muddies the dependence structure - even though character.py doesn't
+import controllers.py, it still has access to objects defined in controllers.py. This should
+not be the case.
+Will need to reconsider the following:
+- GameState defining higher level variables as None, and being mutated to access them.
+Maybe move all singletons outside of GameState?
+- Character referencing its controller.
 
-Camera should probably be handled separately from PlayerController.
+Cleanup level steps:
+- Camera should probably be handled separately from PlayerController.
+- Networking requests spawned by UI probably should be further down the stack from the UI code,
+but this is probably not a huge deal.
+- Should probably encapsulate server and client creation in Server and Client classes. 
+- Move networking calls 
+- Move UI directory into client.
 
 
 ===================================NEXT================================================
