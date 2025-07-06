@@ -4,7 +4,8 @@ These will typically only be called by functions in world_requests as part
 of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
-from .. import *
+from .. import network, PhysicalState, BaseCombatState, PlayerCombatState, \
+        SkillsState, NPCCombatState, Vec3
 
 # LOGIN
 @rpc(network.peer)

@@ -3,7 +3,7 @@ by the client, executed by the server. We don't need the implementation client-s
 don't include it."""
 from ursina.networking import rpc
 
-from .. import *
+from .. import network, PhysicalState, BaseCombatState, SkillsState, Vec2
 
 # LOGIN
 @rpc(network.peer)

@@ -11,8 +11,6 @@ The hard part will be figuring out what to do with gs.pc and gs.chars. chars is 
 maybe it can just be taken out until I need it. pc is harder, but could maybe just get it through
 PlayerController?
 - Remove disconnect.py from shared API. The best way to do this is uncertain.
-- Move UI directory into client
-- add imports to __init__.py and make client/server import from there, rather than individual files.
 
 
 - Update developer.tex
@@ -33,7 +31,7 @@ Cleanup level steps:
 - Networking requests spawned by UI probably should be further down the stack from the UI code,
 but this is probably not a huge deal.
 - Should probably encapsulate server and client creation in Server and Client classes. 
-- Move networking calls 
+- Move all networking calls into controllers.py
 
 
 ===================================NEXT================================================
