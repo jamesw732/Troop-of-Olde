@@ -100,29 +100,30 @@ Checklist for this phase:
 \end{itemize}
 
 \section{Code Infrastructure}
-This section describes the key development choices made in the source code
-for this game.
+This section describes the big-picture structure of the code.
 
-The first several subsections here outline a well-defined logical stack that has
-arisen as a result of development. This stack is:
-\begin{enumerate}
-    \item Project Root
-    \item Input Handling
-    \item Request layer
-    \item Server API
-    \item Response layer
-    \item Client API
-    \item Shared API
-\end{enumerate}
-Each of these layers is explained in detail below. When developing new features, it
-is useful to think in terms of this stack - ask yourself, which functionality belongs
-to the input handler? The server API? and so on. This stack enforces downward
-dependence - input handling relies on the request layer, but the request layer
-does not rely on the input handling.
+In general, I try to avoid ``imaginary'' imports at all costs. An example of this (which is currently
+violated) is that \codeword{Item} has a
+method \codeword{handle_stats} that takes in a \codeword{char} parameter, which is expected to be a
+\codeword{Character} object. This means that \codeword{Item} depends on \codeword{Character}, and thus to honor
+Python's downward dependency requirement, \codeword{Character} should not depend on \codeword{Item}.
+While Python's dynamic typing allows \codeword{Character}s and \codeword{Item}s to be used as inputs to
+each others methods without worry, this violates principles of clear ownership and makes the project layers
+very fuzzy. This is the main guiding principle of the code structure.
 
-This does not actually represent the current state of the repository, but it is
-an active development task to move towards this structure.
+The other guiding principle is to keep differing behavior between the client and server as disjoint as possible.
+The client shouldn't even have access to the server code. Early on in this project's life, I used a lot of checks
+to see whether the network was being hosted or not. These should be avoided, if there's a distinction between
+the client and server behavior, it should be captured by subclasses that aren't accessible to one another.
+At the same time, behavior that is truly identical between the client and server should be reused whenever
+possible.
 
+One benefit of the project having a clear dependency stack is that it gives a clear order to present the code in.
+The rest of the section describes the entire dependency stack from the bottom up, with brief descriptions of the roles
+of each file.
+\subsection{Shared API}
+\subsection{Client API}
+\subsection{Server API}
 \subsection{Project Root}
 These are the \codeword{main.py}, \codeword{server.py}, \codeword{main_multiplayer.py}
 files which pretty much just import everything necessary initialize the game. 
@@ -138,39 +139,10 @@ to it from \codeword{main_multiplayer.py}.
 
 Of course, this launch process is subject to change once this becomes more of a real game.
 
-\subsection{Input Handling}
-The role of the input handling layer is to parse player inputs, update the local
-game state through the client API, and send networking requests.
-
-This layer is not yet separated out, but it will be encapsulated in a singleton InputHandler class.
-Only clients will create one. This will be the sole class responsible for making networking
-requests. Furthermore, UI-based inputs will be handled here. This is a tradeoff, because it means
-the behavior of the UI is no longer restricted to the UI modules, but it also means the input
-handling all happens in one place. So really, the functionality of the UI should remain in the
-UI code, it should just be encapsulated as an API for the input handler to see.
-
-There will eventually be a class that handles NPC logic. Since the whole point of this is to
-essentially emulate player inputs, this will go in here.
-\subsection{Request Layer}
-The request layer is responsible for remote procedure calls sent by the client to
-the server. Authoritative game state is updated via the server API and shared API, and
-then remote states are updated via the response layer.
-
-The interface to the request layer should be public to the client, but the implementation
-should not be.
-\subsection{Server API}
-The server API is responsible for encapsulating server-specific objects and functions.
-\subsection{Response Layer}
-The response layer is responsible for remote procedure calls sent by the server to
-the client. The local game state is updated via the client API.
-
-The interface to the response layer should be public to the server, but the implementation
-does not need to be.
-\subsection{Client API}
-The client API is responsible for encapsulating client-specific objects and functions.
-The UI is part of the client API.
-
-\subsubsection{Client-Side Prediction}
+\section{Implementation Details}
+This section contains details specific to the implementation of certain modules. Anything that's technically
+advanced or confusing should go in here.
+\subsection{Client-Side Prediction for Player Movement}
 To ensure smooth play while enforcing server-authoritative character movement,
 we simulate the game physics client-side. Unfortunately, the simulation
 is nondeterministic, so we need to adjust for the differences in the state.
@@ -193,10 +165,8 @@ difference, and add it to the current target. Crucially, we add the
 displacement to the \codeword{Character}'s \codeword{displacement_components}
 to be processed for collision logic. Without applying the collision logic, it's easy to clip through
 the world and have an irrecoverable state.
-\subsection{Shared API}
-The shared API contains objects and functions shared between the client and server.
 
-\subsubsection{States}
+\subsection{States}
 States are essentially lists of arguments that make building large objects
 and sending RPCs easier.
 
@@ -211,7 +181,7 @@ written as a list. The order of the list is defined by its \codeword{statedef}.
 States can also be applied to Characters by overwriting the attributes, or by adding them
 (for example, Stats).
 
-\subsubsection{Physics}
+\subsection{Physics}
 Physics is probably the most technically challenging module to understand in this
 repository.
 
@@ -262,19 +232,7 @@ original displacement. Then our line is defined by
     \alpha b\\-\beta c - \alpha a\\\beta b
 \end{pmatrix}s.\]
 Rescaling to match our original displacement gives us our final result.
-\subsubsection{Characters}
-The shared API includes a base Character class that both ServerCharacters and
-ClientCharacters should inherit.
 
-\subsection{Design Patterns}
-To deal with circular dependencies in the networking code, I have chosen to attach top-level objects to
-the global GameState object. This allows referencing and using these objects without importing the
-corresponding modules. This is a dangerous choice, but I have found it to be a necessary evil (or maybe
-just too difficult for me to avoid). The greatest cost is that it blurs the line between the different
-layers. Actually, a big part of why I've focused on documenting the layers is to give the code design
-more structure, because this choice could, if abused, create some eldritch spaghetti code.
-The choice to use layers is not out of immediate necessity, but rather to prevent bad habits before
-they arise. 
 
 
 \section{Ursina Usage}
