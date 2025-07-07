@@ -8,6 +8,7 @@ from ursina.networking import rpc
 
 from .character import ServerCharacter
 from .controllers import MobController
+from .world import world
 from .world_responses import *
 from .. import *
 
@@ -28,7 +29,7 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         network.uuid_counter += 1
         network.uuid_to_char[new_pc.uuid] = new_pc
         network.uuid_to_connection[new_pc.uuid] = connection
-        gs.chars.append(new_pc)
+        world.chars.append(new_pc)
         network.connection_to_char[connection] = new_pc
         network.peer.remote_load_world(connection, "demo.json")
         # extend instance id-based objects to include database id and instance id
@@ -41,7 +42,7 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         new_char_cbstate = NPCCombatState(new_pc)
         for conn in network.peer.get_connections():
             if conn == connection:
-                for ch in gs.chars:
+                for ch in world.chars:
                     if ch is new_pc:
                         pc_cbstate = PlayerCombatState(new_pc)
                         network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,

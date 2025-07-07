@@ -45,8 +45,8 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     gs.playercontroller = PlayerController(gs.pc)
     gs.pc.controller = gs.playercontroller
 
-    gs.chars.append(gs.pc)
-    gs.pc.ignore_traverse = gs.chars
+    world.chars.append(gs.pc)
+    gs.pc.ignore_traverse = world.chars
 
     network.uuid_to_char[uuid] = gs.pc
     gs.pc.uuid = uuid
@@ -64,7 +64,7 @@ def spawn_npc(connection, time_received, uuid: int,
     if uuid not in network.uuid_to_char:
         char = ClientCharacter(pstate=phys_state, cbstate=cbstate)
         char.controller = NPCController(char)
-        gs.chars.append(char)
+        world.chars.append(char)
         network.uuid_to_char[uuid] = char
         char.uuid = uuid
 

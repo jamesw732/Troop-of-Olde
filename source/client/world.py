@@ -13,7 +13,7 @@ class World:
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
         self.entities = []
-        self.characters = []
+        self.chars = []
         self.pc = None
 
     def load_zone(self, file):
