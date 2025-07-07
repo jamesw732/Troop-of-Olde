@@ -2,7 +2,6 @@ from ursina import destroy
 from ursina.networking import rpc
 
 from .network import network
-from .gamestate import gs
 
 
 @rpc(network.peer)
@@ -24,10 +23,6 @@ def on_disconnect(connection, time_received):
             network.broadcast(network.peer.remote_remove_char, uuid)
     # The host disconnected
     else:
-        for char in gs.chars:
-            destroy(char)
-            del network.uuid_to_char[char.uuid]
-        gs.clear()
         network.my_uuid = None
 
 

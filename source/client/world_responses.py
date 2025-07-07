@@ -39,28 +39,26 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     equipment = [equip_id] + list(zip(equipment[:equip_l//2], equipment[equip_l//2:]))
     powers_l = len(powers)
     powers = zip(powers[:powers_l//2], powers[powers_l//2:])
-    gs.pc = ClientCharacter(pstate=pstate, equipment=equipment,
+    world.pc = ClientCharacter(pstate=pstate, equipment=equipment,
                       inventory=inventory, skills=skills,
                       powers=powers, cbstate=cbstate)
-    gs.playercontroller = PlayerController(gs.pc)
-    gs.pc.controller = gs.playercontroller
+    world.pc_ctrl = PlayerController(world.pc)
+    world.pc.controller = world.pc_ctrl
 
-    world.chars.append(gs.pc)
-    gs.pc.ignore_traverse = world.chars
+    world.chars.append(world.pc)
+    world.pc.ignore_traverse = world.chars
 
-    network.uuid_to_char[uuid] = gs.pc
-    gs.pc.uuid = uuid
+    network.uuid_to_char[uuid] = world.pc
+    world.pc.uuid = uuid
     network.my_uuid = uuid
     network.server_connection = connection
 
-    ui.make_all_ui()
+    ui.make_all_ui(world.pc)
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
               phys_state: PhysicalState, cbstate: NPCCombatState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
-    if network.peer.is_hosting():
-        return
     if uuid not in network.uuid_to_char:
         char = ClientCharacter(pstate=phys_state, cbstate=cbstate)
         char.controller = NPCController(char)
@@ -91,7 +89,7 @@ def remote_death(connection, time_received, char_uuid: int):
 def remote_set_target(connection, time_received, uuid: int):
     """Update player character's target"""
     tgt = network.uuid_to_char[uuid]
-    gs.pc.target = tgt
+    world.pc.target = tgt
     if ui.gamewindow:
         msg = f"Now targeting: {tgt.cname}"
         ui.gamewindow.add_message(msg)
@@ -123,7 +121,7 @@ def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatS
 # Skills
 @rpc(network.peer)
 def remote_update_skill(connection, time_received, skill: str, val: int):
-    char = gs.pc
+    char = world.pc
     char.skills[skill] = val
     if ui.playerwindow:
         ui.playerwindow.skills.set_label_text(skill)
@@ -135,8 +133,6 @@ def remote_update_container(connection, time_received, container_id: int, contai
 
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
     this will only be done by non-hosts"""
-    if network.peer.is_hosting():
-        return
     new_container = network.ids_to_container(container)
     container = network.inst_id_to_container[container_id]
 
@@ -173,14 +169,14 @@ def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: 
 @rpc(network.peer)
 def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: Vec3, rot: float):
     """Called by server to update physical state for a player character"""
-    if gs.pc is None:
+    if world.pc is None:
         return
     # To check synchronization, uncomment these:
     # print(rot % 360)
-    # print(gs.pc.rotation_y)
+    # print(world.pc.rotation_y)
     # print(pos)
-    # print(gs.pc.position)
-    controller = gs.pc.controller
+    # print(world.pc.position)
+    controller = world.pc.controller
     if sequence_number > controller.recv_sequence_number:
         controller.recv_sequence_number = sequence_number
         for num in controller.sn_to_pos.copy():

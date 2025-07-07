@@ -15,6 +15,7 @@ class World:
         self.entities = []
         self.chars = []
         self.pc = None
+        self.pc_ctrl = None
 
     def load_zone(self, file):
         """Load the world by parsing a json

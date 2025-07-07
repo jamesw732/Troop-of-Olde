@@ -2,7 +2,6 @@ from ursina import *
 
 from .base import *
 from .window import UIWindow
-from ... import gs
 
 class GameWindow(UIWindow):
     def __init__(self):

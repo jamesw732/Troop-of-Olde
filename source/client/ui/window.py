@@ -1,7 +1,7 @@
 from ursina import *
 
 from .base import *
-from ... import gs
+
 
 class UIWindow(Entity):
     def __init__(self, header_ratio=0.1, header_text="", bg_alpha=150/255, scale=(0.4, 0.4),

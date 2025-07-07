@@ -2,7 +2,6 @@ from .base import *
 from .character import Character
 from .combat import *
 from .item import *
-from .gamestate import gs
 from .network import network
 from .physics import *
 from .power import *

@@ -3,11 +3,10 @@ from ursina import *
 from .base import *
 from .window import UIWindow
 
-from ... import gs
 
 class BarWindow(UIWindow):
-    def __init__(self):
-        self.player = gs.pc
+    def __init__(self, char):
+        self.player = char
         # super().__init__(position=(0, -1, 0), scale=(1, 2.5))
         super().__init__(position=(-0.495 * window.aspect_ratio, 0.49), scale=(0.2, 0.08), bg_alpha=220/255)
 

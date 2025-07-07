@@ -13,7 +13,6 @@ from panda3d.core import NodePath
 
 from .base import default_cb_attrs, default_phys_attrs, all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
-from .gamestate import gs
 from .network import network
 from .states import *
 
@@ -80,10 +79,6 @@ class Character(Entity):
         Todo: Remove EVERY reference so char cna be garbage collected."""
         if self.uuid is not None:
             del network.uuid_to_char[self.uuid]
-        try:
-            gs.chars.remove(self)
-        except:
-            pass
         if self.controller:
             destroy(self.controller)
             del self.controller

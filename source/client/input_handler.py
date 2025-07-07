@@ -5,7 +5,8 @@ import ursina.input_handler
 
 from .character import Character
 from .ui import ui
-from .. import PHYSICS_UPDATE_RATE, gs, network, power_key_to_slot
+from .world import world
+from .. import PHYSICS_UPDATE_RATE, network, power_key_to_slot
 
 class InputHandler(Entity):
     def __init__(self):
@@ -24,7 +25,7 @@ class InputHandler(Entity):
                 print("Attempting to connect")
                 network.peer.start("localhost", 8080, is_host=False)
                 return
-        ctrl = gs.playercontroller
+        ctrl = world.pc_ctrl
         char = ctrl.character
         tgt = mouse.hovered_entity
         if ctrl is None:
@@ -47,9 +48,8 @@ class InputHandler(Entity):
         elif key in power_key_to_slot:
             ui.actionbar.powerbar.handle_power_input(key)
 
-
     def update(self):
-        ctrl = gs.playercontroller
+        ctrl = world.pc_ctrl
         if ctrl is None:
             # Eventually, this class will depend on PlayerController and this check will
             # be deferred to PlayerController as a Character existence check
@@ -65,7 +65,7 @@ class InputHandler(Entity):
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_movement_inputs(self):
-        ctrl = gs.playercontroller
+        ctrl = world.pc_ctrl
         if ctrl is None:
             # Eventually, this class will depend on PlayerController and this check will
             # be deferred to PlayerController as a Character existence check

@@ -2,14 +2,13 @@ from ursina import *
 import os
 import json
 
-from .. import gs, network, Power
+from .. import Power
 from .ui import ui
 
 
 class ClientPower(Power):
     def __init__(self, char, power_id, inst_id):
         """Make power"""
-        assert not network.peer.is_hosting()
         super().__init__(char, power_id, inst_id)
 
     def handle_power_input(self):
