@@ -23,12 +23,12 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         new_pc = ServerCharacter(pstate=pstate, cbstate=base_state,
                          equipment=equipment, inventory=inventory, skills=skills,
                          powers=powers)
-        new_pc.controller = MobController(new_pc)
         # Could we handle this uuid business in on_connect?
         new_pc.uuid = network.uuid_counter
         network.uuid_counter += 1
         network.uuid_to_char[new_pc.uuid] = new_pc
         network.uuid_to_connection[new_pc.uuid] = connection
+        network.uuid_to_ctrl[new_pc.uuid] = MobController(new_pc)
         world.chars.append(new_pc)
         network.connection_to_char[connection] = new_pc
         network.peer.remote_load_world(connection, "demo.json")
@@ -71,8 +71,9 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
     char.rotation_y += y_rotation
     # Will send back the most recently received sequence number to match the predicted state.
     # If packets arrive out of order, we want to update based on last sequence number
-    if sequence_number > char.controller.sequence_number:
-        char.controller.sequence_number = sequence_number
+    controller = network.uuid_to_ctrl[char.uuid]
+    if sequence_number > controller.sequence_number:
+        controller.sequence_number = sequence_number
 
 @rpc(network.peer)
 def request_jump(connection, time_received):

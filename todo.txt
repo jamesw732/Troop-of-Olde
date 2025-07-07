@@ -2,16 +2,31 @@ Implementation todo list.
 
 ===========================ACTIVE===============================
 Current Steps:
-- Remove GameState entirely:
-playercontroller can be a global singleton (ctrl?), will need to rewrite some stuff but shouldn't be hard
-pc can probably just be replaced by ctrl.character or case world.pc
-- Character shouldn't reference its controller, and shouldn't make networking calls
-- Give UI a character parameter rather than relying on a global
+
+
+I think all the id maps that are currently in network should be moved to world.
+This will mean:
+- Shared API character, item, power won't rely on Network anymore, the world will be
+responsible for giving them ids.
+- Network won't secretly rely on controller, character, item, power, effect. Ownership
+of those objects becomes much clearer.
+- Controllers won't have access to uiud maps. This is a good thing, that stuff should
+all be done network side. Controllers will still get access to object to id maps (which
+are just object attributes), which is necessary to make networking requests.
+
+
+So, todo list for this:
+- Remove network calls from Character.
+- Move id to object maps to world, including ids_to_container and container_to_ids (also
+rename to ids_to_items and items_to_ids).
+- Remove all references to object maps from files besides world_requests and world_responses.
+- add the functions to create objects and give them IDs in world
+
+
+Afterwards:
+- Remove disconnect.py from shared API. Actually, completely re-implement disconnect mostly
+from scratch.
 - Update developer.tex
-
-
-
-
 
 ===================================NEXT================================================
 Fix character origin bug
@@ -36,14 +51,18 @@ Networking:
 skill level ups and receiving containers.
 - Login sequence should be more back and forth, it shouldn't just be the server spitting out
 different responses and hoping they arrive in order.
-- Remove disconnect.py from shared API.
 - Should probably encapsulate server and client creation in Server and Client classes. 
+- Consider moving id maps in Network to World. Makes dependency tree more pure, but maybe
+not the most intuitive choice.
+- Consider moving network to be client/server dependent. Would require working lower level logic.
+- Move Network.broadcast_cbstate_update to World
 
 
 Player Controller:
 - Jumping is sometimes very buggy, but sometimes fine? I think I need to smooth out the client
 side prediction. Maybe take the average of the past 5 diffs or something?
 - Camera should probably be handled separately from PlayerController.
+- Consider making PlayerController a singleton not attached to world.
 
 
 Physics:
@@ -78,11 +97,12 @@ be nice to unify Stats with all the different Effect types.
 
 
 Powers:
-Add a channeled power.
-Need to add client-side reconciliation for powers
-Add a UI window showing persistent powers
-Make persistent powers unique per character
-Improve powers/effects database, will need to think about this a lot
+- Add a channeled power.
+- Need to add client-side reconciliation for powers
+- Add a UI window showing persistent powers
+- Make persistent powers unique per character
+- Improve powers/effects database, will need to think about this a lot
+- Bug happens when trying to use a queued power with no energy
 
 
 UI:

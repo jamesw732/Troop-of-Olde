@@ -43,12 +43,12 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
                       inventory=inventory, skills=skills,
                       powers=powers, cbstate=cbstate)
     world.pc_ctrl = PlayerController(world.pc)
-    world.pc.controller = world.pc_ctrl
 
     world.chars.append(world.pc)
     world.pc.ignore_traverse = world.chars
 
     network.uuid_to_char[uuid] = world.pc
+    network.uuid_to_ctrl[uuid] = world.pc_ctrl
     world.pc.uuid = uuid
     network.my_uuid = uuid
     network.server_connection = connection
@@ -61,9 +61,9 @@ def spawn_npc(connection, time_received, uuid: int,
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
     if uuid not in network.uuid_to_char:
         char = ClientCharacter(pstate=phys_state, cbstate=cbstate)
-        char.controller = NPCController(char)
         world.chars.append(char)
         network.uuid_to_char[uuid] = char
+        network.uuid_to_ctrl[uuid] = NPCController(char)
         char.uuid = uuid
 
 # Combat
@@ -96,10 +96,9 @@ def remote_set_target(connection, time_received, uuid: int):
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerCombatState):
-    char = network.uuid_to_char.get(uuid)
-    if char is None:
+    if world.pc is None:
         return
-    cbstate.apply(char)
+    cbstate.apply(world.pc)
     if uuid is network.my_uuid:
         if ui.bars:
             ui.bars.update_display()
@@ -150,10 +149,9 @@ def remote_update_container(connection, time_received, container_id: int, contai
 @rpc(network.peer)
 def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: float):
     """Called by server to update physical state for an NPC"""
-    npc = network.uuid_to_char.get(uuid)
-    if npc is None:
+    controller = network.uuid_to_ctrl.get(uuid)
+    if controller is None:
         return
-    controller = npc.controller
     controller.prev_pos = controller.target_pos
     controller.target_pos = pos
     controller.prev_rot = controller.target_rot
@@ -176,7 +174,7 @@ def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: V
     # print(world.pc.rotation_y)
     # print(pos)
     # print(world.pc.position)
-    controller = world.pc.controller
+    controller = world.pc_ctrl
     if sequence_number > controller.recv_sequence_number:
         controller.recv_sequence_number = sequence_number
         for num in controller.sn_to_pos.copy():

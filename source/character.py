@@ -30,7 +30,6 @@ class Character(Entity):
         """
         self.uuid = uuid
 
-        self.controller = None
         self.namelabel = None
 
         # First, initialize Entity
@@ -77,11 +76,6 @@ class Character(Entity):
         attached to this character. This is currently not perfect,
         need to remove every single reference and some are missing.
         Todo: Remove EVERY reference so char cna be garbage collected."""
-        if self.uuid is not None:
-            del network.uuid_to_char[self.uuid]
-        if self.controller:
-            destroy(self.controller)
-            del self.controller
         del self.ignore_traverse
 
     def increase_health(self, amt):

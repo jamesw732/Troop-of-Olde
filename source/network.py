@@ -14,6 +14,7 @@ class Network(Entity):
         self.uuid_to_char = dict()
         self.connection_to_char = dict()
         self.uuid_to_connection = dict()
+        self.uuid_to_ctrl = dict()
 
         self.server_connection = None
 
