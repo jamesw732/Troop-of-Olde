@@ -78,6 +78,7 @@ default_phys_attrs = {
 default_equipment = [None] * 4
 equipment_slots = ["armor", "ring", "mh", "oh"]
 slot_to_ind = {"armor": 0, "ring": 1, "mh": 2, "oh": 3}
+power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
 
 default_inventory = [None] * 20
 

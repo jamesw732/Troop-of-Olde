@@ -4,7 +4,8 @@ from ursina import Entity, held_keys, every, Vec2, mouse, camera
 import ursina.input_handler
 
 from .character import Character
-from .. import PHYSICS_UPDATE_RATE, gs, network
+from .ui import ui
+from .. import PHYSICS_UPDATE_RATE, gs, network, power_key_to_slot
 
 class InputHandler(Entity):
     def __init__(self):
@@ -43,6 +44,9 @@ class InputHandler(Entity):
         elif key == "left mouse down":
             if isinstance(tgt, Character):
                 ctrl.set_target(tgt)
+        elif key in power_key_to_slot:
+            ui.actionbar.powerbar.handle_power_input(key)
+
 
     def update(self):
         ctrl = gs.playercontroller

@@ -2,7 +2,7 @@ from ursina import *
 
 from .base import *
 from .window import UIWindow
-from ... import gs
+from ... import gs, network, power_key_to_slot
 
 
 class ActionBar(UIWindow):
@@ -71,17 +71,14 @@ class PowerBar(Entity):
                 cur_outlines.append(Text(text=label, parent=self.labels[i], position=(*offset, 0.9),
                                          origin=(-0.5, -0.5), world_scale=(12, 12), color=color.black))
 
-        
-        self.key_to_slot = {f"power_{i + 1}": i for i in range(self.parent.num_slots)}
-
-    def input(self, key):
-        if key not in self.key_to_slot:
-            return
-        slot = self.key_to_slot[key]
+    def handle_power_input(self, key):
+        slot = power_key_to_slot[key]
         power = gs.pc.powers[slot]
         if power is None:
             return
-        power.handle_power_input()
+        if power.handle_power_input():
+            network.peer.request_use_power(network.server_connection, power.inst_id)
+            self.parent.start_cd_animation()
 
     def on_click(self):
         ui_mouse_x = mouse.x * camera.ui.scale_x

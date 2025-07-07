@@ -22,9 +22,10 @@ class ClientPower(Power):
             else:
                 # Queued powers are currently handled by PlayerController
                 self.queue()
+            return False
         else:
             self.use()
-            network.peer.request_use_power(network.server_connection, self.inst_id)
+            return True
 
     def use(self):
         """Does the client-side things involved with using a power.
