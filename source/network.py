@@ -67,8 +67,7 @@ class Network(Entity):
     def broadcast_cbstate_update(self, char):
         pc_state = PlayerCombatState(char)
         npc_state = NPCCombatState(char)
-        connections = self.connection_to_char
-        for connection in connections:
+        for connection in self.connection_to_char:
             if self.connection_to_char[connection] is char:
                 self.peer.update_pc_cbstate(connection, char.uuid, pc_state)
             else:

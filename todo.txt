@@ -5,6 +5,7 @@ Current Steps:
 
 
 I think all the id maps that are currently in network should be moved to world.
+Actually, uuid_to_connection will need to stay in Network, but this is pretty fitting.
 This will mean:
 - Shared API character, item, power won't rely on Network anymore, the world will be
 responsible for giving them ids.
@@ -15,18 +16,29 @@ all be done network side. Controllers will still get access to object to id maps
 are just object attributes), which is necessary to make networking requests.
 
 
-So, todo list for this:
-- Remove network calls from Character.
-- Move id to object maps to world, including ids_to_container and container_to_ids (also
+So, todo list:
+- Fix Characted deaths - remove all references to the Character and the controller from the
+controller, then destroy Character and controller.
+- Add functions to World for creating characters, powers, items, and controllers to handle
+all the instance id stuff currently done in the base classes. Each will need to be equipped with
+a local on_destroy method which removes its instance id from the corresponding map.
+Remove corresponding id handling from the corresponding__init__ methods.
+- Move id to object maps to World, including functions ids_to_container and container_to_ids (also
 rename to ids_to_items and items_to_ids).
 - Remove all references to object maps from files besides world_requests and world_responses.
-- add the functions to create objects and give them IDs in world
 
 
 Afterwards:
 - Remove disconnect.py from shared API. Actually, completely re-implement disconnect mostly
 from scratch.
 - Update developer.tex
+
+
+Could character.py safely be the bottom-most dependency after states.py?
+Would require making Character not instantiate powers/items. I think this would
+be good, but might require reworking powers.
+
+Should the UI code have access to controllers?
 
 ===================================NEXT================================================
 Fix character origin bug

@@ -13,7 +13,6 @@ from panda3d.core import NodePath
 
 from .base import default_cb_attrs, default_phys_attrs, all_skills, sqdist, default_num_powers
 from .combat import get_wpn_range
-from .network import network
 from .states import *
 
 class Character(Entity):
@@ -110,39 +109,6 @@ class Character(Entity):
             if sqdist(entity.position, self.position) < sdist:
                 return False
         return True
-
-    def get_target_hittable(self, wpn):
-        """Returns whether self.target is able to be hit, ie in LoS and within attack range"""
-        if not self.get_tgt_los(self.target):
-            conn = network.uuid_to_connection[self.uuid]
-            network.peer.remote_print(conn, f"You can't see {self.target.cname}.")
-            return False
-        atk_range = get_wpn_range(wpn)
-        # use center rather than center of feet
-        pos_src = self.position + Vec3(0, self.scale_y / 2, 0)
-        pos_tgt = self.target.position + Vec3(0, self.target.scale_y / 2, 0)
-        ray_dir = pos_tgt - pos_src
-        ray_dist = distance(pos_tgt, pos_src)
-        # Draw a line between the two
-        line1 = raycast(pos_src, direction=ray_dir, distance=ray_dist,
-                       traverse_target=self)
-        line2 = raycast(pos_tgt, direction=-ray_dir, distance=ray_dist,
-                        traverse_target=self.target)
-        # ie one char is inside the other
-        if not line1.hit or not line2.hit:
-            return True
-        point1 = line1.world_point
-        point2 = line2.world_point
-        # don't compute the distance between their centers,
-        # compute the distance between their bodies
-        inner_distance = distance(point1, point2)
-        in_range = inner_distance <= atk_range
-        if in_range:
-            return True
-        else:
-            conn = network.uuid_to_connection[self.uuid]
-            network.peer.remote_print(conn, f"{self.target.cname} is out of range!")
-            return False
 
     def tick_gcd(self):
         """Ticks up the global cooldown for powers"""
