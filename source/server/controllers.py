@@ -67,7 +67,7 @@ class MobController(Entity):
         if not hittable:
             if src_conn is not None:
                 network.peer.remote_print(src_conn, msg)
-            if tgt_conn is not None:
+            if tgt_conn is not None and tgt_conn is not src_conn:
                 network.peer.remote_print(tgt_conn, msg)
             return False
         # Check whether thit goes through
@@ -82,7 +82,7 @@ class MobController(Entity):
         msg = f"{src.cname} hits {tgt.cname} for {dmg} damage!"
         if src_conn is not None:
             network.peer.remote_print(src_conn, msg)
-        if tgt_conn is not None:
+        if tgt_conn is not None and tgt_conn is not src_conn:
             network.peer.remote_print(tgt_conn, msg)
         # Potentially raise skill level
         level_up, skill = get_level_up(src, tgt, wpn)
