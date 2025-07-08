@@ -5,7 +5,6 @@ import json
 
 from ursina.networking import rpc
 
-from .world_requests import request_enter_world
 from .. import data_path, network, get_player_states_from_data
 
 
