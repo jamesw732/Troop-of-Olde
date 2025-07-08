@@ -14,6 +14,8 @@ class ClientPower(Power):
     def handle_power_input(self):
         """Handles client's input to use a power"""
         tgt = self.get_target()
+        if tgt is None:
+            return
         if self.char.get_on_gcd() or self.on_cooldown:
             if self.char.next_power is self:
                 # Attempted to queue an already queued power, just remove it
