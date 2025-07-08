@@ -4,8 +4,6 @@ These will typically only be called by functions in world_requests as part
 of a response to a request. Otherwise, they may be called by host_continuous."""
 from ursina.networking import rpc
 
-from .character import ClientCharacter
-from .controllers import PlayerController, NPCController
 from .world import world
 from .ui import ui
 from .. import *
@@ -39,51 +37,40 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     equipment = [equip_id] + list(zip(equipment[:equip_l//2], equipment[equip_l//2:]))
     powers_l = len(powers)
     powers = zip(powers[:powers_l//2], powers[powers_l//2:])
-    world.pc = ClientCharacter(pstate=pstate, equipment=equipment,
-                      inventory=inventory, skills=skills,
-                      powers=powers, cbstate=cbstate)
-    world.pc_ctrl = PlayerController(world.pc)
+    world.make_pc(uuid, pstate, equipment, inventory, skills, powers, cbstate)
+    world.make_pc_ctrl()
 
-    world.chars.append(world.pc)
-    world.pc.ignore_traverse = world.chars
+    world.pc.ignore_traverse = network.uuid_to_char.values()
 
-    network.uuid_to_char[uuid] = world.pc
-    network.uuid_to_ctrl[uuid] = world.pc_ctrl
-    world.pc.uuid = uuid
-    network.my_uuid = uuid
     network.server_connection = connection
 
     ui.make_all_ui(world.pc)
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,
-              phys_state: PhysicalState, cbstate: NPCCombatState):
+              pstate: PhysicalState, cbstate: NPCCombatState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
     if uuid not in network.uuid_to_char:
-        char = ClientCharacter(pstate=phys_state, cbstate=cbstate)
-        world.chars.append(char)
-        network.uuid_to_char[uuid] = char
-        network.uuid_to_ctrl[uuid] = NPCController(char)
-        char.uuid = uuid
+        world.make_npc(uuid, pstate, cbstate)
+        world.make_npc_ctrl(uuid)
 
 # Combat
 @rpc(network.peer)
 def toggle_combat(connection, time_received, toggle: bool):
-    my_char = network.uuid_to_char.get(network.my_uuid)
-    my_char.in_combat = toggle
+    world.pc.in_combat = toggle
     if ui.gamewindow:
         msg = "Now entering combat" if toggle else "Now leaving combat"
         ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
-def remote_death(connection, time_received, char_uuid: int):
+def remote_kill(connection, time_received, uuid: int):
     """Tell clients that a character died. Only to be called by host."""
-    char = network.uuid_to_char.get(char_uuid)
-    if char:
+    ctrl = uuid_to_ctrl[uuid]
+    if ctrl:
         if ui.gamewindow:
             msg = f"{char.cname} perishes"
             ui.gamewindow.add_message(msg)
-        char.die()
+        ctrl.kill()
 
 @rpc(network.peer)
 def remote_set_target(connection, time_received, uuid: int):
@@ -99,11 +86,10 @@ def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerComba
     if world.pc is None:
         return
     cbstate.apply(world.pc)
-    if uuid is network.my_uuid:
-        if ui.bars:
-            ui.bars.update_display()
-        if ui.playerwindow:
-            ui.playerwindow.stats.update_labels()
+    if ui.bars:
+        ui.bars.update_display()
+    if ui.playerwindow:
+        ui.playerwindow.stats.update_labels()
 
 @rpc(network.peer)
 def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatState):
@@ -111,11 +97,6 @@ def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatS
     if char is None:
         return
     cbstate.apply(char)
-    if uuid is network.my_uuid:
-        if ui.bars:
-            ui.bars.update_display()
-        if ui.playerwindow:
-            ui.playerwindow.stats.update_labels()
 
 # Skills
 @rpc(network.peer)

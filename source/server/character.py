@@ -16,8 +16,9 @@ from .power import ServerPower
 from .. import *
 
 class ServerCharacter(Character):
-    def __init__(self, uuid=None, pstate=PhysicalState(), cbstate=BaseCombatState(),
-                 equipment=[], inventory=[], skills=SkillsState(), powers=[]):
+    def __init__(self, uuid, pstate=PhysicalState(), cbstate=BaseCombatState(),
+                 equipment=[], inventory=[], skills=SkillsState(), powers=[],
+                 on_destroy=lambda: None):
         """Initialize a Character for the server.
         Args obtained from states.get_character_states_from_json.
 
@@ -30,7 +31,8 @@ class ServerCharacter(Character):
         skills: State dict mapping str skill names to int skill levels
         powers: list of Powers or power Ids
         """
-        super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        super().__init__(uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        self.on_destroy = on_destroy
         self.inventory = ServerContainer("inventory", default_inventory)
         self.equipment = ServerContainer("equipment", default_equipment)
         for slot, item_id in enumerate(inventory):

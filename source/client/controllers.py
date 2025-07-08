@@ -13,8 +13,7 @@ class PlayerController(Entity):
 
     Handles client-side physics and interpolation, network updates.
     """
-    def __init__(self, character=None):
-        assert not network.peer.is_hosting()
+    def __init__(self, character=None, on_destroy=lambda: None):
         super().__init__()
         if character is not None:
             self.character = character
@@ -33,6 +32,7 @@ class PlayerController(Entity):
         else:
             self.character = None
             self.focus = None
+        self.on_destroy=on_destroy
         # Bind camera
         self.camdistance = 20
         camera.parent = self.focus
@@ -184,10 +184,13 @@ class PlayerController(Entity):
     def toggle_combat(self):
         network.peer.request_toggle_combat(network.server_connection)
 
-    def on_destroy(self):
+    def kill(self):
+        """Clean up character upon death"""
+        destroy(self.character)
+        del self.character
         destroy(self.namelabel)
         del self.namelabel
-        del self.character
+        destroy(self)
 
 
 class NPCController(Entity):
@@ -196,12 +199,12 @@ class NPCController(Entity):
     To the client, anything besides the player character is an NPC. Even other players.
     Handles client-side updates and linearly interpolates for smoothness.
     Future: Handles animations."""
-    def __init__(self, character):
-        assert not network.peer.is_hosting()
+    def __init__(self, character, on_destroy=lambda: None):
         super().__init__()
         self.character = character
         self.namelabel = NameLabel(character)
         self._init_lerp_attrs()
+        self.on_destroy = on_destroy
 
     def update(self):
         self.namelabel.adjust_position()
@@ -231,10 +234,14 @@ class NPCController(Entity):
         self.lerp_rate = 0
         self.lerp_timer = 0.2
 
-    def on_destroy(self):
+    def kill(self):
+        """Clean up character upon death"""
+        destroy(self.character)
+        del self.character
         destroy(self.namelabel)
         del self.namelabel
-        del self.character
+        destroy(self)
+
 
 
 class NameLabel(Text):

@@ -19,41 +19,34 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: list[int],
                         inventory: list[int], skills: SkillsState,
                         powers: list[int]):
-    if network.peer.is_hosting():
-        new_pc = ServerCharacter(pstate=pstate, cbstate=base_state,
-                         equipment=equipment, inventory=inventory, skills=skills,
-                         powers=powers)
-        # Could we handle this uuid business in on_connect?
-        new_pc.uuid = network.uuid_counter
-        network.uuid_counter += 1
-        network.uuid_to_char[new_pc.uuid] = new_pc
-        network.uuid_to_connection[new_pc.uuid] = connection
-        network.uuid_to_ctrl[new_pc.uuid] = MobController(new_pc)
-        world.chars.append(new_pc)
-        network.connection_to_char[connection] = new_pc
-        network.peer.remote_load_world(connection, "demo.json")
-        # extend instance id-based objects to include database id and instance id
-        inventory_ids = network.container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
-        inventory_ids = [new_pc.inventory.container_id] + inventory_ids
-        equipment_ids = network.container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
-        equipment_ids = [new_pc.equipment.container_id] + equipment_ids
-        power_ids = network.container_to_ids(new_pc.powers, ("power_id", "inst_id"))
-        # The new pc will be an npc for everybody else
-        new_char_cbstate = NPCCombatState(new_pc)
-        for conn in network.peer.get_connections():
-            if conn == connection:
-                for ch in world.chars:
-                    if ch is new_pc:
-                        pc_cbstate = PlayerCombatState(new_pc)
-                        network.peer.spawn_pc(connection, new_pc.uuid, pstate, equipment_ids,
-                                              inventory_ids, skills, power_ids, pc_cbstate)
-                    else:
-                        npc_pstate = PhysicalState(ch)
-                        npc_cbstate = NPCCombatState(ch)
-                        network.peer.spawn_npc(conn, ch.uuid, npc_pstate, npc_cbstate)
-            # Existing users just need new character
-            else:
-                network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
+    new_pc = world.make_char(pstate=pstate, cbstate=base_state, equipment=equipment,
+                             inventory=inventory, skills=skills, powers=powers)
+    new_ctrl = world.make_ctrl(new_pc.uuid)
+    network.uuid_to_connection[new_pc.uuid] = connection
+    network.connection_to_char[connection] = new_pc
+    network.peer.remote_load_world(connection, "demo.json")
+    # extend instance id-based objects to include database id and instance id
+    inventory_ids = network.container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
+    inventory_ids = [new_pc.inventory.container_id] + inventory_ids
+    equipment_ids = network.container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
+    equipment_ids = [new_pc.equipment.container_id] + equipment_ids
+    power_ids = network.container_to_ids(new_pc.powers, ("power_id", "inst_id"))
+    # The new pc will be an npc for everybody else
+    new_char_cbstate = NPCCombatState(new_pc)
+    for conn in network.peer.get_connections():
+        if conn == connection:
+            for uuid, ch in network.uuid_to_char.items():
+                if ch is new_pc:
+                    pc_cbstate = PlayerCombatState(new_pc)
+                    network.peer.spawn_pc(connection, uuid, pstate, equipment_ids,
+                                          inventory_ids, skills, power_ids, pc_cbstate)
+                else:
+                    npc_pstate = PhysicalState(ch)
+                    npc_cbstate = NPCCombatState(ch)
+                    network.peer.spawn_npc(conn, uuid, npc_pstate, npc_cbstate)
+        # Existing users just need new character
+        else:
+            network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
 
 # PHYSICS
 @rpc(network.peer)

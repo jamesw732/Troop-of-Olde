@@ -10,8 +10,9 @@ from .. import *
 
 
 class ClientCharacter(Character):
-    def __init__(self, uuid=None, pstate=PhysicalState(), cbstate=BaseCombatState(),
-                 equipment=[], inventory=[], skills=SkillsState(), powers=[]):
+    def __init__(self, uuid, pstate=PhysicalState(), cbstate=BaseCombatState(),
+                 equipment=[], inventory=[], skills=SkillsState(), powers=[],
+                 on_destroy=lambda: None):
         """Initialize a Character for the Client.
         Args obtained from states.get_character_states_from_data.
 
@@ -46,11 +47,12 @@ class ClientCharacter(Character):
                 item = Item(*item_ids)
                 self.inventory[slot] = item
                 item.auto_set_leftclick(self.inventory)
-        super().__init__(uuid=uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        super().__init__(uuid, pstate=pstate, cbstate=cbstate, skills=skills)
         for i, power_ids in enumerate(powers):
             if power_ids[0] < 0 or power_ids[1] < 0:
                 continue
             self.powers[i] = ClientPower(self, *power_ids)
+        self.on_destroy = on_destroy
 
     @property
     def model_name(self):

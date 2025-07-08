@@ -2,8 +2,6 @@ Implementation todo list.
 
 ===========================ACTIVE===============================
 Current Steps:
-
-
 I think all the id maps that are currently in network should be moved to world.
 Actually, uuid_to_connection will need to stay in Network, but this is pretty fitting.
 This will mean:
@@ -31,6 +29,9 @@ rename to ids_to_items and items_to_ids).
 Afterwards:
 - Remove disconnect.py from shared API. Actually, completely re-implement disconnect mostly
 from scratch.
+- Make world_responses.py and world_requests.py more API-based, for example remote_update_container should
+just call a Container method and update_npc_lerp_attrs should just call a function that does that work.
+This will make the code substantially easier to test.
 - Update developer.tex
 
 
@@ -104,8 +105,11 @@ Incomplete stat implementations:
 
 
 Character:
-Stats object should probably have a more elegant interaction with Characters. Would
+- Stats object should probably have a more elegant interaction with Characters. Would
 be nice to unify Stats with all the different Effect types.
+- Would really like to not have so many arguments to Character, would it be possible
+to make a new State which combines existing States? Probably...
+
 
 
 Powers:

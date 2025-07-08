@@ -8,8 +8,6 @@ from source.server.world import world
 
 def start_server(name, port):
     network.peer.start(name, port, is_host=True)
-    network.my_uuid = network.uuid_counter
-    network.uuid_counter += 1
     world.load_zone("demo.json")
     world.load_npcs("demo_npcs.json")
     for npc in world.npcs:

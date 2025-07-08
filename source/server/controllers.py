@@ -17,10 +17,11 @@ class MobController(Entity):
     game state and makes "inputs" to be processed by this class. These "inputs" should be
     compatible with the processed outputs sent by PlayerController.
     """
-    def __init__(self, character):
+    def __init__(self, character, on_destroy=lambda: None):
         assert network.peer.is_hosting()
         super().__init__()
         self.character = character
+        self.on_destroy=on_destroy
         # Relayed back to client to determine where in history this state was updated, always use most recent
         self.sequence_number = 0
 
