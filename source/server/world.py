@@ -15,7 +15,6 @@ class World:
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
         self.entities = []
-        self.npcs = []
         self.pc = None
 
     def load_zone(self, file):
@@ -41,7 +40,8 @@ class World:
             npc_data = json.load(f)
         npcs = [self.make_char(**get_npc_states_from_data(data, name))
                                 for name, data in npc_data.items()]
-        self.npcs += npcs
+        for npc in npcs:
+            self.make_ctrl(npc.uuid)
 
     def make_char(self, **kwargs):
         """Makes the player character while updating uuid map"""

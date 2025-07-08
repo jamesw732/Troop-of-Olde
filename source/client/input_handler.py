@@ -26,10 +26,10 @@ class InputHandler(Entity):
                 network.peer.start("localhost", 8080, is_host=False)
                 return
         ctrl = world.pc_ctrl
-        char = ctrl.character
-        tgt = mouse.hovered_entity
         if ctrl is None:
             return
+        char = ctrl.character
+        tgt = mouse.hovered_entity
         if key == "jump":
             ctrl.do_jump()
         elif key == "scroll up":

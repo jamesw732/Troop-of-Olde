@@ -100,6 +100,8 @@ class PlayerController(Entity):
         """Process movement inputs and send request to move to server.
         Update predicted physical state and reset lerp timer."""
         char = self.character
+        if char is None:
+            return
         # Client-side prediction for movement/rotation
         set_gravity_vel(char)
         set_jump_vel(char)
@@ -186,10 +188,13 @@ class PlayerController(Entity):
 
     def kill(self):
         """Clean up character upon death"""
+        self.character.alive = False
         destroy(self.character)
-        del self.character
+        self.character = None
+        # del self.character
         destroy(self.namelabel)
-        del self.namelabel
+        self.namelabel = None
+        # del self.namelabel
         destroy(self)
 
 
@@ -236,12 +241,11 @@ class NPCController(Entity):
 
     def kill(self):
         """Clean up character upon death"""
+        self.character.alive = False
         destroy(self.character)
         del self.character
         destroy(self.namelabel)
         del self.namelabel
-        destroy(self)
-
 
 
 class NameLabel(Text):

@@ -10,11 +10,6 @@ def start_server(name, port):
     network.peer.start(name, port, is_host=True)
     world.load_zone("demo.json")
     world.load_npcs("demo_npcs.json")
-    for npc in world.npcs:
-        npc.controller = MobController(npc)
-        npc.uuid = network.uuid_counter
-        network.uuid_to_char[npc.uuid] = npc
-        network.uuid_counter += 1
 
 
 if __name__ == "__main__":

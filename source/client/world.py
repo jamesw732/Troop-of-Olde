@@ -36,6 +36,7 @@ class World:
         """Makes the player character while updating uuid map"""
         def on_destroy():
             del network.uuid_to_char[uuid]
+            self.pc = None
         self.pc = ClientCharacter(uuid, pstate=pstate, equipment=equipment, inventory=inventory,
                                   skills=skills, powers=powers, cbstate=cbstate, on_destroy=on_destroy)
         network.uuid_to_char[uuid] = self.pc
@@ -48,6 +49,7 @@ class World:
         uuid = world.pc.uuid
         def on_destroy():
             del network.uuid_to_ctrl[uuid]
+            self.pc_ctrl = None
         char = network.uuid_to_char[uuid]
         self.pc_ctrl = PlayerController(character=char, on_destroy=on_destroy)
         network.uuid_to_ctrl[uuid] = self.pc_ctrl
@@ -65,6 +67,6 @@ class World:
         def on_destroy():
             del network.uuid_to_ctrl[uuid]
         char = network.uuid_to_char[uuid]
-        self.pc_ctrl = NPCController(character=char, on_destroy=on_destroy)
+        network.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
 
 world = World()

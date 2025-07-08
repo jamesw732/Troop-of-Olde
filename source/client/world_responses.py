@@ -65,12 +65,14 @@ def toggle_combat(connection, time_received, toggle: bool):
 @rpc(network.peer)
 def remote_kill(connection, time_received, uuid: int):
     """Tell clients that a character died. Only to be called by host."""
-    ctrl = uuid_to_ctrl[uuid]
-    if ctrl:
-        if ui.gamewindow:
-            msg = f"{char.cname} perishes"
-            ui.gamewindow.add_message(msg)
-        ctrl.kill()
+    if uuid not in network.uuid_to_ctrl:
+        return
+    ctrl = network.uuid_to_ctrl[uuid]
+    char = ctrl.character
+    if ui.gamewindow:
+        msg = f"{char.cname} perishes"
+        ui.gamewindow.add_message(msg)
+    ctrl.kill()
 
 @rpc(network.peer)
 def remote_set_target(connection, time_received, uuid: int):

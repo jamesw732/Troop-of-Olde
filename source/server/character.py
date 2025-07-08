@@ -67,9 +67,3 @@ class ServerCharacter(Character):
         If this changes, just move corresponding ClientCharacter functions to Character
         new_model: name of model file (no other path information)"""
         self._model_name = new_model
-
-    def die(self):
-        """Essentially just destroy self and make sure the rest of the network knows if host."""
-        network.broadcast(network.peer.remote_death, self.uuid)
-        self.alive = False
-        destroy(self)

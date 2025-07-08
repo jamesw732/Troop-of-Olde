@@ -15,12 +15,11 @@ are just object attributes), which is necessary to make networking requests.
 
 
 So, todo list:
-- Fix Characted deaths - remove all references to the Character and the controller from the
+- Fix Character deaths - remove all references to the Character and the controller from the
 controller, then destroy Character and controller.
-- Add functions to World for creating characters, powers, items, and controllers to handle
+- Add functions to World for creating powers, items to handle
 all the instance id stuff currently done in the base classes. Each will need to be equipped with
 a local on_destroy method which removes its instance id from the corresponding map.
-Remove corresponding id handling from the corresponding__init__ methods.
 - Move id to object maps to World, including functions ids_to_container and container_to_ids (also
 rename to ids_to_items and items_to_ids).
 - Remove all references to object maps from files besides world_requests and world_responses.

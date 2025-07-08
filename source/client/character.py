@@ -82,8 +82,3 @@ class ClientCharacter(Character):
         if isinstance(new_color, str):
             new_color = color.colors[new_color]
         self.model_child.setColor(new_color)
-
-    def die(self):
-        """Essentially just destroy self and make sure the rest of the network knows if host."""
-        self.alive = False
-        destroy(self)

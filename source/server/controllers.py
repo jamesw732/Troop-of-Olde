@@ -28,7 +28,8 @@ class MobController(Entity):
     def update(self):
         char = self.character
         if char.health <= 0:
-            char.die()
+            self.kill()
+            return
         if not char.target or not char.target.alive:
             char.target = None
             char.mh_combat_timer = 0
@@ -108,3 +109,11 @@ class MobController(Entity):
             else:
                 network.peer.update_npc_lerp_attrs(conn, self.character.uuid, self.character.position,
                                                       self.character.rotation_y)
+
+    def kill(self):
+        self.character.alive = False
+        uuid = self.character.uuid
+        destroy(self.character)
+        del self.character
+        destroy(self)
+        network.broadcast(network.peer.remote_kill, uuid)
