@@ -102,16 +102,9 @@ def request_use_power(connection, time_received, inst_id: int):
     good enough for now.
     """
     char = network.connection_to_char[connection]
+    ctrl = network.uuid_to_ctrl[char.uuid]
     power = network.inst_id_to_power[inst_id]
-    if char.get_on_gcd():
-        power.queue()
-        return
-    # Eventually, may incorporate auto-targetting with power.get_target.
-    tgt = power.get_target()
-    power.use(tgt)
-    # Once auto-targetting is implemented, send back new target
-    # May also need to send back some info to help with client-side prediction
-    # Likewise in request_queue_power
+    ctrl.use_power(power)
 
 
 # ITEMS

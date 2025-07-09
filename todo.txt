@@ -31,12 +31,9 @@ This will make the code substantially easier to test.
 - Update developer.tex
 - Update docstrings
 
-
-Could character.py safely be the bottom-most dependency after states.py?
-Would require making Character not instantiate powers/items. I think this would
-be good, but might require reworking powers.
-
-Should the UI code have access to controllers?
+Further considerations:
+Effect code is pretty bad, I don't think it should use networking at all. The controllers
+should be handling effects.
 
 ===================================NEXT================================================
 Fix character origin bug

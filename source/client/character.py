@@ -5,7 +5,6 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from .power import ClientPower
 from .. import *
 
 
@@ -37,7 +36,7 @@ class ClientCharacter(Character):
         for i, power_ids in enumerate(powers):
             if power_ids[0] < 0 or power_ids[1] < 0:
                 continue
-            self.powers[i] = ClientPower(self, *power_ids)
+            self.powers[i] = Power(*power_ids)
         self.on_destroy = on_destroy
 
     @property

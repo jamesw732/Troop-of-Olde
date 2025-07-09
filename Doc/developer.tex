@@ -102,19 +102,23 @@ Checklist for this phase:
 \section{Code Infrastructure}
 This section describes the big-picture structure of the code.
 
-In general, I try to avoid ``imaginary'' imports at all costs. Basically, a file should only have
-access to objects lower than it in the dependency tree. For example, \codeword{Character} should
-not store its \codeword{controller}. While this can be more convenient to use, it typically makes a
+Where possible, I try to adhere to downward dependency as much as possible. Basically, a file
+should only have access to objects lower than it in the dependency tree. For example, \codeword{Character}
+should not store its \codeword{controller}. While this can be more convenient to use, it typically makes a
 big mess of tightly coupled spaghetti code. Ownership becomes unclear, and there is no clear dependence
 (because the dependence is what was hacked away). Adhering to the downward dependence gives the codebase
 a much richer structure, making it more complex but less complicated (counterintuitively).
 
-The one type of exception that I'm currently allowing is allowing lower-level game logic
-functions to take slightly higher-level inputs, for example a lot of \codeword{Item} functions rely
+In particular, storing higher level objects makes cleanup a lot messier. The main exception
+to this is function arguments - as long as the higher level object is not stored, it doesn't get
+a strong reference, so it won't impact cleanup. So, I am much more lenient with this type of tight
+coupling, especially with the lower-level game logic. For example, a lot of \codeword{Item} functions rely
 on \codeword{Character} objects, but \codeword{Character} relies on \codeword{Item} objects because
 the \codeword{Character} stores inventory and equipment, which contain \codeword{Items}. This type
-of tight coupling is more forgivable than inter-level coupling, and the costs of removing it seem
-to outweigh the benefits.
+of tight coupling is pretty forgivable, especially in Python. The cost of avoiding it seems to outweigh
+the benefits to me, so I choose to utilize it. So the general rule is that if an object stores another
+object, it should (be able to) import the lower level object's file. If it can't due to circular import,
+that means the code is too tightly coupled and needs refactoring.
 
 The other guiding principle is to keep differing behavior between the client and server as disjoint as possible.
 The client shouldn't even have access to the server code. Early on in this project's life, I used a lot of checks

@@ -36,7 +36,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     equip_l = len(equipment)
     equipment = [equip_id] + list(zip(equipment[:equip_l//2], equipment[equip_l//2:]))
     powers_l = len(powers)
-    powers = zip(powers[:powers_l//2], powers[powers_l//2:])
+    powers = list(zip(powers[:powers_l//2], powers[powers_l//2:]))
     world.make_pc(uuid, pstate=pstate, equipment=equipment, inventory=inventory,
                   skills=skills, powers=powers, cbstate=cbstate)
     world.make_pc_ctrl()

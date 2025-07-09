@@ -41,7 +41,7 @@ class ServerCharacter(Character):
         for i, power_id in enumerate(powers):
             if power_id < 0:
                 continue
-            self.powers[i] = ServerPower(self, power_id)
+            self.powers[i] = ServerPower(power_id)
 
         self.update_max_ratings()
 

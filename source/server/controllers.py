@@ -48,8 +48,7 @@ class MobController(Entity):
         if char.get_on_gcd():
             char.tick_gcd()
         elif char.next_power is not None and not char.next_power.on_cooldown:
-            tgt = char.next_power.get_target()
-            char.next_power.use(tgt)
+            self.use_power(char.next_power)
 
     def handle_combat(self, slot):
         src = self.character
@@ -89,6 +88,14 @@ class MobController(Entity):
         if level_up:
             src.skills[skill] += 1
         return True
+
+    def use_power(self, power):
+        tgt = power.get_target(self.character)
+        if tgt is None:
+            return
+        if self.character.energy < power.cost:
+            return
+        power.use(self.character, tgt)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):

@@ -3,7 +3,7 @@ from ursina import *
 from .base import *
 from .window import UIWindow
 from ..world import world
-from ... import network, power_key_to_slot
+from ... import power_key_to_slot
 
 
 class ActionBar(UIWindow):
@@ -78,8 +78,7 @@ class PowerBar(Entity):
         power = world.pc.powers[slot]
         if power is None:
             return
-        if power.handle_power_input():
-            network.peer.request_use_power(network.server_connection, power.inst_id)
+        world.pc_ctrl.handle_power_input(power)
 
     def on_click(self):
         ui_mouse_x = mouse.x * camera.ui.scale_x
@@ -90,7 +89,7 @@ class PowerBar(Entity):
         power = world.pc.powers[slot]
         if power is None:
             return
-        power.handle_power_input()
+        world.pc_ctrl.handle_power_input(power)
 
 
 class Timer(Entity):
