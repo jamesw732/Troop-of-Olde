@@ -102,18 +102,23 @@ Checklist for this phase:
 \section{Code Infrastructure}
 This section describes the big-picture structure of the code.
 
-In general, I try to avoid ``imaginary'' imports at all costs. An example of this (which is currently
-violated) is that \codeword{Item} has a
-method \codeword{handle_stats} that takes in a \codeword{char} parameter, which is expected to be a
-\codeword{Character} object. This means that \codeword{Item} depends on \codeword{Character}, and thus to honor
-Python's downward dependency requirement, \codeword{Character} should not depend on \codeword{Item}.
-While Python's dynamic typing allows \codeword{Character}s and \codeword{Item}s to be used as inputs to
-each others methods without worry, this violates principles of clear ownership and makes the project layers
-very fuzzy. This is the main guiding principle of the code structure.
+In general, I try to avoid ``imaginary'' imports at all costs. Basically, a file should only have
+access to objects lower than it in the dependency tree. For example, \codeword{Character} should
+not store its \codeword{controller}. While this can be more convenient to use, it typically makes a
+big mess of tightly coupled spaghetti code. Ownership becomes unclear, and there is no clear dependence
+(because the dependence is what was hacked away). Adhering to the downward dependence gives the codebase
+a much richer structure, making it more complex but less complicated (counterintuitively).
+
+The one type of exception that I'm currently allowing is allowing lower-level game logic
+functions to take slightly higher-level inputs, for example a lot of \codeword{Item} functions rely
+on \codeword{Character} objects, but \codeword{Character} relies on \codeword{Item} objects because
+the \codeword{Character} stores inventory and equipment, which contain \codeword{Items}. This type
+of tight coupling is more forgivable than inter-level coupling, and the costs of removing it seem
+to outweigh the benefits.
 
 The other guiding principle is to keep differing behavior between the client and server as disjoint as possible.
 The client shouldn't even have access to the server code. Early on in this project's life, I used a lot of checks
-to see whether the network was being hosted or not. These should be avoided, if there's a distinction between
+to see whether the network was being hosted or not. These should be avoided. If there's a distinction between
 the client and server behavior, it should be captured by subclasses that aren't accessible to one another.
 At the same time, behavior that is truly identical between the client and server should be reused whenever
 possible.
