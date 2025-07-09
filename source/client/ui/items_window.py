@@ -123,8 +123,7 @@ class ItemFrame(Entity):
         """
         if item is None:
             return None
-        return ItemIcon(item, parent=box, scale=(1, 1),
-                        position=(0, 0, -2))
+        return ItemIcon(item, parent=box, scale=(1, 1), position=(0, 0, -2))
 
     def on_click(self):
         hovered_slot = self.get_hovered_slot()

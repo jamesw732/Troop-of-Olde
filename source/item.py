@@ -3,7 +3,6 @@ import json
 import copy
 
 from .base import default_equipment, default_inventory, slot_to_ind, equipment_slots, data_path
-from .network import network
 from .states import Stats
 
 # Eventually, this will be a database connection rather than a json stored in memory
@@ -22,16 +21,15 @@ class Item:
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, item_id, inst_id):
+    def __init__(self, item_id, inst_id, on_destroy=lambda: None):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
-        item_id: items_dict key, int or str (gets casted to a str)
-        See JSON structure for valid kwargs
         item_id: int, id corresponding to an entry in the database; not unique WRT item instances
-        inst_id: unique id used to refer to this item over the network"""
+        inst_id: unique id used to refer to this item over the network
+        on_destroy: operations to perform once an Item is destroyed, currently unused"""
         self.item_id = item_id
         self.inst_id = inst_id
-        network.inst_id_to_item[self.inst_id] = self
         data = copy.deepcopy(items_dict[str(item_id)])
+        self.on_destroy = on_destroy
 
         self.name = data.get("name", "")
         self.type = data.get("type", "")
@@ -91,10 +89,14 @@ class Item:
 
 class Container(list):
     def __init__(self, container_id, name, items):
+        """List[Item] wrapper with some added functionality
+        container_id: network id used to refer to this container across network
+        name: str descriptor of this container
+        items: list of Item objects
+        """
         self.container_id = container_id
         self.name = name
         super().__init__(items)
-        network.inst_id_to_container[self.container_id] = self
 
     def get_first_empty(self, item=None, extra_includes=[]):
         """Find the first empty slot in this container

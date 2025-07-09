@@ -15,14 +15,11 @@ are just object attributes), which is necessary to make networking requests.
 
 
 So, todo list:
-- Fix Character deaths - remove all references to the Character and the controller from the
-controller, then destroy Character and controller.
-- Add functions to World for creating powers, items to handle
-all the instance id stuff currently done in the base classes. Each will need to be equipped with
-a local on_destroy method which removes its instance id from the corresponding map.
+- Add functions to World for creating powers to handle
+all the instance id stuff currently done in the base classes.
 - Move id to object maps to World, including functions ids_to_container and container_to_ids (also
 rename to ids_to_items and items_to_ids).
-- Remove all references to object maps from files besides world_requests and world_responses.
+- Remove all possible references to object maps from files besides world_requests and world_responses.
 
 
 Afterwards:
@@ -32,6 +29,7 @@ from scratch.
 just call a Container method and update_npc_lerp_attrs should just call a function that does that work.
 This will make the code substantially easier to test.
 - Update developer.tex
+- Update docstrings
 
 
 Could character.py safely be the bottom-most dependency after states.py?
@@ -108,6 +106,7 @@ Character:
 be nice to unify Stats with all the different Effect types.
 - Would really like to not have so many arguments to Character, would it be possible
 to make a new State which combines existing States? Probably...
+- Need to fix default inventory/equipment
 
 
 

@@ -75,12 +75,14 @@ default_phys_attrs = {
     "target": None
 }
 
-default_equipment = [None] * 4
+num_equipment_slots = 4
+default_equipment = [None] * num_equipment_slots
 equipment_slots = ["armor", "ring", "mh", "oh"]
 slot_to_ind = {"armor": 0, "ring": 1, "mh": 2, "oh": 3}
 power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
 
-default_inventory = [None] * 20
+num_inventory_slots = 20
+default_inventory = [None] * num_inventory_slots
 
 # List containing all the stats displayed by the skills window
 all_skills = [    # Melee styles

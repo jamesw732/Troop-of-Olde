@@ -16,7 +16,7 @@ from .combat import get_wpn_range
 from .states import *
 
 class Character(Entity):
-    def __init__(self, uuid, pstate=PhysicalState(), cbstate=BaseCombatState(), skills=SkillsState()):
+    def __init__(self, uuid, pstate=PhysicalState(), inventory=[], equipment=[], skills=SkillsState()):
         """Base Character class representing the intersection of server and client-side Characters.
 
         Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
@@ -40,7 +40,8 @@ class Character(Entity):
         self._init_cb_attrs()
         # Populate all attrs
         pstate.apply(self)
-        cbstate.apply(self)
+        self.equipment = equipment
+        self.inventory = inventory
 
         # self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
         self.skills = {skill: skills[i] for i, skill in enumerate(all_skills)}

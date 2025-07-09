@@ -37,7 +37,8 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     equipment = [equip_id] + list(zip(equipment[:equip_l//2], equipment[equip_l//2:]))
     powers_l = len(powers)
     powers = zip(powers[:powers_l//2], powers[powers_l//2:])
-    world.make_pc(uuid, pstate, equipment, inventory, skills, powers, cbstate)
+    world.make_pc(uuid, pstate=pstate, equipment=equipment, inventory=inventory,
+                  skills=skills, powers=powers, cbstate=cbstate)
     world.make_pc_ctrl()
 
     world.pc.ignore_traverse = network.uuid_to_char.values()
@@ -116,13 +117,12 @@ def remote_update_container(connection, time_received, container_id: int, contai
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
     this will only be done by non-hosts"""
     new_container = network.ids_to_container(container)
-    container = network.inst_id_to_container[container_id]
-
-    for slot, item in enumerate(container):
+    old_container = network.inst_id_to_container[container_id]
+    for slot, item in enumerate(old_container):
         new_item = new_container[slot]
-        container[slot] = new_item
+        old_container[slot] = new_item
         if new_item is not None:
-            new_item.auto_set_leftclick(container)
+            new_item.auto_set_leftclick(old_container)
 
     item_frame = ui.item_frames.get(container_id)
     if item_frame:

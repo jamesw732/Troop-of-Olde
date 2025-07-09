@@ -20,34 +20,24 @@ class ServerCharacter(Character):
                  equipment=[], inventory=[], skills=SkillsState(), powers=[],
                  on_destroy=lambda: None):
         """Initialize a Character for the server.
-        Args obtained from states.get_character_states_from_json.
 
-        cname: name of character, str
-        uuid: unique id. Used to encode which player you're talking about online.
-        pstate: State; defines physical attrs, these are updated client-authoritatively
-        base_state: State; used to build the character's stats from the ground up
-        equipment: list of Items or item ids or tuples of item ids and inst item ids
-        inventory: list of Items or item ids or tuples of item ids and inst item ids
-        skills: State dict mapping str skill names to int skill levels
-        powers: list of Powers or power Ids
+        uuid: unique id. Used to refer to Characters over network.
+        pstate: PhysicalState; defines physical attrs
+        cbstate: BaseCombatState; defines base combat stats, not accounting for
+        external sources like items or effects
+        equipment: list of Items
+        inventory: list of Items
+        skills: SkillsState
+        powers: list of Powers
         """
-        super().__init__(uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        super().__init__(uuid, pstate=pstate, equipment=equipment,
+                         inventory=inventory, skills=skills)
+        cbstate.apply(self)
         self.on_destroy = on_destroy
-        self.inventory = ServerContainer("inventory", default_inventory)
-        self.equipment = ServerContainer("equipment", default_equipment)
-        for slot, item_id in enumerate(inventory):
-            if item_id < 0:
+        for item in self.equipment:
+            if item is None:
                 continue
-            item = ServerItem(item_id)
-            self.inventory[slot] = item
-            item.auto_set_leftclick(self.inventory)
-        for slot, item_id in enumerate(equipment):
-            if item_id < 0:
-                continue
-            item = ServerItem(item_id)
-            self.equipment[slot] = item
             item.handle_stats(self, self.equipment)
-            item.auto_set_leftclick(self.equipment)
         for i, power_id in enumerate(powers):
             if power_id < 0:
                 continue

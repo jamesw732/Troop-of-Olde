@@ -18,6 +18,8 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: list[int],
                         inventory: list[int], skills: SkillsState,
                         powers: list[int]):
+    """Add a new player character to the world and update all clients.
+    Expected inputs are the outputs of get_pc_data_from_json"""
     new_pc = world.make_char(pstate=pstate, cbstate=base_state, equipment=equipment,
                              inventory=inventory, skills=skills, powers=powers)
     new_ctrl = world.make_ctrl(new_pc.uuid)
@@ -133,9 +135,9 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
 def request_auto_equip(connection, time_received, itemid: int, slot: int, container_id: int):
     """Request host to automatically equip an item."""
     char = network.connection_to_char[connection]
-    container = network.inst_id_to_container[container_id]
-    internal_autoequip(char, container, slot)
-    for container in [container, char.equipment]:
+    from_container = network.inst_id_to_container[container_id]
+    internal_autoequip(char, from_container, slot)
+    for container in [from_container, char.equipment]:
         container_id = container.container_id
         container = network.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)

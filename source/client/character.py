@@ -10,44 +10,30 @@ from .. import *
 
 
 class ClientCharacter(Character):
-    def __init__(self, uuid, pstate=PhysicalState(), cbstate=BaseCombatState(),
+    def __init__(self, uuid, pstate=PhysicalState(), cbstate=PlayerCombatState(),
                  equipment=[], inventory=[], skills=SkillsState(), powers=[],
                  on_destroy=lambda: None):
         """Initialize a Character for the Client.
-        Args obtained from states.get_character_states_from_data.
 
-        cname: name of character, str
         uuid: unique id. Used to encode which player you're talking about online.
-        pstate: State; defines physical attrs, these are updated client-authoritatively
-        base_state: State; used to build the character's stats from the ground up
-        equipment: list of Items or item ids or tuples of item ids and inst item ids
-        inventory: list of Items or item ids or tuples of item ids and inst item ids
-        skills: State dict mapping str skill names to int skill levels
-        powers: list of Powers or power Ids
+        pstate: PhysicalState; defines physical attrs
+        cbstate: PlayerCombatState; overwrites all combat stats
+        equipment: list of Items
+        inventory: list of Items
+        skills: SkillsState
+        powers: list of Powers
         """
-        if equipment:
-            equipment_id = equipment[0]
-            equipment = equipment[1:]
-            self.equipment = Container(equipment_id, "equipment", equipment)
-            for slot, item_ids in enumerate(equipment):
-                if item_ids[0] < 0 or item_ids[1] < 0:
-                    self.equipment[slot] = None
-                    continue
-                item = Item(*item_ids)
-                self.equipment[slot] = item
-                item.auto_set_leftclick(self.equipment)
-        if inventory:
-            inventory_id = inventory[0]
-            inventory = inventory[1:]
-            self.inventory = Container(inventory_id, "inventory", inventory)
-            for slot, item_ids in enumerate(inventory):
-                if item_ids[0] < 0 or item_ids[1] < 0:
-                    self.inventory[slot] = None
-                    continue
-                item = Item(*item_ids)
-                self.inventory[slot] = item
-                item.auto_set_leftclick(self.inventory)
-        super().__init__(uuid, pstate=pstate, cbstate=cbstate, skills=skills)
+        super().__init__(uuid, pstate=pstate, equipment=equipment,
+                         inventory=inventory, skills=skills)
+        cbstate.apply(self)
+        for idx, item in enumerate(self.equipment):
+            if item is None:
+                continue
+            item.auto_set_leftclick(self.equipment)
+        for idx, item in enumerate(self.inventory):
+            if item is None:
+                continue
+            item.auto_set_leftclick(self.inventory)
         for i, power_ids in enumerate(powers):
             if power_ids[0] < 0 or power_ids[1] < 0:
                 continue
