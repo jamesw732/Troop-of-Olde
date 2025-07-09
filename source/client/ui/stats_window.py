@@ -2,11 +2,11 @@ from ursina import *
 import itertools
 
 from .base import *
+from ..world import world
 from ... import all_stats
 
 class StatsWindow(Entity):
-    def __init__(self, char, *args, **kwargs):
-        self.char = char
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_size = Vec2(12, 12)
         # Absolute text width
@@ -31,10 +31,10 @@ class StatsWindow(Entity):
     def create_label(self, stat, position):
         if stat in self.labels_with_max:
             fmt = (f"{stat}", "{}/{}")
-            txt = self.format_text(fmt, getattr(self.char, stat), getattr(self.char, "max" + stat))
+            txt = self.format_text(fmt, getattr(world.pc, stat), getattr(world.pc, "max" + stat))
         else:
             fmt = (f"{stat}", "{}")
-            txt = self.format_text(fmt, getattr(self.char, stat))
+            txt = self.format_text(fmt, getattr(world.pc, stat))
         self.labels[stat] = Text(parent=self, origin=(-.5, .5),
              world_scale=self.text_size, position=position,
              text=txt, color=color.white, font='VeraMono.ttf')
@@ -54,9 +54,9 @@ class StatsWindow(Entity):
     def update_label(self, attr):
         label = self.labels[attr]
         fmt = label.fmt
-        cur = getattr(self.char, attr)
+        cur = getattr(world.pc, attr)
         if attr in self.labels_with_max:
-            cap = getattr(self.char, "max" + attr)
+            cap = getattr(world.pc, "max" + attr)
             txt = self.format_text(fmt, cur, cap)
         else:
             txt = self.format_text(fmt, cur)

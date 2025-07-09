@@ -45,7 +45,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
 
     network.server_connection = connection
 
-    ui.make_all_ui(world.pc)
+    ui.make_all_ui()
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, uuid: int,

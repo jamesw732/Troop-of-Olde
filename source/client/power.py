@@ -3,7 +3,6 @@ import os
 import json
 
 from .. import Power
-from .ui import ui
 
 
 class ClientPower(Power):

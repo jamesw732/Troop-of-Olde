@@ -5,11 +5,11 @@ from .items_window import *
 from .skills_window import *
 from .stats_window import *
 from .window import UIWindow
+from ..world import world
 
 
 class PlayerWindow(UIWindow):
-    def __init__(self, char):
-        self.char = char
+    def __init__(self):
         scale = (0.24, 0.45)
         global window
         super().__init__(position=(0.5 * window.aspect_ratio - 0.01 - scale[0], scale[1] - 0.49), scale=scale,
@@ -26,7 +26,7 @@ class PlayerWindow(UIWindow):
         tab_pos = (.025, -subheader_height + margin_length, -1)
 
         # Make Items window/button
-        self.items = ItemsWindow(self.char, parent=self.body, model='quad', origin=(-.5, .5),
+        self.items = ItemsWindow(parent=self.body, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.itemsbutton = Entity(
@@ -38,7 +38,7 @@ class PlayerWindow(UIWindow):
         Text(parent=self.itemsbutton, text="Items", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Skills window/button
-        self.skills = SkillsWindow(self.char, parent=self.body, model='quad', origin=(-.5, .5),
+        self.skills = SkillsWindow(parent=self.body, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.skillsbutton = Entity(
@@ -50,7 +50,7 @@ class PlayerWindow(UIWindow):
         Text(parent=self.skillsbutton, text="Skills", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Stats window/button
-        self.stats = StatsWindow(self.char, parent=self.body, model='quad', origin=(-.5, .5),
+        self.stats = StatsWindow(parent=self.body, model='quad', origin=(-.5, .5),
                                  scale=tab_scale, position=tab_pos,
                                  color=window_fg_color)
         self.statsbutton = Entity(

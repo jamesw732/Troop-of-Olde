@@ -1,11 +1,11 @@
 from ursina import *
 
 from .base import *
+from ..world import world
 from ... import all_skills
 
 class SkillsWindow(Entity):
-    def __init__(self, char, *args, **kwargs):
-        self.char = char
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_size = Vec2(12, 12)
         # Absolute text width
@@ -28,7 +28,7 @@ class SkillsWindow(Entity):
 
     def create_label(self, skill, position):
         fmt = (f"{skill}", "{}")
-        txt = self.format_text(fmt, self.char.skills[skill])
+        txt = self.format_text(fmt, world.pc.skills[skill])
         self.labels[skill] = Text(parent=self, origin=(-.5, .5),
              world_scale=self.text_size, position=position,
              text=txt, color=color.white, font='VeraMono.ttf')
@@ -44,7 +44,7 @@ class SkillsWindow(Entity):
     def set_label_text(self, skill):
         label = self.labels[skill]
         fmt = label.fmt
-        txt = self.format_text(fmt, self.char.skills[skill])
+        txt = self.format_text(fmt, world.pc.skills[skill])
         label.text = txt
 
     def enable_colliders(self):
