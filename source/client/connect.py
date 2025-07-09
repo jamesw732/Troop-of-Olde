@@ -9,7 +9,7 @@ from .. import data_path, network, get_player_states_from_data
 
 
 @rpc(network.peer)
-def on_connect(connection, time_connected):
+def on_connect(connection, time_received):
     """What a client should do when they connect.
     Host just needs to make a new character, map connection/uuid to it, increment uuid,
     and send the new character to peers.
@@ -22,3 +22,10 @@ def on_connect(connection, time_connected):
         pc_data = json.load(players)[player_name]
     states = get_player_states_from_data(pc_data, player_name)
     network.peer.request_enter_world(connection, *states)
+
+@rpc(network.peer)
+def on_disconnect(connection, time_received):
+    """What a client should do when disconnecting.
+    Right now, this is blank because there's nothing to do upon disconnection.
+    Once I implement a real client, this will be populated"""
+    pass

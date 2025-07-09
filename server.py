@@ -2,7 +2,7 @@ from ursina import Ursina
 from ursina.networking import rpc
 
 from source.network import network
-from source.disconnect import *
+from source.server.connect import *
 from source.server.world_requests import *
 from source.server.world import world
 
