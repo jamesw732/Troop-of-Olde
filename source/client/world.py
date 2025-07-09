@@ -20,6 +20,8 @@ class World:
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
         self.inst_id_to_item = dict()
+        self.inst_id_to_power = dict()
+        self.inst_id_to_container = dict()
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -103,7 +105,7 @@ class World:
                 continue
             items[i] = self.make_item(item_id, inst_id)
         container = Container(container_id, name, items)
-        network.inst_id_to_container[container_id] = container
+        self.inst_id_to_container[container_id] = container
         return container
 
     def make_item(self, item_id, inst_id):
@@ -123,7 +125,7 @@ class World:
 
     def make_power(self, power_id, inst_id):
         power = Power(power_id, inst_id)
-        network.inst_id_to_power[inst_id] = power
+        self.inst_id_to_power[inst_id] = power
         return power
 
     def container_to_ids(self, container, id_type="inst_id"):

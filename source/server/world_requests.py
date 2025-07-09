@@ -103,7 +103,7 @@ def request_use_power(connection, time_received, inst_id: int):
     """
     char = network.connection_to_char[connection]
     ctrl = world.uuid_to_ctrl[char.uuid]
-    power = network.inst_id_to_power[inst_id]
+    power = world.inst_id_to_power[inst_id]
     ctrl.use_power(power)
 
 
@@ -115,8 +115,8 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
     if not network.peer.is_hosting():
         return
     char = network.connection_to_char[connection]
-    to_container = network.inst_id_to_container[to_id]
-    from_container = network.inst_id_to_container[from_id]
+    to_container = world.inst_id_to_container[to_id]
+    from_container = world.inst_id_to_container[from_id]
     full_item_move(char, to_container, to_slot, from_container, from_slot)
     unique_containers = {to_id: to_container, from_id: from_container}
     for container_id, container in unique_containers.items():
@@ -128,7 +128,7 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
 def request_auto_equip(connection, time_received, itemid: int, slot: int, container_id: int):
     """Request host to automatically equip an item."""
     char = network.connection_to_char[connection]
-    from_container = network.inst_id_to_container[container_id]
+    from_container = world.inst_id_to_container[container_id]
     internal_autoequip(char, from_container, slot)
     for container in [from_container, char.equipment]:
         container_id = container.container_id

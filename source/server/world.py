@@ -23,6 +23,10 @@ class World:
 
         self.inst_id_to_item = dict()
         self.item_inst_id_ct = 0
+        self.inst_id_to_power = dict()
+        self.power_inst_id_ct = 0
+        self.inst_id_to_container = dict()
+        self.container_inst_id_ct = 0
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -89,15 +93,15 @@ class World:
 
         name: str name of this container
         item_ids: list of int item database ids"""
-        container_id = network.container_inst_id_ct
-        network.container_inst_id_ct += 1
+        container_id = self.container_inst_id_ct
+        self.container_inst_id_ct += 1
         items = [None] * default_size
         for i, item_id in enumerate(item_ids):
             if item_id < 0:
                 continue
             items[i] = self.make_item(item_id)
         container = Container(container_id, name, items)
-        network.inst_id_to_container[container_id] = container
+        self.inst_id_to_container[container_id] = container
         return container
 
     def make_item(self, item_id):
@@ -118,10 +122,10 @@ class World:
         return powers
 
     def make_power(self, power_id):
-        inst_id = network.power_inst_id_ct
-        network.power_inst_id_ct += 1
+        inst_id = self.power_inst_id_ct
+        self.power_inst_id_ct += 1
         power = ServerPower(power_id, inst_id)
-        network.inst_id_to_power[inst_id] = power
+        self.inst_id_to_power[inst_id] = power
         return power
 
     def container_to_ids(self, container, id_type="inst_id"):

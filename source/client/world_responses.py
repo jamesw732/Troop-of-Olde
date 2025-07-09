@@ -117,7 +117,7 @@ def remote_update_container(connection, time_received, container_id: int, contai
     Mimic most of the process in ItemIcon.swap_locs for hosts, but
     this will only be done by non-hosts"""
     new_container = world.ids_to_container(container)
-    old_container = network.inst_id_to_container[container_id]
+    old_container = world.inst_id_to_container[container_id]
     for slot, item in enumerate(old_container):
         new_item = new_container[slot]
         old_container[slot] = new_item

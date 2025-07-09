@@ -1,27 +1,20 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Current Steps:
-- Move id to object maps to World, including functions ids_to_container and container_to_ids (also
-rename to ids_to_items and items_to_ids).
-- Remove all possible references to id maps from files besides world_requests and world_responses.
-
-
-Afterwards:
 - Remove disconnect.py from shared API. Actually, completely re-implement disconnect mostly
 from scratch.
+
+
+
+===================================NEXT================================================
+Some refactoring stuff:
+- Refactor Effect to not used networking, delegate networking to controllers.
 - Make world_responses.py and world_requests.py more API-based, for example remote_update_container should
 just call a Container method and update_npc_lerp_attrs should just call a function that does that work.
 This will make the code substantially easier to test.
 - Update developer.tex
 - Update docstrings
 
-Further considerations:
-Effect code is pretty bad, I don't think it should use networking at all. The controllers
-should be handling effects.
-
-
-===================================NEXT================================================
 Fix character origin bug
 
 Add animations.

@@ -17,11 +17,6 @@ class Network(Entity):
         self.server_connection = None
         self.my_uuid = None
 
-        self.inst_id_to_power = dict()
-        self.power_inst_id_ct = 0
-        self.inst_id_to_container = dict()
-        self.container_inst_id_ct = 0
-
         self.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
         self.peer.register_type(SkillsState, SkillsState.serialize, SkillsState.deserialize)
         self.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
