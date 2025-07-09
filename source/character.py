@@ -16,7 +16,8 @@ from .combat import get_wpn_range
 from .states import *
 
 class Character(Entity):
-    def __init__(self, uuid, pstate=PhysicalState(), inventory=[], equipment=[], skills=SkillsState()):
+    def __init__(self, uuid, pstate=PhysicalState(), inventory=[], equipment=[],
+                 skills=SkillsState(), powers=[]):
         """Base Character class representing the intersection of server and client-side Characters.
 
         Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
@@ -36,12 +37,13 @@ class Character(Entity):
 
         # Initialize default values for everything
         self._init_phys_attrs()
-        self._init_powers()
         self._init_cb_attrs()
         # Populate all attrs
         pstate.apply(self)
         self.equipment = equipment
         self.inventory = inventory
+        self.num_powers = default_num_powers
+        self.powers = powers
 
         # self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
         self.skills = {skill: skills[i] for i, skill in enumerate(all_skills)}
@@ -59,10 +61,6 @@ class Character(Entity):
         """Initialize base default combat attributes."""
         for attr, val in default_cb_attrs.items():
             setattr(self, attr, val)
-
-    def _init_powers(self):
-        self.num_powers = default_num_powers
-        self.powers = [None] * self.num_powers
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""

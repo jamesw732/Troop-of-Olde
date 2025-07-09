@@ -3,7 +3,6 @@ import os
 import json
 
 from .base import data_path
-from .network import network
 
 power_path = os.path.join(data_path, "powers.json")
 with open(power_path) as power_json:
@@ -24,7 +23,6 @@ class Power(Entity):
         self.power_id = power_id
         self.inst_id = inst_id
         self.on_use = on_use
-        network.inst_id_to_power[self.inst_id] = self
         power_data = id_to_power_data[str(power_id)]
         # Would it be better to be more explicit about this?
         for k, v in power_data.items():

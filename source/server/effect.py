@@ -50,7 +50,6 @@ class Effect(Entity):
 
     def attempt_apply(self):
         """Main driving method called by the server for applying an effect to a target"""
-        assert network.peer.is_hosting()
         if self.tgt is None:
             return
         self.check_land()

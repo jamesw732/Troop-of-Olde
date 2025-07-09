@@ -54,6 +54,8 @@ class World:
             kwargs["inventory"] = self.make_container_from_ids("inventory",
                                                                kwargs["inventory"],
                                                                num_inventory_slots)
+        if "powers" in kwargs:
+            kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
         def on_destroy():
             del network.uuid_to_char[uuid]
             self.pc = None
@@ -107,5 +109,17 @@ class World:
         network.inst_id_to_item[inst_id] = item
         return item
 
+    def make_powers_from_ids(self, power_ids):
+        powers = [None] * default_num_powers
+        for i, (power_id, inst_id) in enumerate(power_ids):
+            if power_id < 0 or inst_id < 0:
+                continue
+            powers[i] = self.make_power(power_id, inst_id)
+        return powers
+
+    def make_power(self, power_id, inst_id):
+        power = Power(power_id, inst_id)
+        network.inst_id_to_power[inst_id] = power
+        return power
 
 world = World()

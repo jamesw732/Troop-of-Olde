@@ -11,7 +11,6 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from .item import ServerItem, ServerContainer
 from .power import ServerPower
 from .. import *
 
@@ -31,18 +30,13 @@ class ServerCharacter(Character):
         powers: list of Powers
         """
         super().__init__(uuid, pstate=pstate, equipment=equipment,
-                         inventory=inventory, skills=skills)
+                         inventory=inventory, skills=skills, powers=powers)
         cbstate.apply(self)
         self.on_destroy = on_destroy
         for item in self.equipment:
             if item is None:
                 continue
             item.handle_stats(self, self.equipment)
-        for i, power_id in enumerate(powers):
-            if power_id < 0:
-                continue
-            self.powers[i] = ServerPower(power_id)
-
         self.update_max_ratings()
 
     @property

@@ -5,6 +5,7 @@ import os
 
 from .character import ServerCharacter
 from .controllers import MobController
+from .power import ServerPower
 from .. import *
 
 
@@ -55,6 +56,8 @@ class World:
             kwargs["inventory"] = self.make_container_from_ids("inventory",
                                                                kwargs["inventory"],
                                                                num_inventory_slots)
+        if "powers" in kwargs:
+            kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
         def on_destroy():
             del network.uuid_to_char[uuid]
             if uuid in network.uuid_to_connection:
@@ -99,5 +102,20 @@ class World:
         item = Item(item_id, inst_id, on_destroy=on_destroy)
         network.inst_id_to_item[inst_id] = item
         return item
+    
+    def make_powers_from_ids(self, power_ids):
+        powers = [None] * default_num_powers
+        for i, power_id in enumerate(power_ids):
+            if power_id < 0:
+                continue
+            powers[i] = self.make_power(power_id)
+        return powers
+
+    def make_power(self, power_id):
+        inst_id = network.power_inst_id_ct
+        network.power_inst_id_ct += 1
+        power = ServerPower(power_id, inst_id)
+        network.inst_id_to_power[inst_id] = power
+        return power
 
 world = World()

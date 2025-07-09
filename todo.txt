@@ -2,24 +2,9 @@ Implementation todo list.
 
 ===========================ACTIVE===============================
 Current Steps:
-I think all the id maps that are currently in network should be moved to world.
-Actually, uuid_to_connection will need to stay in Network, but this is pretty fitting.
-This will mean:
-- Shared API character, item, power won't rely on Network anymore, the world will be
-responsible for giving them ids.
-- Network won't secretly rely on controller, character, item, power, effect. Ownership
-of those objects becomes much clearer.
-- Controllers won't have access to uiud maps. This is a good thing, that stuff should
-all be done network side. Controllers will still get access to object to id maps (which
-are just object attributes), which is necessary to make networking requests.
-
-
-So, todo list:
-- Add functions to World for creating powers to handle
-all the instance id stuff currently done in the base classes.
 - Move id to object maps to World, including functions ids_to_container and container_to_ids (also
 rename to ids_to_items and items_to_ids).
-- Remove all possible references to object maps from files besides world_requests and world_responses.
+- Remove all possible references to id maps from files besides world_requests and world_responses.
 
 
 Afterwards:
@@ -34,6 +19,7 @@ This will make the code substantially easier to test.
 Further considerations:
 Effect code is pretty bad, I don't think it should use networking at all. The controllers
 should be handling effects.
+
 
 ===================================NEXT================================================
 Fix character origin bug

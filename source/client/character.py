@@ -23,7 +23,7 @@ class ClientCharacter(Character):
         powers: list of Powers
         """
         super().__init__(uuid, pstate=pstate, equipment=equipment,
-                         inventory=inventory, skills=skills)
+                         inventory=inventory, skills=skills, powers=powers)
         cbstate.apply(self)
         for idx, item in enumerate(self.equipment):
             if item is None:
@@ -33,10 +33,6 @@ class ClientCharacter(Character):
             if item is None:
                 continue
             item.auto_set_leftclick(self.inventory)
-        for i, power_ids in enumerate(powers):
-            if power_ids[0] < 0 or power_ids[1] < 0:
-                continue
-            self.powers[i] = Power(*power_ids)
         self.on_destroy = on_destroy
 
     @property
