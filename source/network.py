@@ -11,15 +11,10 @@ class Network(Entity):
         super().__init__()
         self.peer = RPCPeer(max_list_length=100)
 
-        self.uuid_to_char = dict()
         self.connection_to_char = dict()
         self.uuid_to_connection = dict()
-        self.uuid_to_ctrl = dict()
 
         self.server_connection = None
-
-        # uuid is more like a unique character id, npc's get them too
-        self.uuid_counter = 0
         self.my_uuid = None
 
         self.inst_id_to_item = dict()

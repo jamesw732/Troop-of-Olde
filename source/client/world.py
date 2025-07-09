@@ -17,6 +17,9 @@ class World:
         self.pc = None
         self.pc_ctrl = None
 
+        self.uuid_to_char = dict()
+        self.uuid_to_ctrl = dict()
+
     def load_zone(self, file):
         """Load the world by parsing a json
 
@@ -57,10 +60,10 @@ class World:
         if "powers" in kwargs:
             kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
         def on_destroy():
-            del network.uuid_to_char[uuid]
+            del world.uuid_to_char[uuid]
             self.pc = None
         self.pc = ClientCharacter(uuid, **kwargs, on_destroy=on_destroy)
-        network.uuid_to_char[uuid] = self.pc
+        world.uuid_to_char[uuid] = self.pc
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
@@ -69,26 +72,26 @@ class World:
             return
         uuid = world.pc.uuid
         def on_destroy():
-            del network.uuid_to_ctrl[uuid]
+            del world.uuid_to_ctrl[uuid]
             self.pc_ctrl = None
-        char = network.uuid_to_char[uuid]
+        char = world.uuid_to_char[uuid]
         self.pc_ctrl = PlayerController(character=char, on_destroy=on_destroy)
-        network.uuid_to_ctrl[uuid] = self.pc_ctrl
+        world.uuid_to_ctrl[uuid] = self.pc_ctrl
         
     def make_npc(self, uuid, pstate, cbstate):
         """Makes an npc while updating uuid map"""
         def on_destroy():
-            del network.uuid_to_char[uuid]
+            del world.uuid_to_char[uuid]
         self.pc = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
-        network.uuid_to_char[uuid] = self.pc
+        world.uuid_to_char[uuid] = self.pc
 
     def make_npc_ctrl(self, uuid):
         """Makes an npc controller while updating uuid map.
         Relies on make_npc being called"""
         def on_destroy():
-            del network.uuid_to_ctrl[uuid]
-        char = network.uuid_to_char[uuid]
-        network.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
+            del world.uuid_to_ctrl[uuid]
+        char = world.uuid_to_char[uuid]
+        world.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
 
     def make_container_from_ids(self, name, ids, default_size):
         container_id = ids[0]

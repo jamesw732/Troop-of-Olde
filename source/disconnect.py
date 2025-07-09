@@ -31,6 +31,6 @@ def remote_remove_char(connection, time_received, uuid: int):
     """What a non-host does to remove a character"""
     if network.peer.is_hosting():
         return
-    char = network.uuid_to_char.get(uuid)
+    char = world.uuid_to_char.get(uuid)
     if char:
         destroy(char)

@@ -16,7 +16,10 @@ class World:
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
         self.entities = []
-        self.pc = None
+
+        self.uuid_to_char = dict()
+        self.uuid_to_ctrl = dict()
+        self.uuid_counter = 0
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -46,8 +49,8 @@ class World:
 
     def make_char(self, **kwargs):
         """Makes the player character while updating uuid map"""
-        uuid = network.uuid_counter
-        network.uuid_counter += 1
+        uuid = self.uuid_counter
+        self.uuid_counter += 1
         if "equipment" in kwargs:
             kwargs["equipment"] = self.make_container_from_ids("equipment",
                                                                kwargs["equipment"],
@@ -59,23 +62,23 @@ class World:
         if "powers" in kwargs:
             kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
         def on_destroy():
-            del network.uuid_to_char[uuid]
+            del world.uuid_to_char[uuid]
             if uuid in network.uuid_to_connection:
                 connection = network.uuid_to_connection[uuid]
                 del network.uuid_to_connection[uuid]
                 del network.connection_to_char[connection]
         new_char = ServerCharacter(uuid, **kwargs, on_destroy=on_destroy)
-        network.uuid_to_char[uuid] = new_char
+        world.uuid_to_char[uuid] = new_char
         return new_char
 
     def make_ctrl(self, uuid):
         """Makes the player character controller while updating uuid map.
         Relies on make_pc being called"""
         def on_destroy():
-            del network.uuid_to_ctrl[uuid]
-        char = network.uuid_to_char[uuid]
+            del world.uuid_to_ctrl[uuid]
+        char = world.uuid_to_char[uuid]
         new_ctrl = MobController(character=char, on_destroy=on_destroy)
-        network.uuid_to_ctrl[uuid] = new_ctrl
+        world.uuid_to_ctrl[uuid] = new_ctrl
         return new_ctrl
 
     def make_container_from_ids(self, name, item_ids, default_size):

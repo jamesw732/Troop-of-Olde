@@ -36,7 +36,7 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
     new_char_cbstate = NPCCombatState(new_pc)
     for conn in network.peer.get_connections():
         if conn == connection:
-            for uuid, ch in network.uuid_to_char.items():
+            for uuid, ch in world.uuid_to_char.items():
                 if ch is new_pc:
                     pc_cbstate = PlayerCombatState(new_pc)
                     network.peer.spawn_pc(connection, uuid, pstate, equipment_ids,
@@ -65,7 +65,7 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
     char.rotation_y += y_rotation
     # Will send back the most recently received sequence number to match the predicted state.
     # If packets arrive out of order, we want to update based on last sequence number
-    controller = network.uuid_to_ctrl[char.uuid]
+    controller = world.uuid_to_ctrl[char.uuid]
     if sequence_number > controller.sequence_number:
         controller.sequence_number = sequence_number
 
@@ -85,7 +85,7 @@ def request_toggle_combat(connection, time_received):
 @rpc(network.peer)
 def request_set_target(connection, time_received, uuid: int):
     src = network.connection_to_char[connection]
-    tgt = network.uuid_to_char[uuid]
+    tgt = world.uuid_to_char[uuid]
     src.target = tgt
     network.peer.remote_set_target(connection, uuid)
 
@@ -102,7 +102,7 @@ def request_use_power(connection, time_received, inst_id: int):
     good enough for now.
     """
     char = network.connection_to_char[connection]
-    ctrl = network.uuid_to_ctrl[char.uuid]
+    ctrl = world.uuid_to_ctrl[char.uuid]
     power = network.inst_id_to_power[inst_id]
     ctrl.use_power(power)
 

@@ -41,7 +41,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
                   skills=skills, powers=powers, cbstate=cbstate)
     world.make_pc_ctrl()
 
-    world.pc.ignore_traverse = network.uuid_to_char.values()
+    world.pc.ignore_traverse = world.uuid_to_char.values()
 
     network.server_connection = connection
 
@@ -51,7 +51,7 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
 def spawn_npc(connection, time_received, uuid: int,
               pstate: PhysicalState, cbstate: NPCCombatState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
-    if uuid not in network.uuid_to_char:
+    if uuid not in world.uuid_to_char:
         world.make_npc(uuid, pstate, cbstate)
         world.make_npc_ctrl(uuid)
 
@@ -66,9 +66,9 @@ def toggle_combat(connection, time_received, toggle: bool):
 @rpc(network.peer)
 def remote_kill(connection, time_received, uuid: int):
     """Tell clients that a character died. Only to be called by host."""
-    if uuid not in network.uuid_to_ctrl:
+    if uuid not in world.uuid_to_ctrl:
         return
-    ctrl = network.uuid_to_ctrl[uuid]
+    ctrl = world.uuid_to_ctrl[uuid]
     char = ctrl.character
     if ui.gamewindow:
         msg = f"{char.cname} perishes"
@@ -78,7 +78,7 @@ def remote_kill(connection, time_received, uuid: int):
 @rpc(network.peer)
 def remote_set_target(connection, time_received, uuid: int):
     """Update player character's target"""
-    tgt = network.uuid_to_char[uuid]
+    tgt = world.uuid_to_char[uuid]
     world.pc.target = tgt
     if ui.gamewindow:
         msg = f"Now targeting: {tgt.cname}"
@@ -96,7 +96,7 @@ def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerComba
 
 @rpc(network.peer)
 def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatState):
-    char = network.uuid_to_char.get(uuid)
+    char = world.uuid_to_char.get(uuid)
     if char is None:
         return
     cbstate.apply(char)
@@ -132,7 +132,7 @@ def remote_update_container(connection, time_received, container_id: int, contai
 @rpc(network.peer)
 def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: float):
     """Called by server to update physical state for an NPC"""
-    controller = network.uuid_to_ctrl.get(uuid)
+    controller = world.uuid_to_ctrl.get(uuid)
     if controller is None:
         return
     controller.prev_pos = controller.target_pos
@@ -183,7 +183,7 @@ def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: V
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
-    char = network.uuid_to_char.get(uuid)
+    char = world.uuid_to_char.get(uuid)
     if char is None:
         return
     char.position = pos
@@ -191,7 +191,7 @@ def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
              
 @rpc(network.peer)
 def update_rotation(connection, time_received, uuid: int, rot: Vec3):
-    char = network.uuid_to_char.get(uuid)
+    char = world.uuid_to_char.get(uuid)
     if char is None:
         return
     char.rotation = rot
