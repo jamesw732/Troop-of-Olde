@@ -7,9 +7,13 @@ from .ui import ui
 
 
 class ClientPower(Power):
-    def __init__(self, char, power_id, inst_id):
-        """Make power"""
+    def __init__(self, char, power_id, inst_id, on_use=lambda: None):
+        """Make power
+        power_id: database ID of this power
+        inst_id: unique id with respect to power instances
+        on_use: extra things to do upon using this power, like updating UI"""
         super().__init__(char, power_id, inst_id)
+        self.on_use = on_use
 
     def handle_power_input(self):
         """Handles client's input to use a power"""
@@ -38,3 +42,4 @@ class ClientPower(Power):
         if self.char.energy < self.cost:
             return
         super().use()
+        self.on_use()

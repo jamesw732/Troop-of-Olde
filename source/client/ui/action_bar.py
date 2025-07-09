@@ -59,6 +59,7 @@ class PowerBar(Entity):
                                              position=(i / self.parent.num_slots, 0, -1),
                                              model='quad', texture=power.icon)
                 self.power_icons[i].cd_overlay = None
+                power.on_use = self.parent.start_cd_animation
             label = str(i + 1)
             self.labels.append(Text(text=label, parent=self, world_scale=(12, 12),
                                          position=((i + 0.05) / self.parent.num_slots, -.95, -2),
@@ -80,7 +81,6 @@ class PowerBar(Entity):
             return
         if power.handle_power_input():
             network.peer.request_use_power(network.server_connection, power.inst_id)
-            self.parent.start_cd_animation()
 
     def on_click(self):
         ui_mouse_x = mouse.x * camera.ui.scale_x

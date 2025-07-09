@@ -4,7 +4,6 @@ client-side NPCs, and server-side Characters.
 """
 from ursina import *
 
-from .ui import ui
 from .. import *
 
 
@@ -92,7 +91,6 @@ class PlayerController(Entity):
             power = char.next_power
             tgt = power.get_target()
             power.use()
-            ui.actionbar.start_cd_animation()
             network.peer.request_use_power(network.server_connection, power.power_id)
 
     @every(PHYSICS_UPDATE_RATE)
@@ -193,7 +191,8 @@ class PlayerController(Entity):
         self.character = None
         # del self.character
         destroy(self.namelabel)
-        self.namelabel = None
+        del self.namelabel.char
+        del self.namelabel
         # del self.namelabel
         destroy(self)
 
@@ -245,7 +244,9 @@ class NPCController(Entity):
         destroy(self.character)
         del self.character
         destroy(self.namelabel)
+        del self.namelabel.char
         del self.namelabel
+        destroy(self)
 
 
 class NameLabel(Text):
