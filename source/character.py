@@ -32,12 +32,19 @@ class Character(Entity):
 
         self.namelabel = None
 
-        # First, initialize Entity
+        self.model_child = Actor()
+        self._model_name = ""
         super().__init__()
 
         # Initialize default values for everything
-        self._init_phys_attrs()
-        self._init_cb_attrs()
+        # Physical attrs
+        for attr, val in default_phys_attrs.items():
+            setattr(self, attr, copy(val))
+        self.ignore_traverse = [self]
+        # Combat attrs
+        for attr, val in default_cb_attrs.items():
+            setattr(self, attr, val)
+        self.targeted_by = []
         # Populate all attrs
         pstate.apply(self)
         self.equipment = equipment
@@ -47,19 +54,6 @@ class Character(Entity):
 
         # self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
         self.skills = {skill: skills[i] for i, skill in enumerate(all_skills)}
-
-    def _init_phys_attrs(self):
-        """Initialize base physical attributes. These are likely to change."""
-        self.model_child = Actor()
-        self._model_name = ""
-        for attr, val in default_phys_attrs.items():
-            setattr(self, attr, copy(val))
-        self.ignore_traverse = [self]
-
-    def _init_cb_attrs(self):
-        """Initialize base default combat attributes."""
-        for attr, val in default_cb_attrs.items():
-            setattr(self, attr, val)
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""
@@ -86,6 +80,11 @@ class Character(Entity):
         """Reset self.jumping, remaining jump height"""
         self.jumping = False
         self.rem_jump_height = self.max_jump_height
+
+    def set_target(self, target):
+        if self.target is not target:
+            target.targeted_by.append(self)
+        self.target = target
 
     def get_tgt_los(self, target):
         """Returns whether the target is in line of sight"""

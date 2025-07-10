@@ -197,7 +197,7 @@ class PlayerController(Entity):
         """Set character's target.
 
         target: Character"""
-        self.character.target = target
+        self.character.set_target(target)
         network.peer.request_set_target(network.server_connection, target.uuid)
 
     def toggle_combat(self):

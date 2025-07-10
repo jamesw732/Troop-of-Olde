@@ -90,7 +90,7 @@ def request_set_target(connection, time_received, uuid: int):
     src_uuid = network.connection_to_uuid[connection]
     src = world.uuid_to_char[src_uuid]
     tgt = world.uuid_to_char[uuid]
-    src.target = tgt
+    src.set_target(tgt)
     network.peer.remote_set_target(connection, uuid)
 
 # POWERS

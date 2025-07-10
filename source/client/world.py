@@ -63,8 +63,15 @@ class World:
         if "powers" in kwargs:
             kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
         def on_destroy():
-            del self.uuid_to_char[uuid]
             self.pc = None
+            char = self.uuid_to_char[uuid]
+            del self.uuid_to_char[uuid]
+            char.model_child.detachNode()
+            del char.model_child
+            for src in char.targeted_by:
+                src.target = None
+            char.targeted_by = []
+            del char
         self.pc = ClientCharacter(uuid, **kwargs, on_destroy=on_destroy)
         self.uuid_to_char[uuid] = self.pc
 
@@ -88,6 +95,9 @@ class World:
             del self.uuid_to_char[uuid]
             char.model_child.detachNode()
             del char.model_child
+            for src in char.targeted_by:
+                src.target = None
+            char.targeted_by = []
             del char
         self.pc = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
         self.uuid_to_char[uuid] = self.pc

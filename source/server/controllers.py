@@ -123,4 +123,4 @@ class MobController(Entity):
         uuid = self.character.uuid
         destroy(self.character)
         destroy(self)
-        ntwork.broadcast(network.peer.remote_kill, uuid)
+        network.broadcast(network.peer.remote_kill, uuid)

@@ -69,7 +69,14 @@ class World:
         if "powers" in kwargs:
             kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
         def on_destroy():
+            char = self.uuid_to_char[uuid]
             del self.uuid_to_char[uuid]
+            char.model_child.detachNode()
+            del char.model_child
+            for src in char.targeted_by:
+                src.target = None
+            char.targeted_by = []
+            del char
             if uuid in network.uuid_to_connection:
                 connection = network.uuid_to_connection[uuid]
                 del network.uuid_to_connection[uuid]
