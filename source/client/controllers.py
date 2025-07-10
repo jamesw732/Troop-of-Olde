@@ -205,7 +205,9 @@ class PlayerController(Entity):
 
     def kill(self):
         """Clean up character upon death"""
+        # also need to clear enemy targets
         self.character.alive = False
+        del self.character.ignore_traverse
         destroy(self.character)
         self.character = None
         # del self.character
@@ -213,6 +215,8 @@ class PlayerController(Entity):
         del self.namelabel.char
         del self.namelabel
         # del self.namelabel
+        destroy(self.focus)
+        del self.focus
         destroy(self)
 
 
@@ -260,6 +264,7 @@ class NPCController(Entity):
     def kill(self):
         """Clean up character upon death"""
         self.character.alive = False
+        del self.character.ignore_traverse
         destroy(self.character)
         del self.character
         destroy(self.namelabel)

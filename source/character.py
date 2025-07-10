@@ -69,13 +69,6 @@ class Character(Entity):
         self.health = min(self.maxhealth, self.health)
         self.energy = min(self.maxenergy, self.energy)
 
-    def on_destroy(self):
-        """Upon being destroyed, remove all references to objects
-        attached to this character. This is currently not perfect,
-        need to remove every single reference and some are missing.
-        Todo: Remove EVERY reference so char cna be garbage collected."""
-        del self.ignore_traverse
-
     def increase_health(self, amt):
         """Function to be used whenever increasing character's health"""
         self.health = min(self.maxhealth, self.health + amt)

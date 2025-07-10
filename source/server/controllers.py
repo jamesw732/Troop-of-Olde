@@ -27,9 +27,11 @@ class MobController(Entity):
 
     def update(self):
         char = self.character
+        # Death handling
         if char.health <= 0:
             self.kill()
             return
+        # Combat handling
         if not char.target or not char.target.alive:
             char.target = None
             char.mh_combat_timer = 0
@@ -45,6 +47,7 @@ class MobController(Entity):
                 hit_oh = self.handle_combat("oh")
             if hit_mh or hit_mh:
                 network.broadcast_cbstate_update(char.target)
+        # Queued power handling
         if char.get_on_gcd():
             char.tick_gcd()
         elif char.next_power is not None and not char.next_power.on_cooldown:
