@@ -4,6 +4,7 @@
 \usepackage{hyperref}
 \usepackage{xparse}
 \usepackage{amsmath}
+\usepackage[strings]{underscore}
 
 \NewDocumentCommand{\codeword}{v}{%
 \texttt{{#1}}%
@@ -102,19 +103,24 @@ Checklist for this phase:
 \section{Code Infrastructure}
 This section describes the big-picture structure of the code.
 
-Where possible, I try to adhere to downward dependency as much as possible. Basically, a file
-should only have access to objects lower than it in the dependency tree. For example, \codeword{Character}
-should not store its \codeword{controller}. While this can be more convenient to use, it typically makes a
-big mess of tightly coupled spaghetti code. Ownership becomes unclear, and there is no clear dependence
-(because the dependence is what was hacked away). Adhering to the downward dependence gives the codebase
-a much richer structure, making it more complex but less complicated (counterintuitively).
+When possible, I try to adhere to a downward dependency structure. Basically, a file
+should only store objects lower than it in the dependency tree (ie, objects of a type defined
+in a file you could import from). For example, \codeword{Character} should not store its
+\codeword{controller}. While it can be quicker to hack together a solution that violates downward
+dependence, it typically makes a big mess of tightly coupled spaghetti code. Ownership becomes unclear,
+and overall structure becomes complicated (because there is circular dependence all around). Adhering
+to the downward dependence gives the codebase a much richer structure, making it more complex but less
+complicated (counterintuitively).
 
-In particular, storing higher level objects makes cleanup a lot messier. The main exception
-to this is function arguments - as long as the higher level object is not stored, it doesn't get
-a strong reference, so it won't impact cleanup. So, I am much more lenient with this type of tight
-coupling, especially with the lower-level game logic. For example, a lot of \codeword{Item} functions rely
-on \codeword{Character} objects, but \codeword{Character} relies on \codeword{Item} objects because
-the \codeword{Character} stores inventory and equipment, which contain \codeword{Items}. This type
+The most damning symptom of breaking downward dependence is that it makes cleanup a lot messier.
+On the other hand, this is not true when higher level objects are passed as function arguments but
+not stored. In this case, we don't have an extra reference to clean up when the higher level
+object is destroyed. While it still obfuscates the project structure, I am much more lenient
+with this pattern because it is a lot more convenient. It is certainly possible to abuse this
+paradigm, so I pretty much only do this for the lower-level game logic.  For example, a lot of
+\codeword{Item} functions rely on \codeword{Character} objects, but \codeword{Character} relies
+on \codeword{Item} objects because the \codeword{Character} stores inventory and equipment, which
+contain \codeword{Items}. This type
 of tight coupling is pretty forgivable, especially in Python. The cost of avoiding it seems to outweigh
 the benefits to me, so I choose to utilize it. So the general rule is that if an object stores another
 object, it should (be able to) import the lower level object's file. If it can't due to circular import,
@@ -131,51 +137,10 @@ One benefit of the project having a clear dependency stack is that it gives a cl
 The rest of the section describes the entire dependency stack from the bottom up, with brief descriptions of the roles
 of each file.
 \subsection{Shared API}
-\subsection{Client API}
-\subsection{Server API}
-\subsection{Project Root}
-These are the \codeword{main.py}, \codeword{server.py}, \codeword{main_multiplayer.py}
-files which pretty much just import everything necessary initialize the game. 
-There is not currently any build process. This is subject to change.
-
-The recommended way to launch the client is by simply running \codeword{main.py}, which
-launches a child \codeword{server.py} process and connects to it automatically.
-If you'd like to connect to the same local server on multiple clients, you can then run
-\codeword{main_multiplayer.py} and press "c" to connect.
-
-Alternatively, you may run \codeword{server.py} as its own process, and then connect
-to it from \codeword{main_multiplayer.py}.
-
-Of course, this launch process is subject to change once this becomes more of a real game.
-
-\section{Implementation Details}
-This section contains details specific to the implementation of certain modules. Anything that's technically
-advanced or confusing should go in here.
-\subsection{Client-Side Prediction for Player Movement}
-To ensure smooth play while enforcing server-authoritative character movement,
-we simulate the game physics client-side. Unfortunately, the simulation
-is nondeterministic, so we need to adjust for the differences in the state.
-The process for client-side prediction is as follows:\\
-On every physics tick, we send the movement inputs from this tick to
-the server, and then simulate the physics on the client. We store the
-current position/rotation, and the ``targets'', and linearly interpolate
-between them over the duration of the physics tick. This introduces a
-physics tick worth of lag, but it's not noticeable and inconsequential
-to the gameplay. This constitutes the ``prediction'' side of this story.
-
-To accommodate the server updates, when we send the movement inputs, we
-also include a sequence number that increments by one each physics
-tick. We map the sequence number to the current target state, and
-when the server sends back the state, it also sends back the current
-highest sequence number it has. Of course, when the state arrives back
-to the client, it's in the past, so we look back in time to what our
-target state was at the retransmitted sequence number. We compute the
-difference, and add it to the current target. Crucially, we add the
-displacement to the \codeword{Character}'s \codeword{displacement_components}
-to be processed for collision logic. Without applying the collision logic, it's easy to clip through
-the world and have an irrecoverable state.
-
-\subsection{States}
+\subsubsection{base.py}
+This file defines basic constants, template objects, and functions for any file to import.
+This is the lowest level file in the project.
+\subsubsection{states.py}
 States are essentially lists of arguments that make building large objects
 and sending RPCs easier.
 
@@ -189,10 +154,25 @@ written as a list. The order of the list is defined by its \codeword{statedef}.
 
 States can also be applied to Characters by overwriting the attributes, or by adding them
 (for example, Stats).
+\subsubsection{character.py}
+This file defines the base Character class, which represents an in-game character.
+This class is not intended to be initialized,
+instead it is just the intersection of client characters and server characters. It is
+inherited by ClientCharacter and ServerCharacter, which should be initialized instead.
 
-\subsection{Physics}
+\subsubsection{power.py}
+This file contains the definition of the Power class. This class represents Character
+abilities/spells, which are ways to interact with other Characters in combat.
+Powers spawn an Effect on the server side (eventually client side too), and are
+managed by controllers.py - this file essentially just defines the API for the
+controllers to use.
+\subsubsection{physics.py}
+This file contains the physics API, used by \codeword{PlayerController} and
+\codeword{MobController}. This file does not drive physics, it just defines the possible
+behaviors involved with physics.
+
 Physics is probably the most technically challenging module to understand in this
-repository.
+repository, so I'll devote a large explanation here.
 
 There are currently three (well, 4, but I'll get to the fourth later) movement
 factors. Player keyboard (WASD) movement, jumping, and gravity. Velocity
@@ -241,6 +221,140 @@ original displacement. Then our line is defined by
     \alpha b\\-\beta c - \alpha a\\\beta b
 \end{pmatrix}s.\]
 Rescaling to match our original displacement gives us our final result.
+\subsubsection{combat.py}
+This file defines the combat API, used by \codeword{MobController}. This file does not
+drive combat, it just defines the possible behaviors involved with auto attacking.
+
+\subsubsection{network.py}
+This file defines the Network class, which provides an RPCPeer attribute (for interfacing
+RPCs), maps between uuids/connections, server connection and player's uuid (unused by
+the server), some functions to help broadcast RPCs, and registers all State types to
+be used over the network. The network is updated 20 times per second.
+
+\subsection{Client Subpackage}
+\subsubsection{character.py}
+The client-side Character class accepts a \codeword{PlayerCombatState} for its \codeword{cbstate},
+which is just a server-authoritative overwrite for all its combat data (health, stats, etc).
+It also defines enables animation of the Character.
+\subsubsection{controllers.py}
+Controllers, in general, combine all of the lower-level code in order to act on \codeword{Character}s.
+While the line between controller-owned functionality and \codeword{Character}-owned functionality
+is a bit blurred, the one hard line that I try to enforce is that all networking logic belongs
+to the controller classes. Furthermore, \codeword{Character}s are primarily state-driven, while
+controllers are primarily functionality-based. 
+
+\codeword{PlayerController} is the controller for the player character. It should only be initialized
+once during the lifetime of the player character. It drives client-side physics and sends updates
+to the network, as well as client-side power usage. It also handles the camera, but this is
+probably not good design. This will get separated out eventually.
+
+\codeword{PlayerController} implements client-side prediction for player movement
+to ensure smooth play while also enforcing server-authoritative position/rotation updates.
+Unfortunately, the simulation is nondeterministic, so we need to adjust for the differences in the state.
+The process for client-side prediction is as follows:\\
+On every physics tick, we send the movement inputs from this tick to
+the server, and then simulate the physics on the client. We store the
+current position/rotation, and the ``targets'', and linearly interpolate
+between them over the duration of the physics tick. This introduces a
+physics tick worth of lag, but it's not noticeable and inconsequential
+to the gameplay. This constitutes the ``prediction'' side of this story.
+
+To accommodate the server updates, when we send the movement inputs, we
+also include a sequence number that increments by one for each network update.
+We map the sequence number to the current target state, and
+when the server sends back the state, it also sends back the current
+highest sequence number it has. Of course, when the state arrives back
+to the client, it's in the past, so we look back in time to what our
+target state was at the retransmitted sequence number. We compute the
+difference, and add it to the current target. Crucially, we add the
+displacement to the \codeword{Character}'s \codeword{displacement_components}
+to be processed for collision logic. Without applying the collision logic, it's easy to clip through
+the world and have an irrecoverable state.
+
+\codeword{NPCController} is the controller for any client-side \codeword{Character} besides the
+player character. It drives client-side movement/rotation interpolation for NPCs. This
+interpolation is much more basic than the one implemented for player movement. Essentially,
+whenever we receive a new state, we introduce some lag and interpolate towards it. 
+\subsubsection{world.py}
+This file defines the world state and defines methods for creating client-side objects from
+data received by the server. The reason this layer is necessary is because we need to perform
+some higher level operations for networking-compatible objects (in particular, mapping an object's
+id to itself). Also, this data is typically not immediately compatible with the base level objects,
+and it is much more modular and testable if the networking parsing is done outside of the lower level
+classes. It also defines the world creation code.
+
+The login process is somewhat complicated, so I explain it here. First, upon connecting to the
+server, the client reads the players.json file for ``Demo Player'', extracts networking-compatible
+input data using \codeword{states.get_player_states_from_data}, then sends it to the server using
+\codeword{network.peer.request_enter_world}. Note \codeword{Items} and \codeword{Powers} are sent as
+lists of database ids. Here, the new character will be created by the server.
+Since the server needed to create \codeword{Items} and \codeword{Powers} equipped with networking
+information, the client can't just make the objects by itself. Instead, the server parses
+these objects again, building lists containing both the database id's and instance id's of the
+objects, and sends {\it that} back, instead of the raw lists containing just the database ids.
+The server will send back the updated data to the client, and also sends a minimized version of the
+character state to all other clients. This client will then construct their new player character
+from this data, along with the \codeword{PlayerController}. In the same RPC call, the server also
+issues the command to create the UI, and the player will be ready to play at this point.
+\subsubsection{UI Subpackage}
+The UI provides a high-level interface into the game state. It has access to pretty much anything that
+can affect the world. One potentially common pattern is that the game logic does something that
+requires updating the UI code. Since the UI code is higher level than most of the game logic, it can't
+access the UI code. So instead, the UI should provide callback functions to be executed, which will
+update the UI. This is seen in action\_bar.py, where the function which creates the \codeword{Timer}
+objects is set as a callback as \codeword{Power.on_use}.
+\subsubsection{world\_responses.py}
+This file defines all RPC's that are meant to be called by the server and executed on the client's
+machine. Perhaps counterintuitively, the server does not need to have access to these functions,
+at all. But the client does, because it's the one running them. This is the highest-level game logic
+file, it has access to everything.
+\subsubsection{input\_handler.py}
+The other highest level game logic file is the input handler, which parses player inputs (aside from
+the UI-level inputs) and performs game operations from those inputs. It is typically preferred
+to act through the controllers where possible, but this is not necessary.
+\subsection{Server Subpackage}
+\subsubsection{character.py}
+This file defines the server-side \codeword{ServerCharacter} class, which is a pretty small deviation from
+the base \codeword{Character} class. Its combat state is a \codeword{BaseCombatState}, which
+defines the base combat stats to build up from (with \codeword{Items}/\codeword{Effects}). It also
+applies the stats of equipped items to the Character.
+
+Here, the property \codeword{model_name} is defined so that the server can communicate models
+to clients without actually updating the models itself. In \codeword{PhysicalStates},
+\codeword{model_name} is sent instead of \codeword{model} for this very reason.
+\subsubsection{effect.py}
+This file defines \codeword{Effects}, which are the result of \codeword{Powers}.
+There are several different kinds of effects - persistent/instant, harmful/beneficial.
+Currently, Effect relies on the networking code, but this is subject to change soon.
+\subsubsection{controllers.py}
+This file defines the \codeword{MobController} class, which applies to all server-side
+Characters (even player characters). It drives the server-side game logic for these
+Characters, including physics, combat, and powers. Networking updates are sent to clients.
+from here.
+\subsubsection{world.py}
+This file is pretty much the same as in the client, except annoyingly, the server needs to
+create objects slightly differently. It's responsible for incrementing the instance id
+counters. It also has the capability to load NPCs for a zone, while the client cannot
+do this (it must instead rely on the server to send all the NPC data).
+\subsubsection{world\_requests.py}
+This is the top-level game logic file for the server. It defines all RPCs called by
+the client and executed on the server. As with world\_responses.py, the client does not
+need to access this file at all.
+\subsection{Project Root}
+These are the \codeword{main.py}, \codeword{server.py}, \codeword{main_multiplayer.py}
+files which pretty much just import everything necessary initialize the game. 
+There is not currently any build process. This is subject to change.
+
+The recommended way to launch the client is by simply running \codeword{main.py}, which
+launches a child \codeword{server.py} process and connects to it automatically.
+If you'd like to connect to the same local server on multiple clients, you can then run
+\codeword{main_multiplayer.py} and press "c" to connect.
+
+Alternatively, you may run \codeword{server.py} as its own process, and then connect
+to it from \codeword{main_multiplayer.py}.
+
+Of course, this launch process is subject to change once this becomes more of a real game.
+
 
 \subsection{Login/Character Initialization}
 
