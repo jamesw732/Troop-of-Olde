@@ -24,7 +24,7 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
                              inventory=inventory, skills=skills, powers=powers)
     new_ctrl = world.make_ctrl(new_pc.uuid)
     network.uuid_to_connection[new_pc.uuid] = connection
-    network.connection_to_char[connection] = new_pc
+    network.connection_to_uuid[connection] = new_pc.uuid
     network.peer.remote_load_world(connection, "demo.json")
     # extend instance id-based objects to include database id and instance id
     inventory_ids = world.container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
@@ -54,7 +54,8 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
 def request_move(connection, time_received, sequence_number: int, kb_direction: Vec2,
                  kb_y_rotation: int, mouse_y_rotation: float):
     """Request server to process keyboard inputs for movement and rotation"""
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     char_speed = get_speed_modifier(char.speed)
     vel = (char.right * kb_direction[0] + char.forward * kb_direction[1]).normalized() * 10 * char_speed
     if "keyboard" not in char.velocity_components:
@@ -71,20 +72,23 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
 
 @rpc(network.peer)
 def request_jump(connection, time_received):
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     char.start_jump()
 
 # COMBAT
 @rpc(network.peer)
 def request_toggle_combat(connection, time_received):
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     char.in_combat = not char.in_combat
     network.peer.toggle_combat(connection, char.in_combat)
     # Could respond, or could just wait for next continuous update
 
 @rpc(network.peer)
 def request_set_target(connection, time_received, uuid: int):
-    src = network.connection_to_char[connection]
+    src_uuid = network.connection_to_uuid[connection]
+    src = world.uuid_to_char[src_uuid]
     tgt = world.uuid_to_char[uuid]
     src.target = tgt
     network.peer.remote_set_target(connection, uuid)
@@ -101,7 +105,8 @@ def request_use_power(connection, time_received, inst_id: int):
     Will eventually want to make the above more sophisticated with client-side prediction, but this is
     good enough for now.
     """
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     ctrl = world.uuid_to_ctrl[char.uuid]
     power = world.inst_id_to_power[inst_id]
     ctrl.use_power(power)
@@ -114,7 +119,8 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
     """Request host to swap items internally, host will send back updated container states"""
     if not network.peer.is_hosting():
         return
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     to_container = world.inst_id_to_container[to_id]
     from_container = world.inst_id_to_container[from_id]
     full_item_move(char, to_container, to_slot, from_container, from_slot)
@@ -127,7 +133,8 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
 @rpc(network.peer)
 def request_auto_equip(connection, time_received, itemid: int, slot: int, container_id: int):
     """Request host to automatically equip an item."""
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     from_container = world.inst_id_to_container[container_id]
     internal_autoequip(char, from_container, slot)
     for container in [from_container, char.equipment]:
@@ -139,7 +146,8 @@ def request_auto_equip(connection, time_received, itemid: int, slot: int, contai
 @rpc(network.peer)
 def request_auto_unequip(connection, time_received, itemid: int, slot: int):
     """Request host to automatically unequip an item."""
-    char = network.connection_to_char[connection]
+    uuid = network.connection_to_uuid[connection]
+    char = world.uuid_to_char[uuid]
     internal_autounequip(char, slot)
     for container in [char.equipment, char.inventory]:
         container_id = container.container_id

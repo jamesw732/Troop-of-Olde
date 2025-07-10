@@ -73,7 +73,7 @@ class World:
             if uuid in network.uuid_to_connection:
                 connection = network.uuid_to_connection[uuid]
                 del network.uuid_to_connection[uuid]
-                del network.connection_to_char[connection]
+                del network.connection_to_uuid[connection]
         new_char = ServerCharacter(uuid, **kwargs, on_destroy=on_destroy)
         self.uuid_to_char[uuid] = new_char
         return new_char

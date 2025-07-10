@@ -107,10 +107,8 @@ class MobController(Entity):
             return
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
-        for conn in network.peer.get_connections():
-            if conn not in network.connection_to_char:
-                continue
-            if self.character is network.connection_to_char[conn]:
+        for conn, uuid in network.connection_to_uuid.items():
+            if self.character.uuid == uuid:
                 network.peer.update_pc_lerp_attrs(conn, self.sequence_number, self.character.position,
                                                      self.character.rotation_y)
             else:

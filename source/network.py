@@ -11,7 +11,7 @@ class Network(Entity):
         super().__init__()
         self.peer = RPCPeer(max_list_length=100)
 
-        self.connection_to_char = dict()
+        self.connection_to_uuid = dict()
         self.uuid_to_connection = dict()
 
         self.server_connection = None
@@ -39,11 +39,11 @@ class Network(Entity):
     def broadcast_cbstate_update(self, char):
         pc_state = PlayerCombatState(char)
         npc_state = NPCCombatState(char)
-        for connection in self.connection_to_char:
-            if self.connection_to_char[connection] is char:
-                self.peer.update_pc_cbstate(connection, char.uuid, pc_state)
+        for connection, uuid in self.connection_to_uuid.items():
+            if uuid == char.uuid:
+                self.peer.update_pc_cbstate(connection, uuid, pc_state)
             else:
-                self.peer.update_npc_cbstate(connection, char.uuid, npc_state)
+                self.peer.update_npc_cbstate(connection, uuid, npc_state)
 
 
 # RPC needs to know about network at compile time, so this global seems necessary
