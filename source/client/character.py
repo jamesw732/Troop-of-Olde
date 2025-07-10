@@ -3,7 +3,7 @@ import os
 from ursina import *
 from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
-from panda3d.core import NodePath
+from panda3d.core import NodePath, TransparencyAttrib
 
 from .. import *
 
@@ -52,6 +52,7 @@ class ClientCharacter(Character):
         self.model_child.setH(180)
         self.model_child.setColor(self.color)
         self.model_child.loop("Idle")
+        self.model_child.set_transparency(TransparencyAttrib.M_alpha)
         self._model_name = new_model
 
     @property
@@ -63,3 +64,6 @@ class ClientCharacter(Character):
         if isinstance(new_color, str):
             new_color = color.colors[new_color]
         self.model_child.setColor(new_color)
+
+    def __repr__(self):
+        return self.cname

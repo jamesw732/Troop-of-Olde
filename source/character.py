@@ -51,7 +51,6 @@ class Character(Entity):
     def _init_phys_attrs(self):
         """Initialize base physical attributes. These are likely to change."""
         self.model_child = Actor()
-        self.model_child.setColor(color.orange)
         self._model_name = ""
         for attr, val in default_phys_attrs.items():
             setattr(self, attr, copy(val))

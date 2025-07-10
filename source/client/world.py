@@ -84,7 +84,11 @@ class World:
     def make_npc(self, uuid, pstate, cbstate):
         """Makes an npc while updating uuid map"""
         def on_destroy():
+            char = self.uuid_to_char[uuid]
             del self.uuid_to_char[uuid]
+            char.model_child.detachNode()
+            del char.model_child
+            del char
         self.pc = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
         self.uuid_to_char[uuid] = self.pc
 
@@ -92,7 +96,13 @@ class World:
         """Makes an npc controller while updating uuid map.
         Relies on make_npc being called"""
         def on_destroy():
+            ctrl = self.uuid_to_ctrl[uuid]
             del self.uuid_to_ctrl[uuid]
+            del ctrl.character
+            destroy(ctrl.namelabel)
+            del ctrl.namelabel.char
+            del ctrl.namelabel
+            del ctrl
         char = self.uuid_to_char[uuid]
         self.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
 

@@ -1,7 +1,9 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-
+Was trying to figure out the issue where Character deaths don't cause the entity count to go down.
+Not sure what the cause is, but it might be a non-issue. However, the one thing I want to try is
+handling targeting in a smarter way, this might help the cleanup.
 
 
 ===================================NEXT================================================

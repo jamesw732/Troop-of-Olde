@@ -82,7 +82,10 @@ class World:
         """Makes the player character controller while updating uuid map.
         Relies on make_pc being called"""
         def on_destroy():
+            ctrl = self.uuid_to_ctrl[uuid]
             del self.uuid_to_ctrl[uuid]
+            del ctrl.character
+            del ctrl
         char = self.uuid_to_char[uuid]
         new_ctrl = MobController(character=char, on_destroy=on_destroy)
         self.uuid_to_ctrl[uuid] = new_ctrl
