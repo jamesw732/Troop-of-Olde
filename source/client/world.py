@@ -73,6 +73,7 @@ class World:
             char.targeted_by = []
             del char
         self.pc = ClientCharacter(uuid, **kwargs, on_destroy=on_destroy)
+        self.pc.ignore_traverse = self.uuid_to_char.values()
         self.uuid_to_char[uuid] = self.pc
 
     def make_pc_ctrl(self):
@@ -99,8 +100,9 @@ class World:
                 src.target = None
             char.targeted_by = []
             del char
-        self.pc = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
-        self.uuid_to_char[uuid] = self.pc
+        new_char = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
+        new_char.ignore_traverse = self.uuid_to_char.values()
+        self.uuid_to_char[uuid] = new_char
 
     def make_npc_ctrl(self, uuid):
         """Makes an npc controller while updating uuid map.

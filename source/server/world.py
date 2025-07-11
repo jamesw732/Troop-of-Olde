@@ -85,6 +85,7 @@ class World:
                 del network.uuid_to_connection[uuid]
                 del network.connection_to_uuid[connection]
         new_char = ServerCharacter(uuid, **kwargs, on_destroy=on_destroy)
+        new_char.ignore_traverse = self.uuid_to_char.values()
         self.uuid_to_char[uuid] = new_char
         return new_char
 
