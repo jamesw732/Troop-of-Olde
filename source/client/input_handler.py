@@ -3,7 +3,7 @@ import json
 from ursina import Entity, held_keys, every, Vec2, mouse, camera
 import ursina.input_handler
 
-from .character import Character
+from .character import ClickBox
 from .ui import ui
 from .world import world
 from .. import PHYSICS_UPDATE_RATE, network, power_key_to_slot
@@ -43,8 +43,8 @@ class InputHandler(Entity):
         elif key == "toggle_combat":
             ctrl.toggle_combat()
         elif key == "left mouse down":
-            if isinstance(tgt, Character):
-                ctrl.set_target(tgt)
+            if isinstance(tgt, ClickBox):
+                ctrl.set_target(tgt.parent)
         elif key in power_key_to_slot:
             ui.actionbar.powerbar.handle_power_input(key)
 

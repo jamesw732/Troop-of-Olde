@@ -71,10 +71,11 @@ class World:
             for src in char.targeted_by:
                 src.target = None
             char.targeted_by = []
+            char.ignore_traverse = []
             del char
         self.pc = ClientCharacter(uuid, **kwargs, on_destroy=on_destroy)
-        self.pc.ignore_traverse = self.uuid_to_char.values()
         self.uuid_to_char[uuid] = self.pc
+        self.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
@@ -98,11 +99,12 @@ class World:
             del char.model_child
             for src in char.targeted_by:
                 src.target = None
-            char.targeted_by = []
+            self.pc.ignore_traverse.remove(char.clickbox)
             del char
         new_char = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
-        new_char.ignore_traverse = self.uuid_to_char.values()
         self.uuid_to_char[uuid] = new_char
+        if self.pc:
+            self.pc.ignore_traverse.append(new_char.clickbox)
 
     def make_npc_ctrl(self, uuid):
         """Makes an npc controller while updating uuid map.

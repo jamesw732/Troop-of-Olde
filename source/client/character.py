@@ -25,6 +25,7 @@ class ClientCharacter(Character):
         self.model_child = Actor()
         super().__init__(uuid, pstate=pstate, equipment=equipment,
                          inventory=inventory, skills=skills, powers=powers)
+        self.clickbox = ClickBox(self)
         cbstate.apply(self)
         for idx, item in enumerate(self.equipment):
             if item is None:
@@ -45,10 +46,12 @@ class ClientCharacter(Character):
         path = os.path.join(models_path, new_model)
         self.model_child = Actor(path)
         self.model_child.reparent_to(self)
+        # Rotate 180 degrees
         self.model_child.setH(180)
         self.model_child.setColor(self.color)
         self.model_child.loop("Idle")
-        self.model_child.set_transparency(TransparencyAttrib.M_alpha)
+        # Enable transparency
+        # self.model_child.set_transparency(TransparencyAttrib.M_alpha)
         self._model_name = new_model
 
     @Character.model_color.setter
@@ -60,3 +63,8 @@ class ClientCharacter(Character):
 
     def __repr__(self):
         return self.cname
+
+class ClickBox(Entity):
+    def __init__(self, parent, scale=Vec3(1, 1, 1)):
+        super().__init__(parent=parent, scale=scale, origin=Vec3(0, -0.5, 0),
+                       model="cube", collider="box", visible=False)

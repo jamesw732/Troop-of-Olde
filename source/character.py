@@ -40,7 +40,7 @@ class Character(Entity):
         # Physical attrs
         for attr, val in default_phys_attrs.items():
             setattr(self, attr, copy(val))
-        self.ignore_traverse = [self]
+        self.ignore_traverse = []
         # Combat attrs
         for attr, val in default_cb_attrs.items():
             setattr(self, attr, val)

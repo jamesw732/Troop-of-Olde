@@ -71,8 +71,6 @@ class World:
         def on_destroy():
             char = self.uuid_to_char[uuid]
             del self.uuid_to_char[uuid]
-            char.model_child.detachNode()
-            del char.model_child
             for src in char.targeted_by:
                 src.target = None
             char.targeted_by = []
@@ -85,7 +83,6 @@ class World:
                 del network.uuid_to_connection[uuid]
                 del network.connection_to_uuid[connection]
         new_char = ServerCharacter(uuid, **kwargs, on_destroy=on_destroy)
-        new_char.ignore_traverse = self.uuid_to_char.values()
         self.uuid_to_char[uuid] = new_char
         return new_char
 

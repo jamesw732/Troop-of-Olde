@@ -54,7 +54,6 @@ default_phys_attrs = {
     "model_name": "humanoid.glb",
     "scale": Vec3(2, 2, 2),
     "origin": Vec3(0, -.5, 0),
-    "collider": "box",
     "color": color.orange,
 
     "jumping": False,

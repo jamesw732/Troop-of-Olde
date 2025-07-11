@@ -37,13 +37,13 @@ def get_displacement(char):
         displacement += sum(list(char.displacement_components.values()))
     if displacement == Vec3(0, 0, 0):
         return displacement
-    return apply_physics(char, displacement)
+    return apply_physics(char, displacement, ignore=char.ignore_traverse)
 
 # PRIVATE
-def apply_physics(char, displacement):
+def apply_physics(char, displacement, ignore=[]):
     """Takes a character displacement and returns a collision-modified displacement"""
     disp_norm = distance((0, 0, 0), displacement)
-    ray = raycast(char.world_position, direction=displacement, distance=disp_norm, ignore=char.ignore_traverse)
+    ray = raycast(char.world_position, direction=displacement, distance=disp_norm, ignore=ignore)
     if ray.hit:
         normal = ray.world_normal
         if normal.normalized()[1] <= 0.2:
@@ -63,20 +63,16 @@ def apply_physics(char, displacement):
                              displacement[2] * normal[1]).normalized()
             displacement = direction * disp_norm
     elif char.grounded:
-        down_ray = raycast(char.world_position, direction=char.down, distance=0.2, ignore=char.ignore_traverse)
+        down_ray = raycast(char.world_position, direction=char.down, distance=0.2, ignore=ignore)
         if not down_ray.hit:
             char.grounded = False
-    displacement = handle_upward_collision(char, displacement)
-    return displacement
-
-def handle_upward_collision(char, displacement):
-    """Blocks upward movement when jumping into a ceiling"""
+    # Block upward movement if jumping into a ceiling
     if displacement[1] < 0:
         return displacement
     # Cast ray from top of model, rather than bottom like in handle_collision
     pos = char.position + Vec3(0, char.height, 0)
     ceiling = raycast(pos, direction=(0, 1, 0), distance=displacement[1],
-                      ignore=char.ignore_traverse)
+                      ignore=ignore)
     if ceiling.hit:
         displacement[1] = 0
     return displacement
