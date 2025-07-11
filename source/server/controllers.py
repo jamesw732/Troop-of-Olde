@@ -143,6 +143,8 @@ class MobController(Entity):
             return
         self.character.position += displacement
         self.character.velocity_components["keyboard"] = Vec3(0, 0, 0)
+        # This executes client-side movement/rotation correct, to test movement without this
+        # overhead, comment the rest of this function.
         for conn, uuid in network.connection_to_uuid.items():
             if self.character.uuid == uuid:
                 network.peer.update_pc_lerp_attrs(conn, self.sequence_number, self.character.position,
