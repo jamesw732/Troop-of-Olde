@@ -19,6 +19,10 @@ Generic Code cleanup:
 - Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
 I should instead leverage warnings that don't break the game. Would require thinking to see
 how best to do this.
+- Current on_destroy functions for characters, controllers, etc are kind of complicated and
+will need to be extended for further cleanup (ie, ui cleanup eventually). I like the idea of
+having a callable class that just stores a list of on_destroy callbacks, and calls each
+one sequentially.
 
 
 Networking:

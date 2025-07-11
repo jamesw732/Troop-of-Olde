@@ -355,8 +355,28 @@ to it from \codeword{main_multiplayer.py}.
 
 Of course, this launch process is subject to change once this becomes more of a real game.
 
-
-\subsection{Login/Character Initialization}
+\section{Development Principles}
+I am not an expert software engineer, but I have picked up on good and bad patterns while developing
+this game.
+\begin{itemize}
+    \item Don't try to account for things you're not certain you need to account for. Just like premature
+        optimization is dangerous, premature generalization is just as evil. This is not to say that
+        you should never think about the future when writing code, but there is a cutoff where trying
+        to generalize new code does not give enough benefit to outweigh the costs (namely, spending
+        extra time both upfront and when you need to refactor because you didn't generalize correctly,
+        and also mental confusion). This is most prevalent when implementing the database side of
+        features, you will never know every single intricacy of the feature you're just starting to
+        implement, so don't waste too much time trying to account for problems that don't yet exist.
+        Just do the dumb and simple solution at first, until you actually need to generalize.
+    \item It's worthwhile to spend a few extra minutes thinking about the right way to do a big change,
+        rather than jump right into it hoping for the best. Even more extreme, spending an hour
+        solving a difficult code architecture problem is much better than spending 10 minutes figuring
+        out how to do it dirty, but also having to spend a week refactoring it towards the good solution
+        once the problems with the dirty solution arise.
+    \item Thinking about other games is useful for inspiration, and coming up with ideas for features,
+        but other games should never be the target. This leads to a lack of creativity in the solution
+        to a problem, and is often lazy.
+\end{itemize}
 
 
 \section{Ursina Usage}
