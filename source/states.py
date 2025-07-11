@@ -18,6 +18,7 @@ class State(list):
         int: 0,
         float: 0.0,
         Vec3: Vec3(0, 0, 0),
+        Vec4: Vec4(0, 0, 0, 0),
         str: ""
     }
 
@@ -208,7 +209,7 @@ class PhysicalState(State):
         "scale": Vec3,
         "position": Vec3,
         "rotation": Vec3,
-        "color": Vec4,
+        "model_color": Vec4,
         "cname": str
     }
     defaults = default_phys_attrs

@@ -39,16 +39,3 @@ class ServerCharacter(Character):
             item.handle_stats(self, self.equipment)
         self.update_max_ratings()
         self.effects = []
-
-    @property
-    def model_name(self):
-        """Get model name."""
-        return self._model_name
-
-    @model_name.setter
-    def model_name(self, new_model):
-        """Update model. Unlike ClientCharacter, does not update anything else
-        since server only needs the name of the model.
-        If this changes, just move corresponding ClientCharacter functions to Character
-        new_model: name of model file (no other path information)"""
-        self._model_name = new_model

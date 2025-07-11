@@ -32,8 +32,8 @@ class Character(Entity):
 
         self.namelabel = None
 
-        self.model_child = Actor()
         self._model_name = ""
+        self._model_color = Vec4(1, 0, 0, 1)
         super().__init__()
 
         # Initialize default values for everything
@@ -107,3 +107,33 @@ class Character(Entity):
     def get_on_gcd(self):
         """Returns whether the character is currently on the global cooldown for powers"""
         return self.gcd_timer < self.gcd
+
+    @property
+    def model_name(self):
+        """Getter for model_name property, used for interoperability with
+        the Panda3D Actor ClientCharacter.model_child"""
+        return self._model_name
+
+    @model_name.setter
+    def model_name(self, new_model):
+        """Setter for model_name property, used for interoperability
+        with the Panda3D Actor ClientCharacter.model_child
+
+        new_model: name of model file (no other path information)"""
+        self._model_name = new_model
+
+    @property
+    def model_color(self):
+        """Getter for model_color property, used for interoperability
+        with the Panda3D Actor ClientCharacter.model_child"""
+        return self._model_color
+
+    @model_color.setter
+    def model_color(self, new_color):
+        """Setter for model_color property, used for interoperability
+        with the Panda3D Actor ClientCharacter.model_child
+
+        new_color: name of model file (no other path information)"""
+        if isinstance(new_color, str):
+            new_color = color.colors[new_color]
+        self._model_color = new_color

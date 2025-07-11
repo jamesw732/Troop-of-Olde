@@ -22,6 +22,7 @@ class ClientCharacter(Character):
         skills: SkillsState
         powers: list of Powers
         """
+        self.model_child = Actor()
         super().__init__(uuid, pstate=pstate, equipment=equipment,
                          inventory=inventory, skills=skills, powers=powers)
         cbstate.apply(self)
@@ -35,12 +36,7 @@ class ClientCharacter(Character):
             item.auto_set_leftclick(self.inventory)
         self.on_destroy = on_destroy
 
-    @property
-    def model_name(self):
-        """When accessing model, return the name of the model"""
-        return self._model_name
-
-    @model_name.setter
+    @Character.model_name.setter
     def model_name(self, new_model):
         """When setting model, update actor and name
 
@@ -55,15 +51,12 @@ class ClientCharacter(Character):
         self.model_child.set_transparency(TransparencyAttrib.M_alpha)
         self._model_name = new_model
 
-    @property
-    def color(self):
-        return Vec4(self.model_child.getColor())
-
-    @color.setter
-    def color(self, new_color):
+    @Character.model_color.setter
+    def model_color(self, new_color):
         if isinstance(new_color, str):
             new_color = color.colors[new_color]
         self.model_child.setColor(new_color)
+        self._model_color = new_color
 
     def __repr__(self):
         return self.cname

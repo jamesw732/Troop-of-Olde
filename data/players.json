@@ -2,9 +2,9 @@
     "Demo Player": {
         "pstate": {
             "position": [0, 1, 0],
-            "model": "humanoid.glb",
+            "model_name": "humanoid.glb",
             "scale": [2, 2, 2],
-            "color": [0, 0, 0, 1]
+            "model_color": [0, 0, 0, 1]
         },
         "basestate": {
             "haste": 100
