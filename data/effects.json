@@ -1,16 +1,16 @@
 {
     "0": {
-        "instant_effects": {
+        "start_effects": {
             "damage": 20
         }
     },
     "1": {
-        "instant_effects": {
+        "start_effects": {
             "heal": 10
         }
     },
     "2": {
-        "instant_effects": {
+        "start_effects": {
             "damage": 10
         },
         "tick_effects": {

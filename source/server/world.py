@@ -76,6 +76,9 @@ class World:
             for src in char.targeted_by:
                 src.target = None
             char.targeted_by = []
+            # Loop over copy of effects
+            for effect in list(char.effects):
+                effect.remove()
             del char
             if uuid in network.uuid_to_connection:
                 connection = network.uuid_to_connection[uuid]

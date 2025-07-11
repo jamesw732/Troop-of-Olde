@@ -1,15 +1,10 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
+Fix character origin bug
 
 
 ===================================NEXT================================================
-Some refactoring stuff:
-- Refactor Effect to not use networking, delegate networking to controllers.
-- Update developer.tex
-- Update docstrings
-
-Fix character origin bug
 
 Add animations.
 General goal is to get basic placeholder animations for everything in the game.
@@ -32,17 +27,15 @@ skill level ups and receiving containers.
 - Login sequence should be more back and forth, it shouldn't just be the server spitting out
 different responses and hoping they arrive in order.
 - Will eventually need to encapsulate server and client creation in Server and Client classes. 
-- Consider moving network to be client/server dependent. Would require working lower level logic.
-- Move Network.broadcast_cbstate_update to World
-- Need to fix disconnect
+- Consider moving network to be client/server dependent.
+- Need to fix disconnect, I think can just destroy the controller and character?
 - Make world_responses.py and world_requests.py more API-based, for example remote_update_container should
 just call a Container method and update_npc_lerp_attrs should just call a function that does that work.
 This will make the code substantially easier to test.
 
 
 Player Controller:
-- Jumping is sometimes very buggy, but sometimes fine? I think I need to smooth out the client
-side prediction. Maybe take the average of the past 5 diffs or something?
+- Jumping is incorrect, not sure exactly what's wrong with it.
 - Camera should probably be handled separately from PlayerController.
 - Consider making PlayerController a singleton not attached to world.
 

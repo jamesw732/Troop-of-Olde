@@ -38,6 +38,7 @@ class ServerCharacter(Character):
                 continue
             item.handle_stats(self, self.equipment)
         self.update_max_ratings()
+        self.effects = []
 
     @property
     def model_name(self):

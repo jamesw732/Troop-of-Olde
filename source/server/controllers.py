@@ -52,6 +52,7 @@ class MobController(Entity):
             char.tick_gcd()
         elif char.next_power is not None and not char.next_power.on_cooldown:
             self.use_power(char.next_power)
+        self.handle_effects()
 
     def handle_combat(self, slot):
         src = self.character
@@ -99,6 +100,38 @@ class MobController(Entity):
         if self.character.energy < power.cost:
             return
         power.use(self.character, tgt)
+
+    def handle_effects(self):
+        char = self.character
+        updated_cbstate = False
+        for effect in char.effects:
+            effect_msgs = []
+            remove = False
+            if effect.timer == 0:
+                effect_msgs += effect.apply_start_effects()
+                effect.apply_persistent_effects()
+                updated_cbstate = True
+            if not char.alive:
+                remove = True
+            if effect.timer >= effect.duration:
+                effect.remove_persistent_effects()
+                effect_msgs += effect.apply_end_effects()
+                remove = True
+                updated_cbstate = True
+            effect.tick_timer += time.dt
+            if effect.tick_rate and effect.tick_timer >= effect.tick_rate:
+                effect.tick_timer -= effect.tick_rate
+                effect_msgs += effect.apply_tick_effects()
+                updated_cbstate = True
+            effect.timer += time.dt
+            conn = network.uuid_to_connection.get(effect.src.uuid)
+            if conn:
+                for msg in effect_msgs:
+                    network.peer.remote_print(conn, msg)
+            if remove: 
+                effect.remove()
+        if updated_cbstate:
+            network.broadcast_cbstate_update(char)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):
