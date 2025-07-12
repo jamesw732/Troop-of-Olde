@@ -1,10 +1,9 @@
 from ursina import *
 
 from source.client.input_handler import InputHandler
-from source.networking import network
-from source.networking.connect import *
-from source.networking.disconnect import *
-from source.networking.register import *
+from source.client.connect import *
+from source.client.world_responses import *
+from source.network import network
 
 
 app = Ursina(borderless=False)

@@ -27,7 +27,7 @@ class PlayerController(Entity):
         self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
         self.animator = Anim(self.character.model_child)
         # Uncomment this and shadow handling in world_responses to see network synchronization
-        # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
+        # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
         #                      color=color.yellow, rotation=self.character.rotation,
         #                      position=self.character.position)
         self.on_destroy=on_destroy

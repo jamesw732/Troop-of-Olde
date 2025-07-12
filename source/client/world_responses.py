@@ -136,6 +136,7 @@ def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: 
     controller.target_pos = pos
     controller.prev_rot = controller.target_rot
     controller.target_rot = rot
+    npc = controller.character
     if pos - controller.prev_pos != Vec3(0, 0, 0) or rot - controller.prev_rot != 0:
         controller.lerping = True
         controller.lerp_rate = time_received - controller.prev_lerp_recv

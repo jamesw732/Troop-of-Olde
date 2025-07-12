@@ -19,7 +19,7 @@ Animation checklist:
 - Add weapon models
 - Combat animation (weapons)
 - Sideways walk animations?
-
+- Death
 
 
 ===================================NEXT================================================
