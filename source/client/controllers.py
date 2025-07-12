@@ -13,26 +13,23 @@ class PlayerController(Entity):
 
     Handles client-side physics and interpolation, network updates.
     """
-    def __init__(self, character=None, on_destroy=lambda: None):
+    def __init__(self, character, on_destroy=lambda: None):
         super().__init__()
-        if character is not None:
-            self.character = character
-            self.focus = Entity(
-                parent=self.character,
-                world_rotation_y=0,
-                world_scale = (1, 1, 1),
-                position = Vec3(0, 0.75, 0)
-            )
-            self.namelabel = NameLabel(character)
-            self.namelabel.parent = self.focus
-            self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
-            self.animator = Anim(self.character.model_child)
-            # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
-            #                      color=color.yellow, rotation=self.character.rotation,
-            #                      position=self.character.position)
-        else:
-            self.character = None
-            self.focus = None
+        self.character = character
+        self.focus = Entity(
+            parent=self.character,
+            world_rotation_y=0,
+            world_scale = (1, 1, 1),
+            position = Vec3(0, 0.75, 0)
+        )
+        self.namelabel = NameLabel(character)
+        self.namelabel.parent = self.focus
+        self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
+        self.animator = Anim(self.character.model_child)
+        # Uncomment this and shadow handling in world_responses to see network synchronization
+        # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
+        #                      color=color.yellow, rotation=self.character.rotation,
+        #                      position=self.character.position)
         self.on_destroy=on_destroy
         # Bind camera
         self.camdistance = 20
@@ -227,6 +224,7 @@ class NPCController(Entity):
     def __init__(self, character, on_destroy=lambda: None):
         super().__init__()
         self.character = character
+        self.animator = Anim(self.character.model_child)
         self.namelabel = NameLabel(character)
         self._init_lerp_attrs()
         self.on_destroy = on_destroy

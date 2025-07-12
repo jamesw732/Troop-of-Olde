@@ -49,7 +49,6 @@ class ClientCharacter(Character):
         # Rotate 180 degrees
         self.model_child.setH(180)
         self.model_child.setColor(self.color)
-        self.model_child.loop("Idle")
         # Enable transparency
         # self.model_child.set_transparency(TransparencyAttrib.M_alpha)
         self._model_name = new_model

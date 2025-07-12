@@ -8,7 +8,7 @@ class Anim(Entity):
         """actor: a Panda3D Actor object, which is the target of animation."""
         super().__init__()
         self.actor = actor
-        self.actor.loop("Idle")
+        self.actor.loop("idle_pose")
         self.state = "idle"
         self.actor.enableBlend()
         self.fade_in_anims = {}
@@ -35,13 +35,13 @@ class Anim(Entity):
         if self.state != "running":
             self.actor.loop("RunCycle")
             self.fade_in_anim("RunCycle", 0.2)
-            self.fade_out_anim("Idle", 0.2)
+            self.fade_out_anim("idle_pose", 0.2)
             self.state = "running"
 
     def end_run_cycle(self):
         if self.state != "idle":
-            self.actor.loop("Idle")
-            self.fade_in_anim("Idle", 0.2)
+            self.actor.loop("idle_pose")
+            self.fade_in_anim("idle_pose", 0.2)
             self.fade_out_anim("RunCycle", 0.2)
             self.state = "idle"
 
