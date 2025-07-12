@@ -1,17 +1,29 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-
-
-===================================NEXT================================================
-
 Add animations.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 
-It may be worthwhile to encapsulate animation logic in its own class.
-Try to do the animation logic without its own class, but if it becomes too cumbersome,
-don't hesitate to extract it to its own class.
+Planning to use animation blending for most animation logic. This will mean that startup
+animations are unnecessary, which might save a decent chunk of work. Need to clean up
+run cycle animation.
+
+
+Animation checklist:
+- Improve walk cycle
+- Idle animation
+- Combat animation (fists)
+- Jumping
+- Backwards walk animation
+- Add weapon models
+- Combat animation (weapons)
+- Sideways walk animations?
+
+
+
+===================================NEXT================================================
+
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:

@@ -4,6 +4,7 @@ client-side NPCs, and server-side Characters.
 """
 from ursina import *
 
+from .animator import Anim
 from .. import *
 
 
@@ -25,6 +26,7 @@ class PlayerController(Entity):
             self.namelabel = NameLabel(character)
             self.namelabel.parent = self.focus
             self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
+            self.animator = Anim(self.character.model_child)
             # self.shadow = Entity(origin=(0, -0.5, 0), scale=self.character.scale, model='cube',
             #                      color=color.yellow, rotation=self.character.rotation,
             #                      position=self.character.position)
@@ -157,6 +159,11 @@ class PlayerController(Entity):
         keyboard_direction = Vec2(strafe, fwdback)
         network.peer.request_move(conn, self.sequence_number, keyboard_direction,
                                      rightleft_rot, self.mouse_y_rotation)
+        # Start run animation
+        if fwdback != 0 or strafe != 0:
+            self.animator.start_run_cycle()
+        else:
+            self.animator.end_run_cycle()
 
     def handle_updown_keyboard_rotation(self, updown):
         """Handles up/down arrow key rotation.
