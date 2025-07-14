@@ -1,6 +1,8 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
+Fix the stupid animation loss
+
 Add animations.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
@@ -11,7 +13,6 @@ run cycle animation.
 
 
 Animation checklist:
-- Improve walk cycle
 - Idle animation
 - Combat animation (fists)
 - Jumping
