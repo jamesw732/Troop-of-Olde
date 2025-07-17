@@ -7,13 +7,9 @@ Add animations.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 
-Planning to use animation blending for most animation logic. This will mean that startup
-animations are unnecessary, which might save a decent chunk of work. Need to clean up
-run cycle animation.
-
 
 Animation checklist:
-- Idle animation
+- Make animation logic work for NPCs
 - Combat animation (fists)
 - Jumping
 - Backwards walk animation

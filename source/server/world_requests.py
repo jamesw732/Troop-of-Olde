@@ -69,6 +69,16 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
     controller = world.uuid_to_ctrl[char.uuid]
     if sequence_number > controller.sequence_number:
         controller.sequence_number = sequence_number
+    if kb_direction != Vec2(0, 0) and controller.moving == False:
+        controller.moving = True
+        for conn, uuid in network.connection_to_uuid.items():
+            if char.uuid != uuid:
+                network.peer.remote_start_run_anim(conn, char.uuid)
+    elif kb_direction == Vec2(0, 0) and controller.moving == True:
+        controller.moving = False
+        for conn, uuid in network.connection_to_uuid.items():
+            if char.uuid != uuid:
+                network.peer.remote_end_run_anim(conn, char.uuid)
 
 @rpc(network.peer)
 def request_jump(connection, time_received):

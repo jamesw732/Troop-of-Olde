@@ -8,7 +8,7 @@ from .world import world
 from .ui import ui
 from .. import *
 
-# LOGIN
+# Login/Character Creation
 @rpc(network.peer)
 def remote_load_world(connection, time_received, zone:str):
     """Remotely generate the world"""
@@ -125,6 +125,13 @@ def remote_update_container(connection, time_received, container_id: int, contai
     if item_frame:
         item_frame.update_ui_icons()
 
+# UI Updates
+@rpc(network.peer)
+def remote_print(connection, time_received, msg: str):
+    """Remotely print a message for another player"""
+    if ui.gamewindow:
+        ui.gamewindow.add_message(msg)
+
 # Physical
 @rpc(network.peer)
 def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: float):
@@ -194,9 +201,17 @@ def update_rotation(connection, time_received, uuid: int, rot: Vec3):
         return
     char.rotation = rot
 
-# Generic
+# Animation
 @rpc(network.peer)
-def remote_print(connection, time_received, msg: str):
-    """Remotely print a message for another player"""
-    if ui.gamewindow:
-        ui.gamewindow.add_message(msg)
+def remote_start_run_anim(connection, time_received, uuid: int):
+    ctrl = world.uuid_to_ctrl.get(uuid)
+    if uuid is None:
+        return
+    ctrl.animator.start_run_cycle()
+
+@rpc(network.peer)
+def remote_end_run_anim(connection, time_received, uuid: int):
+    ctrl = world.uuid_to_ctrl.get(uuid)
+    if uuid is None:
+        return
+    ctrl.animator.end_run_cycle()

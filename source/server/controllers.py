@@ -24,6 +24,7 @@ class MobController(Entity):
         self.on_destroy=on_destroy
         # Relayed back to client to determine where in history this state was updated, always use most recent
         self.sequence_number = 0
+        self.moving = False
 
     def update(self):
         char = self.character
