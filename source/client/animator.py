@@ -54,9 +54,30 @@ class Anim(Entity):
         self.fade_out_anim(self.cur_anim, 0.2)
         self.cur_anim = self.idle_anim
 
+    def enter_combat(self):
+        self.idle_anim = "CombatStance"
+        if self.cur_anim == "Idle":
+            self.start_idle()
+
+    def exit_combat(self):
+        self.idle_anim = "Idle"
+        if self.cur_anim == "CombatStance":
+            self.start_idle()
+
     def do_attack(self):
-        self.actor.play("PunchRight")
-        self.fade_in_anim("PunchRight", 0.2)
+        anim = "PunchRight"
+        self.actor.play(anim)
+        anim_control = self.actor.get_anim_control(anim)
+        num_frames = anim_control.get_num_frames()
+        t = num_frames / 24
+        def start():
+            self.fade_in_anim(anim, 0.2)
+            self.fade_out_anim(self.cur_anim, 0.2)
+        def end():
+            self.fade_in_anim(self.cur_anim, 0.2)
+            self.fade_out_anim(anim, 0.2)
+        s = Sequence(start, Wait(t), end)
+        s.start()
 
     def fade_in_anim(self, name, t):
         prev_w = 0

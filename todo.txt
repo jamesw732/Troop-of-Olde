@@ -9,7 +9,6 @@ This will be placeholder until stage 2 of development.
 
 
 Animation checklist:
-- Combat stance
 - Attack animation (fists)
 - Add weapon models
 - Combat animation (weapons)
