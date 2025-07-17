@@ -54,6 +54,10 @@ class Anim(Entity):
         self.fade_out_anim(self.cur_anim, 0.2)
         self.cur_anim = self.idle_anim
 
+    def do_attack(self):
+        self.actor.play("PunchRight")
+        self.fade_in_anim("PunchRight", 0.2)
+
     def fade_in_anim(self, name, t):
         prev_w = 0
         if name in self.fade_out_anims:

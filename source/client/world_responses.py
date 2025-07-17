@@ -211,13 +211,20 @@ def update_rotation(connection, time_received, uuid: int, rot: Vec3):
 @rpc(network.peer)
 def remote_start_run_anim(connection, time_received, uuid: int):
     ctrl = world.uuid_to_ctrl.get(uuid)
-    if uuid is None:
+    if ctrl is None:
         return
     ctrl.animator.start_run_cycle()
 
 @rpc(network.peer)
 def remote_start_idle_anim(connection, time_received, uuid: int):
     ctrl = world.uuid_to_ctrl.get(uuid)
-    if uuid is None:
+    if ctrl is None:
         return
     ctrl.animator.start_idle()
+
+@rpc(network.peer)
+def remote_do_attack_anim(connection, time_received, uuid: int):
+    ctrl = world.uuid_to_ctrl.get(uuid)
+    if ctrl is None:
+        return
+    ctrl.animator.do_attack()
