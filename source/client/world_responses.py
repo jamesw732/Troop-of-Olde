@@ -54,8 +54,14 @@ def spawn_npc(connection, time_received, uuid: int,
 
 # Combat
 @rpc(network.peer)
-def toggle_combat(connection, time_received, toggle: bool):
-    world.pc.in_combat = toggle
+def toggle_combat(connection, time_received, uuid: int, toggle: bool):
+    char = world.uuid_to_char[uuid]
+    ctrl = world.uuid_to_ctrl[uuid]
+    char.in_combat = toggle
+    if toggle:
+        ctrl.animator.idle_anim = "CombatStance"
+    else:
+        ctrl.animator.idle_anim = "Idle"
     if ui.gamewindow:
         msg = "Now entering combat" if toggle else "Now leaving combat"
         ui.gamewindow.add_message(msg)
@@ -210,8 +216,8 @@ def remote_start_run_anim(connection, time_received, uuid: int):
     ctrl.animator.start_run_cycle()
 
 @rpc(network.peer)
-def remote_end_run_anim(connection, time_received, uuid: int):
+def remote_start_idle_anim(connection, time_received, uuid: int):
     ctrl = world.uuid_to_ctrl.get(uuid)
     if uuid is None:
         return
-    ctrl.animator.end_run_cycle()
+    ctrl.animator.start_idle()

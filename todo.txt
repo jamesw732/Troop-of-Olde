@@ -9,12 +9,12 @@ This will be placeholder until stage 2 of development.
 
 
 Animation checklist:
-- Make animation logic work for NPCs
-- Combat animation (fists)
-- Jumping
-- Backwards walk animation
+- Combat stance
+- Attack animation (fists)
 - Add weapon models
 - Combat animation (weapons)
+- Jumping animation
+- Backwards walk animation
 - Sideways walk animations?
 - Death
 

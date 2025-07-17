@@ -160,7 +160,7 @@ class PlayerController(Entity):
         if fwdback != 0 or strafe != 0:
             self.animator.start_run_cycle()
         else:
-            self.animator.end_run_cycle()
+            self.animator.start_idle()
 
     def handle_updown_keyboard_rotation(self, updown):
         """Handles up/down arrow key rotation.
