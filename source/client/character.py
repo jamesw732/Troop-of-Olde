@@ -9,24 +9,28 @@ from .. import *
 
 
 class ClientCharacter(Character):
-    def __init__(self, uuid, pstate=PhysicalState(), cbstate=PlayerCombatState(),
-                 equipment=[], inventory=[], skills=SkillsState(), powers=[],
+    def __init__(self, uuid, pstate=None, cbstate=None,
+                 equipment=None, inventory=None, skills=None, powers=None,
                  on_destroy=lambda: None):
         """Initialize a Character for the Client.
 
+        In general, defaults should only be used for ease of testing, when parts of the
+        Character are not necessary to define.
         uuid: unique id. Used to encode which player you're talking about online.
-        pstate: PhysicalState; defines physical attrs
-        cbstate: PlayerCombatState; overwrites all combat stats
-        equipment: list of Items
-        inventory: list of Items
-        skills: SkillsState
-        powers: list of Powers
+        pstate: PhysicalState
+        cbstate: PlayerCombatState or NPCCombatState, used to overwrite stats from server
+        inventory: Container of num_inventory_slots Items
+        equipment: Container of num_equipment_slots Items
+        skills: SkillsState containing skill levels
+        powers: list of num_powers Powers
         """
         self.model_child = Actor()
         super().__init__(uuid, pstate=pstate, equipment=equipment,
                          inventory=inventory, skills=skills, powers=powers)
         self.clickbox = ClickBox(self)
-        cbstate.apply(self)
+        self.namelabel = None
+        if cbstate is not None:
+            cbstate.apply(self)
         for idx, item in enumerate(self.equipment):
             if item is None:
                 continue

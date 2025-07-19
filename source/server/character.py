@@ -15,23 +15,24 @@ from .power import ServerPower
 from .. import *
 
 class ServerCharacter(Character):
-    def __init__(self, uuid, pstate=PhysicalState(), cbstate=BaseCombatState(),
-                 equipment=[], inventory=[], skills=SkillsState(), powers=[],
+    def __init__(self, uuid, pstate=None, cbstate=None,
+                 equipment=None, inventory=None, skills=None, powers=None,
                  on_destroy=lambda: None):
         """Initialize a Character for the server.
 
+        In general, defaults should only be used for ease of testing, when parts of the
         uuid: unique id. Used to refer to Characters over network.
-        pstate: PhysicalState; defines physical attrs
-        cbstate: BaseCombatState; defines base combat stats, not accounting for
-        external sources like items or effects
-        equipment: list of Items
-        inventory: list of Items
-        skills: SkillsState
-        powers: list of Powers
+        pstate: PhysicalState
+        cbstate: BaseCombatState, used as first step to build up combat attrs
+        inventory: Container of num_inventory_slots Items
+        equipment: Container of num_equipment_slots Items
+        skills: SkillsState containing skill levels
+        powers: list of num_powers Powers
         """
         super().__init__(uuid, pstate=pstate, equipment=equipment,
                          inventory=inventory, skills=skills, powers=powers)
-        cbstate.apply(self)
+        if cbstate is not None:
+            cbstate.apply(self)
         self.on_destroy = on_destroy
         for item in self.equipment:
             if item is None:

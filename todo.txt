@@ -1,8 +1,6 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Fix the stupid animation loss
-
 Add animations.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
@@ -10,6 +8,7 @@ This will be placeholder until stage 2 of development.
 
 Animation checklist:
 - Attack animation (fists)
+Need to fix issue where attacking with both only makes punch go halfway
 - Add weapon models
 - Combat animation (weapons)
 - Jumping animation

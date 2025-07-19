@@ -67,7 +67,7 @@ class MobController(Entity):
         if not attempting:
             return False
         for conn in network.connection_to_uuid:
-            network.peer.remote_do_attack_anim(conn, src.uuid)
+            network.peer.remote_do_attack_anim(conn, src.uuid, slot)
         # Check whether target his within range and in line of sight
         hittable, msg = get_target_hittable(src, wpn)
         if not hittable:

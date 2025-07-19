@@ -11,26 +11,34 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from .base import default_cb_attrs, default_phys_attrs, all_skills, sqdist, default_num_powers
+from .base import *
 from .combat import get_wpn_range
 from .states import *
 
 class Character(Entity):
-    def __init__(self, uuid, pstate=PhysicalState(), inventory=[], equipment=[],
-                 skills=SkillsState(), powers=[]):
+    def __init__(self, uuid, pstate=None, inventory=None, equipment=None,
+                 skills=None, powers=None):
         """Base Character class representing the intersection of server and client-side Characters.
 
+        In general, defaults should only be used for ease of testing, when parts of the
         Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
         when necessary.
-        cname: name of character, str
         uuid: unique id. Used to encode which player you're talking about online.
-        pstate: PhysicalState; defines physical attrs, these are updated client-authoritatively
-        base_state: BaseCombatState; used to build the character's stats from the ground up
-        skills: SkillsState dict mapping str skill names to int skill levels
+        pstate: PhysicalState
+        inventory: Container of num_inventory_slots Items
+        equipment: Container of num_equipment_slots Items
+        skills: SkillsState containing skill levels
+        powers: list of num_powers Powers
         """
+        if inventory is None:
+            inventory = [None] * num_inventory_slots
+        if equipment is None:
+            equipment = [None] * num_equipment_slots
+        if skills is None:
+            skills = SkillsState()
+        if powers is None:
+            powers = [None] * default_num_powers
         self.uuid = uuid
-
-        self.namelabel = None
 
         self._model_name = ""
         self._model_color = Vec4(1, 0, 0, 1)
@@ -46,7 +54,8 @@ class Character(Entity):
             setattr(self, attr, val)
         self.targeted_by = []
         # Populate all attrs
-        pstate.apply(self)
+        if pstate is not None:
+            pstate.apply(self)
         self.equipment = equipment
         self.inventory = inventory
         self.num_powers = default_num_powers

@@ -64,8 +64,11 @@ class Anim(Entity):
         if self.cur_anim == "CombatStance":
             self.start_idle()
 
-    def do_attack(self):
-        anim = "PunchRight"
+    def do_attack(self, slot):
+        if slot == "mh":
+            anim = "PunchRight"
+        elif slot == "oh":
+            anim = "PunchLeft"
         self.actor.play(anim)
         anim_control = self.actor.get_anim_control(anim)
         num_frames = anim_control.get_num_frames()
