@@ -2,19 +2,20 @@ from ursina import *
 import numpy as np
 import quaternion
 
+
+idle_anim = "Idle"
+run_anim = "RunCycle"
+
+
 class Anim(Entity):
     """Wrapper for Actor animation methods that encapsulates common animation sequences"""
     def __init__(self, actor):
         """actor: a Panda3D Actor object, which is the target of animation."""
         super().__init__()
         self.actor = actor
-        self.actor.loop("Idle")
-        self.cur_anim = "Idle"
-        self.idle_anim = "Idle"
-        # This describes the current animation being looped
-        self.state = "idle"
-        # This describes the idle animation to loop, either idle or combat
-        self.idle_state = "idle"
+        self.actor.loop(idle_anim)
+        self.cur_anim = idle_anim
+        self.idle_anim = idle_anim
         self.actor.enableBlend()
         self.fade_in_anims = {}
         self.fade_out_anims = {}
@@ -38,12 +39,12 @@ class Anim(Entity):
     def start_run_cycle(self):
         """Starts run cycle"""
         # if self.actor.getCurrentAnim() is None:
-        if self.cur_anim == "RunCycle":
+        if self.cur_anim == run_anim:
             return
-        self.actor.loop("RunCycle")
-        self.fade_in_anim("RunCycle", 0.2)
+        self.actor.loop(run_anim)
+        self.fade_in_anim(run_anim, 0.2)
         self.fade_out_anim(self.cur_anim, 0.2)
-        self.cur_anim = "RunCycle"
+        self.cur_anim = run_anim
 
     def start_idle(self):
         """Starts idle animation, which is either the Idle animation or CombatStance."""
@@ -56,11 +57,11 @@ class Anim(Entity):
 
     def enter_combat(self):
         self.idle_anim = "CombatStance"
-        if self.cur_anim == "Idle":
+        if self.cur_anim == idle_anim:
             self.start_idle()
 
     def exit_combat(self):
-        self.idle_anim = "Idle"
+        self.idle_anim = idle_anim
         if self.cur_anim == "CombatStance":
             self.start_idle()
 
