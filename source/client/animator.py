@@ -17,24 +17,24 @@ class Anim(Entity):
         self.cur_anim = idle_anim
         self.idle_anim = idle_anim
         self.actor.enableBlend()
-        self.fade_in_anims = {}
-        self.fade_out_anims = {}
+        self.anim_blends = dict()
+        self.fade_in_anims = dict()
+        self.fade_out_anims = dict()
 
     def update(self):
-        for name, (t, w) in list(self.fade_in_anims.items()):
-            w = min(w + time.dt / t, 1)
-            self.actor.setControlEffect(name, w)
+        # Convert to list because we might be removing from dict
+        for name, t in list(self.fade_in_anims.items()):
+            w = self.get_anim_blend(name) + time.dt / t
+            w = min(w, 1)
+            self.set_anim_blend(name, w)
             if w == 1:
                 del self.fade_in_anims[name]
-            else:
-                self.fade_in_anims[name] = (t, w)
-        for name, (t, w) in list(self.fade_out_anims.items()):
-            w = max(w - time.dt / t, 0)
-            self.actor.setControlEffect(name, w)
+        for name, t in list(self.fade_out_anims.items()):
+            w = self.get_anim_blend(name) - time.dt / t
+            w = max(w, 0)
+            self.set_anim_blend(name, w)
             if w == 0:
                 del self.fade_out_anims[name]
-            else:
-                self.fade_out_anims[name] = (t, w)
 
     def start_run_cycle(self):
         """Starts run cycle"""
@@ -71,9 +71,8 @@ class Anim(Entity):
         elif slot == "oh":
             anim = "PunchLeft"
         self.actor.play(anim)
-        anim_control = self.actor.get_anim_control(anim)
-        num_frames = anim_control.get_num_frames()
-        t = num_frames / 24
+        # time = num frames / 24 fps
+        t = self.actor.get_anim_control(anim).get_num_frames() / 24
         def start():
             self.fade_in_anim(anim, 0.2)
             self.fade_out_anim(self.cur_anim, 0.2)
@@ -81,18 +80,24 @@ class Anim(Entity):
             self.fade_in_anim(self.cur_anim, 0.2)
             self.fade_out_anim(anim, 0.2)
         s = Sequence(start, Wait(t), end)
+        # Forcing sequence to go to end means that the player holds combat
+        # stance for too long. Not an urgent issue to fix, but should probably
+        # be handled better in the future.
         s.start()
 
     def fade_in_anim(self, name, t):
-        prev_w = 0
         if name in self.fade_out_anims:
-            prev_w = self.fade_out_anims[name][1]
             del self.fade_out_anims[name]
-        self.fade_in_anims[name] = (t, prev_w)
+        self.fade_in_anims[name] = t
 
     def fade_out_anim(self, name, t):
-        prev_w = 1
         if name in self.fade_in_anims:
-            prev_w = self.fade_in_anims[name][1]
             del self.fade_in_anims[name]
-        self.fade_out_anims[name] = (t, prev_w)
+        self.fade_out_anims[name] = t
+
+    def get_anim_blend(self, name):
+        return self.anim_blends.get(name, 0)
+
+    def set_anim_blend(self, name, w):
+        self.anim_blends[name] = w
+        self.actor.setControlEffect(name, w)
