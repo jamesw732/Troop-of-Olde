@@ -61,7 +61,7 @@ def toggle_combat(connection, time_received, uuid: int, toggle: bool):
     if toggle:
         ctrl.animator.enter_combat()
     else:
-        ctrl.animator.exit_combat()
+        ctrl.animator.start_idle()
     if ui.gamewindow:
         msg = "Now entering combat" if toggle else "Now leaving combat"
         ui.gamewindow.add_message(msg)
