@@ -88,9 +88,10 @@ it should look like a marketable product. It doesn't need to be a finished produ
 be able to release a Steam page and be able to find playtesters.
 
 \subsection{Stage 3}
-Third is the release stage. The goal here is to enter alpha and push out a finished product.
-This is far-out still, so I'm guaranteed to miss a lot here, but I'm expecting some things to
-be certain.
+Third is the release stage. At this point, the goal is to market the game, improve balance,
+and make everything look and feel good. Entering this stage, the game should be ``finished'' in
+terms of content and mechanics, but ``unpolished''. Of course, I don't expect to never make
+content for the game after its release, but this encapsulates the final steps before release.
 Checklist for this phase:
 \begin{itemize}
     \item Create Steam page and market the game
@@ -235,7 +236,22 @@ be used over the network. The network is updated 20 times per second.
 \subsubsection{character.py}
 The client-side Character class accepts a \codeword{PlayerCombatState} for its \codeword{cbstate},
 which is just a server-authoritative overwrite for all its combat data (health, stats, etc).
-It also defines enables animation of the Character.
+While this is an Ursina game, the Character models are not loaded as Ursina Entities. Instead,
+they are loaded as Panda3D actors, which enables animation of the character. 
+\subsection{animator.py}
+The character model is animated by the \codeword{Anim} class, which is owned by the client-side
+controllers. This class implements a custom animation blending system on top of Panda3D's
+\codeword{Actor.setControlEffect}. Animations aren't really stopped, instead they are ``faded
+out'', which simply sets its blending coefficient to zero over a given amount of time.
+Furthermore, to start an animation, you must ``fade in'' that animation in addition to calling
+\codeword{Actor.play} or \codeword{Actor.loop}.
+
+For multi-part animations, create subparts using \codeword{Actor.makeSubpart} and use the
+part name as an argument to the \codeword{partName} parameter of \codeword{Actor.play} or
+\codeword{Actor.loop}. It's important to be very careful about which animations affect
+which part, otherwise the blending will be incorrect. See the attack animation code for
+an example of how to do it.
+
 \subsubsection{controllers.py}
 Controllers, in general, combine all of the lower-level code in order to act on \codeword{Character}s.
 While the line between controller-owned functionality and \codeword{Character}-owned functionality

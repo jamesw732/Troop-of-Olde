@@ -5,10 +5,7 @@ Add animations.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
 
-
 Animation checklist:
-- Attack animation (fists)
-Need to fix issue where attacking with both only makes punch go halfway
 - Add weapon models
 - Combat animation (weapons)
 - Jumping animation
@@ -18,6 +15,16 @@ Need to fix issue where attacking with both only makes punch go halfway
 
 
 ===================================NEXT================================================
+Once animations are done, I want to continue to make some bigger moves.
+
+- Flesh out the UI. Add enemy status window (health/energy/effects), add effects to own
+status window, add tooltips to items and powers.
+- Add respawns and looting.
+- Add NPC AI logic
+- Move to an SQLite database for the game data. I think game data and player data should
+be kept separate, so no need to add any player data to that database. The game data
+will be a static read-only database, while the player data will be a read/write database.
+
 
 
 =========================================BACKLOG=================================================
