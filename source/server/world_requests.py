@@ -78,7 +78,7 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
         controller.moving = False
         for conn, uuid in network.connection_to_uuid.items():
             if char.uuid != uuid:
-                network.peer.remote_start_idle_anim(conn, char.uuid)
+                network.peer.remote_end_run_anim(conn, char.uuid)
 
 @rpc(network.peer)
 def request_jump(connection, time_received):

@@ -61,7 +61,7 @@ def toggle_combat(connection, time_received, uuid: int, toggle: bool):
     if toggle:
         ctrl.animator.enter_combat()
     else:
-        ctrl.animator.start_idle()
+        ctrl.animator.exit_combat()
     if ui.gamewindow:
         msg = "Now entering combat" if toggle else "Now leaving combat"
         ui.gamewindow.add_message(msg)
@@ -216,11 +216,11 @@ def remote_start_run_anim(connection, time_received, uuid: int):
     ctrl.animator.start_run_cycle()
 
 @rpc(network.peer)
-def remote_start_idle_anim(connection, time_received, uuid: int):
+def remote_end_run_anim(connection, time_received, uuid: int):
     ctrl = world.uuid_to_ctrl.get(uuid)
     if ctrl is None:
         return
-    ctrl.animator.start_idle()
+    ctrl.animator.end_run_cycle()
 
 @rpc(network.peer)
 def remote_do_attack_anim(connection, time_received, uuid: int, slot: str):

@@ -14,21 +14,16 @@ class Anim(Entity):
         """actor: a Panda3D Actor object, which is the target of animation."""
         super().__init__()
         self.actor = actor
-        self.cur_anim = ""
-        self.still_anim = idle_anim
+        self.idle = False
+        self.in_combat = False
         self.actor.enableBlend()
 
-        all_joints = {joint.name for joint in self.actor.get_joints()}
-        atk_right_joints = {"shoulder.R", "bicep.R", "forearm.R", "hand.R", "shoulder.L"}
-        atk_left_joints = {"shoulder.L", "bicep.L", "forearm.L", "hand.L", "shoulder.R"}
-        atk_base_joints = all_joints - (atk_right_joints | atk_left_joints)
-        subpart_joints = {
-            "atk_right": atk_right_joints,
-            "atk_left": atk_left_joints,
-            "atk_base": atk_base_joints,
-        }
-        for name, joints in subpart_joints.items():
-            self.actor.makeSubpart(name, joints, overlapping=True)
+        self.actor.makeSubpart("atk_right", ["shoulder.R", "shoulder.L"], excludeJoints=["bicep.L"],
+                               overlapping=True)
+        self.actor.makeSubpart("atk_left", ["shoulder.R", "shoulder.L"], excludeJoints=["bicep.R"],
+                               overlapping=True)
+        self.actor.makeSubpart("atk_base", ["hip"], excludeJoints=["shoulder.R", "shoulder.L"],
+                               overlapping=True)
         # Nested dict mapping part to animation name to current animation weight
         self.anim_blends = {
             "modelRoot": {
@@ -48,14 +43,7 @@ class Anim(Entity):
         self.fade_in_anims = dict()
         self.fade_out_anims = dict()
 
-        # all_anims = [idle_anim, run_anim, combat_stance, "PunchRight", "PunchLeft"]
-        # self.anim_blends = {name: (0, "modelRoot") for name in all_anims}
-        # # Nested dict mapping part name to animation name to fade-in time
-        # self.fade_in_anims = {part: dict() for part in self.actor.getPartNames()}
-        # # Nested dict mapping part name to animation name to fade-out time
-        # self.fade_out_anims = {part: dict() for part in self.actor.getPartNames()}
-
-        self.start_idle()
+        self.end_run_cycle()
 
     def update(self):
         """Loop over fade in/fade out animations and update weights"""
@@ -75,39 +63,45 @@ class Anim(Entity):
                         del self.fade_out_anims[anim]
 
     def start_run_cycle(self):
-        """Starts run cycle"""
-        if self.cur_anim == run_anim:
+        if not self.idle:
             return
+        self.idle = False
         self.actor.loop(run_anim)
         self.fade_in_anim(run_anim, 0.2)
-        self.fade_out_anim(self.cur_anim, 0.2)
-        self.cur_anim = run_anim
+        self.fade_out_anim(idle_anim, 0.2)
+        self.fade_out_anim(combat_stance, 0.2)
 
     def end_run_cycle(self):
-        """Ends run cycle"""
-        if self.still_anim == idle_anim:
-            self.start_idle()
-        elif self.still_anim == combat_stance:
-            self.enter_combat()
-
-    def start_idle(self):
-        """Starts idle animation, which is either the Idle animation or CombatStance."""
-        if self.cur_anim == idle_anim:
+        if self.idle:
             return
+        self.idle = True
+        self.fade_out_anim(run_anim, 0.2)
         self.actor.loop(idle_anim)
-        self.fade_in_anim(idle_anim, 0.2)
-        self.fade_out_anim(self.cur_anim, 0.2)
-        self.cur_anim = idle_anim
-        self.still_anim = idle_anim
+        if not self.in_combat:
+            self.fade_in_anim(idle_anim, 0.2)
+        else:
+            self.fade_in_anim(combat_stance, 0.2)
 
     def enter_combat(self):
-        if self.cur_anim == combat_stance:
+        if self.in_combat:
             return
-        self.actor.loop(combat_stance)
-        self.fade_in_anim(combat_stance, 0.2)
-        self.fade_out_anim(self.cur_anim, 0.2)
-        self.cur_anim = combat_stance
-        self.still_anim = combat_stance
+        self.in_combat = True
+        self.actor.loop(combat_stance, partName="atk_base")
+        if self.idle:
+            self.fade_in_anim(combat_stance, 0.2)
+            self.fade_out_anim(idle_anim, 0.2)
+        self.fade_in_anim("PunchRight", 0.2)
+        self.fade_in_anim("PunchLeft", 0.2)
+
+    def exit_combat(self):
+        if not self.in_combat:
+            return
+        self.in_combat = False
+        self.fade_out_anim(combat_stance, 0.2)
+        self.fade_out_anim("PunchRight", 0.2)
+        self.fade_out_anim("PunchLeft", 0.2)
+        if self.idle:
+            self.fade_in_anim(idle_anim, 0.2)
 
     def do_attack(self, slot):
         if slot == "mh":
@@ -116,20 +110,7 @@ class Anim(Entity):
         elif slot == "oh":
             anim = "PunchLeft"
             grp = "atk_left"
-            return
         self.actor.play(anim, partName=grp)
-        t = self.actor.get_anim_control(anim).get_num_frames() / 24
-        def start():
-            self.fade_in_anim(anim, 0.2)
-            self.fade_out_anim(self.cur_anim, 0.2)
-        def end():
-            self.fade_in_anim(self.cur_anim, 0.2)
-            self.fade_out_anim(anim, 0.2)
-        s = Sequence(start, Wait(t), end)
-        # Forcing sequence to go to end means that the player holds combat
-        # stance for too long. Not an urgent issue to fix, but should probably
-        # be handled better in the future.
-        s.start()
 
     def fade_in_anim(self, name, t):
         if name in self.fade_out_anims:
