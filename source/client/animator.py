@@ -5,6 +5,7 @@ import quaternion
 
 idle_anim = "Idle"
 run_anim = "RunCycle"
+combat_stance = "CombatStance"
 
 
 class Anim(Entity):
@@ -13,32 +14,65 @@ class Anim(Entity):
         """actor: a Panda3D Actor object, which is the target of animation."""
         super().__init__()
         self.actor = actor
-        self.actor.loop(idle_anim)
-        self.cur_anim = idle_anim
+        self.cur_anim = ""
         self.idle_anim = idle_anim
         self.actor.enableBlend()
-        self.anim_blends = dict()
+
+        subpart_joints = {
+            "atk_right": {"shoulder.R", "bicep.R", "forearm.R", "hand.R", "shoulder.L"},
+            "atk_left": {"shoulder.L", "bicep.L", "forearm.L", "hand.L", "shoulder.R"},
+        }
+        for name, joints in subpart_joints.items():
+            self.actor.makeSubpart(name, joints, overlapping=True)
+
+        # Nested dict mapping part to animation name to current animation weight
+        self.anim_blends = {
+            "modelRoot": {
+                idle_anim: 0,
+                run_anim: 0,
+                combat_stance: 0,
+                # "PunchRight": 0,
+                # "PunchLeft": 0,
+            },
+            "atk_right": {
+                "PunchRight": 0,
+            },
+            "atk_left": {
+                "PunchLeft": 0,
+            }
+        }
+        # self.anim_blends = {part: dict() for part in self.actor.getPartNames()}
+        # Dict mapping animation name to fade-in time
         self.fade_in_anims = dict()
+        # Dict mapping animation name to fade-out time
         self.fade_out_anims = dict()
+        """
+        It's possible that fade_in_anims and fade_out_anims should have a nested structure
+        similar to anim_blends. This would only be necessary if there is an animation that
+        must be playable by two different parts. I think this is unlikely to happen, so
+        I'm rolling with the much simpler strucutre of flat dicts for these.
+        """
+        self.start_idle()
 
     def update(self):
-        # Convert to list because we might be removing from dict
-        for name, t in list(self.fade_in_anims.items()):
-            w = self.get_anim_blend(name) + time.dt / t
-            w = min(w, 1)
-            self.set_anim_blend(name, w)
-            if w == 1:
-                del self.fade_in_anims[name]
-        for name, t in list(self.fade_out_anims.items()):
-            w = self.get_anim_blend(name) - time.dt / t
-            w = max(w, 0)
-            self.set_anim_blend(name, w)
-            if w == 0:
-                del self.fade_out_anims[name]
+        """Loop over fade in/fade out animations and update weights"""
+        for part, anim_to_w in self.anim_blends.items():
+            for anim, w in anim_to_w.items():
+                if anim in self.fade_in_anims:
+                    t = self.fade_in_anims[anim]
+                    w = min(w + time.dt / t, 1)
+                    self.set_anim_blend(anim, w, part=part)
+                    if w == 1:
+                        del self.fade_in_anims[anim]
+                elif anim in self.fade_out_anims:
+                    t = self.fade_out_anims[anim]
+                    w = max(w - time.dt / t, 0)
+                    self.set_anim_blend(anim, w, part=part)
+                    if w == 0:
+                        del self.fade_out_anims[anim]
 
     def start_run_cycle(self):
         """Starts run cycle"""
-        # if self.actor.getCurrentAnim() is None:
         if self.cur_anim == run_anim:
             return
         self.actor.loop(run_anim)
@@ -68,9 +102,12 @@ class Anim(Entity):
     def do_attack(self, slot):
         if slot == "mh":
             anim = "PunchRight"
+            grp = "atk_right"
         elif slot == "oh":
             anim = "PunchLeft"
-        self.actor.play(anim)
+            grp = "atk_left"
+            return
+        self.actor.play(anim, partName=grp)
         # time = num frames / 24 fps
         t = self.actor.get_anim_control(anim).get_num_frames() / 24
         def start():
@@ -95,9 +132,9 @@ class Anim(Entity):
             del self.fade_in_anims[name]
         self.fade_out_anims[name] = t
 
-    def get_anim_blend(self, name):
-        return self.anim_blends.get(name, 0)
+    def get_anim_blend(self, name, part="modelRoot"):
+        return self.anim_blends.get(part, {}).get(name, 0)
 
-    def set_anim_blend(self, name, w):
-        self.anim_blends[name] = w
-        self.actor.setControlEffect(name, w)
+    def set_anim_blend(self, name, w, part="modelRoot"):
+        self.anim_blends[part][name] = w
+        self.actor.setControlEffect(name, w, partName=part)
