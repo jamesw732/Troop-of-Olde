@@ -1,6 +1,9 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
+Consolidate code, move logic away from networking code in favor of delegating that work to the
+lower level modules.
+
 Add animations.
 General goal is to get basic placeholder animations for everything in the game.
 This will be placeholder until stage 2 of development.
@@ -21,9 +24,13 @@ Once animations are done, I want to continue to make some bigger moves.
 status window, add tooltips to items and powers.
 - Add respawns and looting.
 - Add NPC AI logic
-- Move to an SQLite database for the game data. I think game data and player data should
-be kept separate, so no need to add any player data to that database. The game data
-will be a static read-only database, while the player data will be a read/write database.
+- Consolidate the database for the static game data (no need to handle player data yet,
+this is still a future problem). I don't think I'll need an SQLite database for the static
+data, just need to rework the structure. In particular:
+- Change all jsons to not use ids, instead use names, which will be unique.
+- Make a separate npcs.json file which defines stuff like model, stats, etc. These values can be flat
+if I rework the character classes to accept a single state for creation, rather than splitting up
+combat and physical. 
 
 
 
@@ -46,9 +53,6 @@ different responses and hoping they arrive in order.
 - Will eventually need to encapsulate server and client creation in Server and Client classes. 
 - Consider moving network to be client/server dependent.
 - Need to fix disconnect, I think can just destroy the controller and character?
-- Make world_responses.py and world_requests.py more API-based, for example remote_update_container should
-just call a Container method and update_npc_lerp_attrs should just call a function that does that work.
-This will make the code substantially easier to test.
 
 
 Player Controller:

@@ -98,6 +98,15 @@ class Container(list):
         self.name = name
         super().__init__(items)
 
+    def overwrite_items(self, other):
+        """Overwrites own items with other container's"""
+        if len(self) != len(other):
+            return
+        for slot, item in enumerate(other):
+            self[slot] = item
+            if item is not None:
+                item.auto_set_leftclick(self)
+
     def get_first_empty(self, item=None, extra_includes=[]):
         """Find the first empty slot in this container
         If can't find any, return -1, which should be treated as nan

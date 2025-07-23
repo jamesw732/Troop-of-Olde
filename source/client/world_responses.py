@@ -68,7 +68,6 @@ def toggle_combat(connection, time_received, uuid: int, toggle: bool):
 
 @rpc(network.peer)
 def remote_kill(connection, time_received, uuid: int):
-    """Tell clients that a character died. Only to be called by host."""
     if uuid not in world.uuid_to_ctrl:
         return
     ctrl = world.uuid_to_ctrl[uuid]
@@ -121,11 +120,7 @@ def remote_update_container(connection, time_received, container_id: int, contai
     this will only be done by non-hosts"""
     new_container = world.ids_to_container(container)
     old_container = world.inst_id_to_container[container_id]
-    for slot, item in enumerate(old_container):
-        new_item = new_container[slot]
-        old_container[slot] = new_item
-        if new_item is not None:
-            new_item.auto_set_leftclick(old_container)
+    old_container.overwrite_items(new_container)
 
     item_frame = ui.item_frames.get(container_id)
     if item_frame:
@@ -145,18 +140,7 @@ def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: 
     controller = world.uuid_to_ctrl.get(uuid)
     if controller is None:
         return
-    controller.prev_pos = controller.target_pos
-    controller.target_pos = pos
-    controller.prev_rot = controller.target_rot
-    controller.target_rot = rot
-    npc = controller.character
-    if pos - controller.prev_pos != Vec3(0, 0, 0) or rot - controller.prev_rot != 0:
-        controller.lerping = True
-        controller.lerp_rate = time_received - controller.prev_lerp_recv
-        controller.prev_lerp_recv = time_received
-        controller.lerp_timer = 0
-        npc.position = pos
-        npc.rotation_y = rot
+    controller.update_lerp_attrs(time_received, pos, rot)
 
 @rpc(network.peer)
 def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: Vec3, rot: float):
@@ -169,28 +153,7 @@ def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: V
     # print(pos)
     # print(world.pc.position)
     controller = world.pc_ctrl
-    if sequence_number > controller.recv_sequence_number:
-        controller.recv_sequence_number = sequence_number
-        for num in controller.sn_to_pos.copy():
-            if num < sequence_number:
-                controller.sn_to_pos.pop(num)
-                controller.sn_to_rot.pop(num)
-    else:
-        # Always take the most recent sequence number
-        # Alternatively, reject completely if it's old
-        sequence_number = controller.recv_sequence_number
-    # controller.shadow.position = pos
-    # controller.shadow.rotation_y = rot
-    # Compute the offset amt for position
-    # sn_to_pos is missing sequence_number on startup
-    predicted_pos = controller.sn_to_pos.get(sequence_number, pos)
-    pos_offset = pos - predicted_pos
-    controller.character.displacement_components["server_offset"] = pos_offset
-    # Compute the offset amt for rotation
-    rot = rot % 360
-    predicted_rot = controller.sn_to_rot.get(sequence_number, rot)
-    rot_offset = rot - predicted_rot
-    controller.rot_offset = rot_offset
+    controller.update_lerp_attrs(sequence_number, pos, rot)
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):

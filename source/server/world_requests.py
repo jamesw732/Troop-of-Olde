@@ -55,30 +55,8 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
                  kb_y_rotation: int, mouse_y_rotation: float):
     """Request server to process keyboard inputs for movement and rotation"""
     uuid = network.connection_to_uuid[connection]
-    char = world.uuid_to_char[uuid]
-    char_speed = get_speed_modifier(char.speed)
-    vel = (char.right * kb_direction[0] + char.forward * kb_direction[1]).normalized() * 10 * char_speed
-    if "keyboard" not in char.velocity_components:
-        char.velocity_components["keyboard"] = vel
-    char.velocity_components["keyboard"] += vel
-    # char_rotation = Vec3(0, kb_y_rotation[1] * 100 * math.cos(math.radians(self.focus.rotation_x)), 0)
-    y_rotation = kb_y_rotation * 100 * PHYSICS_UPDATE_RATE + mouse_y_rotation
-    char.rotation_y += y_rotation
-    # Will send back the most recently received sequence number to match the predicted state.
-    # If packets arrive out of order, we want to update based on last sequence number
-    controller = world.uuid_to_ctrl[char.uuid]
-    if sequence_number > controller.sequence_number:
-        controller.sequence_number = sequence_number
-    if kb_direction != Vec2(0, 0) and controller.moving == False:
-        controller.moving = True
-        for conn, uuid in network.connection_to_uuid.items():
-            if char.uuid != uuid:
-                network.peer.remote_start_run_anim(conn, char.uuid)
-    elif kb_direction == Vec2(0, 0) and controller.moving == True:
-        controller.moving = False
-        for conn, uuid in network.connection_to_uuid.items():
-            if char.uuid != uuid:
-                network.peer.remote_end_run_anim(conn, char.uuid)
+    controller = world.uuid_to_ctrl[uuid]
+    controller.handle_movement_inputs(sequence_number, kb_direction, kb_y_rotation, mouse_y_rotation)
 
 @rpc(network.peer)
 def request_jump(connection, time_received):

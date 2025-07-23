@@ -214,6 +214,31 @@ class PlayerController(Entity):
         destroy(self.character)
         destroy(self)
 
+    def update_lerp_attrs(self, sequence_number, pos, rot):
+        """Updates target pos/rot to resynchronize after client-side prediction"""
+        if sequence_number > self.recv_sequence_number:
+            self.recv_sequence_number = sequence_number
+            for num in self.sn_to_pos.copy():
+                if num < sequence_number:
+                    self.sn_to_pos.pop(num)
+                    self.sn_to_rot.pop(num)
+        else:
+            # Always take the most recent sequence number
+            # Alternatively, reject completely if it's old
+            sequence_number = self.recv_sequence_number
+        # self.shadow.position = pos
+        # self.shadow.rotation_y = rot
+        # Compute the offset amt for position
+        # sn_to_pos is missing sequence_number on startup
+        predicted_pos = self.sn_to_pos.get(sequence_number, pos)
+        pos_offset = pos - predicted_pos
+        self.character.displacement_components["server_offset"] = pos_offset
+        # Compute the offset amt for rotation
+        rot = rot % 360
+        predicted_rot = self.sn_to_rot.get(sequence_number, rot)
+        rot_offset = rot - predicted_rot
+        self.rot_offset = rot_offset
+
 
 class NPCController(Entity):
     """Controller for all client-side Characters besides the player character.
@@ -256,6 +281,19 @@ class NPCController(Entity):
         self.lerping = False
         self.lerp_rate = 0
         self.lerp_timer = 0.2
+
+    def update_lerp_attrs(self, time_received, pos, rot):
+        self.prev_pos = self.target_pos
+        self.target_pos = pos
+        self.prev_rot = self.target_rot
+        self.target_rot = rot
+        if pos - self.prev_pos != Vec3(0, 0, 0) or rot - self.prev_rot != 0:
+            self.lerping = True
+            self.lerp_rate = time_received - self.prev_lerp_recv
+            self.prev_lerp_recv = time_received
+            self.lerp_timer = 0
+            self.character.position = pos
+            self.character.rotation_y = rot
 
     def kill(self):
         """Clean up character upon death"""
