@@ -46,13 +46,10 @@ class Character(Entity):
 
         # Initialize default values for everything
         # Physical attrs
-        for attr, val in default_phys_attrs.items():
+        for attr, val in default_char_attrs.items():
             setattr(self, attr, copy(val))
-        self.ignore_traverse = []
-        # Combat attrs
-        for attr, val in default_cb_attrs.items():
-            setattr(self, attr, val)
-        self.targeted_by = []
+        for attr, val in init_char_attrs.items():
+            setattr(self, attr, copy(val))
         # Populate all attrs
         if pstate is not None:
             pstate.apply(self)

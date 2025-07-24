@@ -1,13 +1,59 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Consolidate code, move logic away from networking code in favor of delegating that work to the
-lower level modules.
+Consolidate the database for the static game data (no need to handle player data yet,
+this is still a future problem). I don't think I'll need an SQLite database for the static
+data, just need to rework the structure. In particular:
+- Flatten players.json to not differentiate between the combat state and physical state.
+Just have one login state for characters, which will require significant refactoring of
+the Character class and states.
+- Change all jsons to not use ids, instead use names, which will be unique.
+- Make a separate npcs.json file which defines stuff like model, stats, etc. Should also flatten
+these as in players.json. Then, the zones will define NPC names along with positions/rotations.
 
-Add animations.
-General goal is to get basic placeholder animations for everything in the game.
-This will be placeholder until stage 2 of development.
 
+Flattening player.json will be a pretty big project, so I'm going to try to detail
+the processes for logging in and creating an NPC. Don't try to make it even more complicated
+by also updating the items/powers/effects jsons to use names instead of IDs yet.
+Logging in:
+1. The player joins the server and loads their character's data in from players.json
+2. The client aggregates the character's login data, I think it would be possible to have
+a LoginState that just stores everything, including the engine attributes, combat stats, inventory,
+equipment, powers. This should be the cleanest way to avoid having tons of arguments.
+The client should store this state, as it will help create the character after the server sends its
+response.
+3. The server's world creates the character from the transmitted data. It will need to convert the
+inventory, equipment, and powers to real objects, but this work is already done. Will need to simplify
+ServerCharacter and Character to just accept **kwargs, and then overwrite all of the attrs.
+4. Once the new character is created, the server needs to retransmit it to all the clients.
+The data it needs to send is, of course, different depending on whether it's the player's character or not.
+Create a PCSpawnState and an NPCSpawnState for this.
+PCSpawnState will contain:
+- All physical/stat attrs
+- Lists of int instance ids for item containers and powers
+NPCSpawnState will contain:
+- All physical attrs
+- Reduced stat attrs (maybe just health, maxhealth, energy, maxenergy)
+5. When each client receives this data, they must then create the character, most of this work is done already.
+Main thing to change is how we handle items and powers, which will use the saved LoginState to match instance
+ids with database ids (eventually names). Will also need to make ClientCharacter just accept **kwargs.
+
+
+
+Development Plan:
+0. Create new default attr dicts and use those to create characters.
+1. Create a new LoginState that combines PhysicalState, BaseCombatState, powers, equipment, inventory,
+skills. Create a new default_attrs dict in base.py, but exclude equipment and inventory from this
+because this dict should be reusable. Default equipment and inventory should be added manually.
+2. Create a blank LoginState and send it to server, printing output.
+3. Convert ServerCharacter to just accept **kwargs, and maybe make Character not accept anything,
+just instantiate defaults (maybe read from default_attrs, but will want None for equipment/inventory)
+4. Flatten players.json to just make every single key a Character attr.
+
+
+
+===================================NEXT================================================
+Finish adding animations.
 Animation checklist:
 - Add weapon models
 - Combat animation (weapons)
@@ -16,21 +62,12 @@ Animation checklist:
 - Sideways walk animations?
 - Death
 
-
-===================================NEXT================================================
 Once animations are done, I want to continue to make some bigger moves.
 
 - Flesh out the UI. Add enemy status window (health/energy/effects), add effects to own
 status window, add tooltips to items and powers.
 - Add respawns and looting.
 - Add NPC AI logic
-- Consolidate the database for the static game data (no need to handle player data yet,
-this is still a future problem). I don't think I'll need an SQLite database for the static
-data, just need to rework the structure. In particular:
-- Change all jsons to not use ids, instead use names, which will be unique.
-- Make a separate npcs.json file which defines stuff like model, stats, etc. These values can be flat
-if I rework the character classes to accept a single state for creation, rather than splitting up
-combat and physical. 
 
 
 

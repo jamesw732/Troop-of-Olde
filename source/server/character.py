@@ -21,6 +21,7 @@ class ServerCharacter(Character):
         """Initialize a Character for the server.
 
         In general, defaults should only be used for ease of testing, when parts of the
+        character are not necessary to define.
         uuid: unique id. Used to refer to Characters over network.
         pstate: PhysicalState
         cbstate: BaseCombatState, used as first step to build up combat attrs

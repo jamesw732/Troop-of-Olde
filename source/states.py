@@ -6,8 +6,8 @@ from ursina import *
 from ursina import Vec3, Vec4, color, load_model, Entity, destroy
 from ursina.mesh_importer import imported_meshes
 
-from .base import all_skills, data_path, default_equipment, default_phys_attrs, \
-        default_cb_attrs, models_path
+from .base import all_skills, default_char_attrs
+        
 
 class State(list):
     """Base class for all State types. Never meant to be initialized directly,
@@ -29,7 +29,6 @@ class State(list):
         src: dict or Character object"""
         for attr in self.statedef:
             self.append(self._get_val_from_src(attr, src))
-
 
     def apply(self, dst):
         """Apply attrs to a destination object by overwriting the attrs
@@ -86,6 +85,43 @@ class State(list):
             state[i] = v
         return state
 
+
+class LoginState(list):
+    """State sent by client to request to enter the world."""
+    defaults = {}
+    statedef = {attr: type(val) for attr, val in defaults.items()}
+
+    def serialze(writer, state):
+        pass
+
+    def deserialize(reader):
+        pass
+
+
+class PCSpawnState(list):
+    """State sent by server to confirm spawning into the world."""
+    defaults = {}
+    statedef = {attr: type(val) for attr, val in defaults.items()}
+
+    def serialze(writer, state):
+        pass
+
+    def deserialize(reader):
+        pass
+
+
+class NPCSpawnState(list):
+    """State sent by server to spawn an NPC into the world."""
+    defaults = {}
+    statedef = {attr: type(val) for attr, val in defaults.items()}
+
+    def serialze(writer, state):
+        pass
+
+    def deserialize(reader):
+        pass
+
+
 class BaseCombatState(State):
     statedef = {
         "health": int,
@@ -101,7 +137,7 @@ class BaseCombatState(State):
         "haste": int,
         "speed": int,
     }
-    defaults = default_cb_attrs
+    defaults = default_char_attrs
 
     def serialize(writer, state):
         statedef = BaseCombatState.statedef
@@ -136,7 +172,7 @@ class PlayerCombatState(State):
         "haste": int,
         "speed": int,
     }
-    defaults = default_cb_attrs
+    defaults = default_char_attrs
 
     def serialize(writer, state):
         statedef = PlayerCombatState.statedef
@@ -157,7 +193,7 @@ class NPCCombatState(State):
         "health": int,
         "maxhealth": int,
     }
-    defaults = default_cb_attrs
+    defaults = default_char_attrs
 
     def serialize(writer, state):
         statedef = NPCCombatState.statedef
@@ -212,7 +248,7 @@ class PhysicalState(State):
         "model_color": Vec4,
         "cname": str
     }
-    defaults = default_phys_attrs
+    defaults = default_char_attrs
     # Need to overwrite some things here
 
     def _get_val_from_src(self, attr, src):
