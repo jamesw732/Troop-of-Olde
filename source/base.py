@@ -43,9 +43,10 @@ power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
 # Default network-facing character attrs
 default_char_attrs = {
     "model_name": "humanoid.glb",
+    "model_color": Vec4(0, 0, 0, 1),
     "scale": Vec3(2, 2, 2),
-    "color": color.orange,
-
+    "position": Vec3(0, 0, 0),
+    "rotation": Vec3(0, 0, 0),
     "maxhealth": 100,
     "health": 100,
     "statichealth": 100,

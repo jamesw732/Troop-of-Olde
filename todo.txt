@@ -41,7 +41,6 @@ ids with database ids (eventually names). Will also need to make ClientCharacter
 
 
 Development Plan:
-0. Create new default attr dicts and use those to create characters.
 1. Create a new LoginState that combines PhysicalState, BaseCombatState, powers, equipment, inventory,
 skills. Create a new default_attrs dict in base.py, but exclude equipment and inventory from this
 because this dict should be reusable. Default equipment and inventory should be added manually.

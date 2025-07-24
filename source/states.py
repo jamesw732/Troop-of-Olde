@@ -65,22 +65,30 @@ class State(list):
             if attr not in self.defaults:
                 return self.type_to_default[self.statedef[attr]]
             val = self.defaults[attr]
+        elif type(val) != self.statedef[attr]:
+            try:
+                val = self.statedef[attr](val)
+            except TypeError:
+                try:
+                    val = self.statedef[attr](*val)
+                except TypeError:
+                    pass
         return val
 
     def _apply_attr(self, dst, attr, val):
         """Generic wrapper for setting attr of dst"""
         setattr(dst, attr, val)
 
-    def serialize(writer, state):
-        statedef = State.state_def
-        for k in statedef:
-            v = state[k]
+    @classmethod
+    def serialize(cls, writer, state):
+        for i, k in enumerate(cls.statedef):
+            v = state[i]
             writer.write(v)
 
-    def deserialize(reader):
-        statedef = State.statedef
-        state = State()
-        for i, t in enumerate(statedef.values()):
+    @classmethod
+    def deserialize(cls, reader):
+        state = cls()
+        for i, t in enumerate(cls.statedef.values()):
             v = reader.read(t)
             state[i] = v
         return state
@@ -88,14 +96,30 @@ class State(list):
 
 class LoginState(list):
     """State sent by client to request to enter the world."""
-    defaults = {}
-    statedef = {attr: type(val) for attr, val in defaults.items()}
-
-    def serialze(writer, state):
-        pass
-
-    def deserialize(reader):
-        pass
+    defaults = default_char_attrs
+    statedef = {
+        "cname": str,
+        "uuid": int,
+        "model_name": str,
+        "model_color": Vec4,
+        "scale": Vec3,
+        "position": Vec3,
+        "rotation": Vec3,
+        "health": int,
+        "energy": int,
+        "statichealth": int,
+        "staticenergy": int,
+        "staticarmor": int,
+        "str": int,
+        "dex": int,
+        "ref": int,
+        "haste": int,
+        "speed": int,
+        "equipment": list[int],
+        "inventory": list[int],
+        "powers": list[int],
+        "skills": list[int],
+    }
 
 
 class PCSpawnState(list):
@@ -103,23 +127,11 @@ class PCSpawnState(list):
     defaults = {}
     statedef = {attr: type(val) for attr, val in defaults.items()}
 
-    def serialze(writer, state):
-        pass
-
-    def deserialize(reader):
-        pass
-
 
 class NPCSpawnState(list):
     """State sent by server to spawn an NPC into the world."""
     defaults = {}
     statedef = {attr: type(val) for attr, val in defaults.items()}
-
-    def serialze(writer, state):
-        pass
-
-    def deserialize(reader):
-        pass
 
 
 class BaseCombatState(State):
@@ -129,29 +141,14 @@ class BaseCombatState(State):
         "statichealth": int,
         "staticenergy": int,
         "staticarmor": int,
-
         "str": int,
         "dex": int,
         "ref": int,
-
         "haste": int,
         "speed": int,
     }
     defaults = default_char_attrs
 
-    def serialize(writer, state):
-        statedef = BaseCombatState.statedef
-        for i, k in enumerate(statedef):
-            v = state[i]
-            writer.write(v)
-
-    def deserialize(reader):
-        statedef = BaseCombatState.statedef
-        state = BaseCombatState()
-        for i, t in enumerate(statedef.values()):
-            v = reader.read(t)
-            state[i] = v
-        return state
 
 class PlayerCombatState(State):
     statedef = {
@@ -164,29 +161,14 @@ class PlayerCombatState(State):
         "armor": int,
         "maxarmor": int,
         "staticarmor": int,
-
         "str": int,
         "dex": int,
         "ref": int,
-
         "haste": int,
         "speed": int,
     }
     defaults = default_char_attrs
 
-    def serialize(writer, state):
-        statedef = PlayerCombatState.statedef
-        for i, k in enumerate(statedef):
-            v = state[i]
-            writer.write(v)
-
-    def deserialize(reader):
-        statedef = PlayerCombatState.statedef
-        state = PlayerCombatState()
-        for i, t in enumerate(statedef.values()):
-            v = reader.read(t)
-            state[i] = v
-        return state
 
 class NPCCombatState(State):
     statedef = {
@@ -195,19 +177,6 @@ class NPCCombatState(State):
     }
     defaults = default_char_attrs
 
-    def serialize(writer, state):
-        statedef = NPCCombatState.statedef
-        for i, k in enumerate(statedef):
-            v = state[i]
-            writer.write(v)
-
-    def deserialize(reader):
-        statedef = NPCCombatState.statedef
-        state = NPCCombatState()
-        for i, t in enumerate(statedef.values()):
-            v = reader.read(t)
-            state[i] = v
-        return state
 
 class Stats(State):
     statedef = {
@@ -222,19 +191,6 @@ class Stats(State):
     }
     defaults = {stat: 0 for stat in statedef}
 
-    def serialize(writer, state):
-        statedef = Stats.statedef
-        for i, k in enumerate(statedef):
-            v = state[i]
-            writer.write(v)
-
-    def deserialize(reader):
-        statedef = Stats.statedef
-        state = Stats()
-        for i, t in enumerate(statedef.values()):
-            v = reader.read(t)
-            state[i] = v
-        return state
 
 class PhysicalState(State):
     """Encodes the physical, engine-based attributes used for Character creation.
@@ -242,73 +198,20 @@ class PhysicalState(State):
     Not to be used for generic Character updates, only for creation."""
     statedef = {
         "model_name": str,
+        "model_color": Vec4,
         "scale": Vec3,
         "position": Vec3,
         "rotation": Vec3,
-        "model_color": Vec4,
         "cname": str
     }
     defaults = default_char_attrs
-    # Need to overwrite some things here
 
-    def _get_val_from_src(self, attr, src):
-        """General wrapper for getting attr from src. Since States are expected to have all fields
-        in their state definition, this does its best to infer data if it's missing from src."""
-        val = None
-        # src is a keyed data structure like a dict and contains attr
-        if isinstance(src, dict) and attr in src:
-            val = src[attr]
-            # some attrs stored as lists in json
-            if isinstance(val, list):
-                T = {3: Vec3, 4: Vec4}[len(val)]
-                val = T(*val)
-        # src is a typical data structure and contains attr
-        elif hasattr(src, attr):
-            if attr == "collider":
-                val = src.collider.name
-            else:
-                val = getattr(src, attr)
-        # couldn't find attr in src, look in defaults
-        if val is None:
-            # If not in class's defaults, infer based on type of attr
-            if attr not in self.defaults:
-                return self.type_to_default[self.statedef[attr]]
-            val = self.defaults[attr]
-        return val
-
-    def serialize(writer, state):
-        statedef = PhysicalState.statedef
-        for i, k in enumerate(statedef):
-            v = state[i]
-            writer.write(v)
-
-    def deserialize(reader):
-        statedef = PhysicalState.statedef
-        state = PhysicalState()
-        for i, t in enumerate(statedef.values()):
-            v = reader.read(t)
-            state[i] = v
-        return state
 
 class SkillsState(State):
     statedef = {
         skill: int for skill in all_skills
     }
     defaults = {skill: 1 for skill in all_skills}
-
-    def serialize(writer, state):
-        statedef = SkillsState.statedef
-        for i, k in enumerate(statedef):
-            v = state[i]
-            writer.write(v)
-
-    def deserialize(reader):
-        statedef = SkillsState.statedef
-        state = SkillsState()
-        for i, t in enumerate(statedef.values()):
-            v = reader.read(t)
-            state[i] = v
-        return state
 
 
 def get_player_states_from_data(pc_data, player_name):
