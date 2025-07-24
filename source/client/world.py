@@ -13,7 +13,6 @@ class World:
 
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
-        self.structures = []
         self.pc = None
         self.pc_ctrl = None
         self.init_data = {}
@@ -31,13 +30,11 @@ class World:
         zonepath = os.path.join(self.zones_path, file)
         with open(zonepath) as f:
             world_data = json.load(f)
-        for (entity, data) in world_data.items():
-            if entity == "Sky":
-                self.structures.append(Sky(**data))
-            else:
-                if "color" in data and isinstance(data["color"], str):
-                    data["color"] = color.colors[data["color"]]
-                self.structures.append(Entity(**data))
+        Sky(**world_data["sky"])
+        for name, data in world_data["entities"].items():
+            if "color" in data and isinstance(data["color"], str):
+                data["color"] = color.colors[data["color"]]
+            Entity(**data)
 
     def load_player_data(self, cname):
         players_path = os.path.join(data_path, "players.json")

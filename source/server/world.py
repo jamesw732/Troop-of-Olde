@@ -35,26 +35,15 @@ class World:
         zonepath = os.path.join(self.zones_path, file)
         with open(zonepath) as f:
             world_data = json.load(f)
-        for (entity, data) in world_data.items():
-            if entity == "Sky":
-                continue
-            if "color" in data:
+        for name, data in world_data["entities"].items():
+            if "color" in data and isinstance(data["color"], str):
                 data["color"] = color.colors[data["color"]]
             Entity(**data)
-
-    def load_npcs(self, file):
-        """Spawn from the npc source file. Called only by server.
-
-        file: str, name of file to load in data/zones. Not full path"""
-        path = os.path.join(self.zones_path, file)
-        with open(path) as f:
-            npc_data = json.load(f)
-        npcs = [self.make_char(**get_npc_states_from_data(data, name))
-                                for name, data in npc_data.items()]
-        for npc in npcs:
+        for name, data in world_data["npcs"].items():
+            npc = self.make_char(**get_npc_states_from_data(data, name))
             self.make_ctrl(npc.uuid)
 
-    def make_char_init_dict(self, login_state):
+    def make_pc_init_dict(self, login_state):
         """Converts data from a LoginState to a dict that can be input into ServerCharacter"""
         init_dict = dict()
         uuid = self.uuid_counter
@@ -81,6 +70,19 @@ class World:
             elif key == "powers":
                 powers = [self.make_power(power_id) if power_id >= 0 else None for power_id in login_state[i]]
                 init_dict["powers"] = powers
+        on_destroy = self.make_on_destroy(uuid)
+        init_dict["on_destroy"] = on_destroy
+        return init_dict
+
+    def make_npc_init_dict(self, cname, zone_path):
+        init_dict = dict()
+        uuid = self.uuid_counter
+        init_dict["uuid"] = uuid
+        self.uuid_counter += 1
+        # for i, key in enumerate(LoginState.statedef):
+            
+
+    def make_on_destroy(self, uuid):
         def on_destroy():
             char = self.uuid_to_char[uuid]
             del self.uuid_to_char[uuid]
@@ -95,8 +97,7 @@ class World:
                 connection = network.uuid_to_connection[uuid]
                 del network.uuid_to_connection[uuid]
                 del network.connection_to_uuid[connection]
-        init_dict["on_destroy"] = on_destroy
-        return init_dict
+        return on_destroy
 
 
     def make_char(self, **kwargs):
