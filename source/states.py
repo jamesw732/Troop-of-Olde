@@ -11,7 +11,7 @@ from ursina.mesh_importer import imported_meshes
 from .base import *
         
 
-class State(list):
+class State(dict):
     """Base class for all State types. Never meant to be initialized directly,
     always inherited by other State types.
 
@@ -41,28 +41,8 @@ class State(list):
         Will never have gaps.
 
         src: dict or Character object"""
-        self.key_to_idx = {key: i for i, key in enumerate(self.statedef)}
         for attr in self.statedef:
-            self.append(self._get_val_from_src(attr, src))
-
-    def apply(self, dst):
-        """Apply attrs to a destination object by overwriting the attrs
-        
-        dst: Character or container object, this may expand"""
-        for k, v in zip(self.statedef, self):
-            self._apply_attr(dst, k, v)
-    
-    def apply_diff(self, dst, remove=False):
-        """Apply attrs to a destination object by adding/subtracting the attrs
-        
-        dst: Character"""
-        for attr, val in zip(self.statedef, self):
-            original_val = self._get_val_from_src(attr, dst)
-            if remove:
-                self._apply_attr(dst, attr, original_val - val)
-            else:
-                self._apply_attr(dst, attr, original_val + val)
-        dst.update_max_ratings()
+            self[attr] = self._get_val_from_src(attr, src)
 
     def _get_val_from_src(self, attr, src):
         """General wrapper for getting attr from src. Since States are expected to have all fields
@@ -92,34 +72,37 @@ class State(list):
                     val = self.defaults[attr]
         return val
 
-    def _apply_attr(self, dst, attr, val):
-        """Generic wrapper for setting attr of dst"""
-        setattr(dst, attr, val)
+    def apply(self, dst):
+        """Apply attrs to a destination object by overwriting the attrs
+        
+        dst: Character or container object, this may expand"""
+        for k, v in self.items():
+            setattr(dst, k, v)
+    
+    def apply_diff(self, dst, remove=False):
+        """Apply attrs to a destination object by adding/subtracting the attrs
+        
+        dst: Character"""
+        for attr, val in self.items():
+            original_val = self._get_val_from_src(attr, dst)
+            if remove:
+                setattr(dst, attr, original_val - val)
+            else:
+                setattr(dst, attr, original_val + val)
+        dst.update_max_ratings()
 
     @classmethod
     def serialize(cls, writer, state):
-        for i, k in enumerate(cls.statedef):
-            v = state[i]
+        for v in state.values():
             writer.write(v)
 
     @classmethod
     def deserialize(cls, reader):
         state = cls()
-        for i, (k, t) in enumerate(cls.statedef.items()):
+        for k, t in cls.statedef.items():
             v = reader.read(t)
-            state[i] = v
+            state[k] = v
         return state
-
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            key = self.key_to_idx[key]
-        val = super().__getitem__(key)
-        return val
-
-    def __setitem__(self, key, val):
-        if isinstance(key, str):
-            key = self.key_to_idx[key]
-        super().__setitem__(key, val)
 
 
 class LoginState(State):

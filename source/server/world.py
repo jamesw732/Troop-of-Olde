@@ -56,9 +56,9 @@ class World:
         init_dict["uuid"] = uuid
         self.uuid_counter += 1
         # Need to loop over States to access by key
-        for i, key in enumerate(default_char_attrs):
+        for key in default_char_attrs:
             if key in login_state.statedef:
-                init_dict[key] = login_state[i]
+                init_dict[key] = login_state[key]
         # Make equipment
         equipment_id = self.container_inst_id_ct
         self.container_inst_id_ct += 1
