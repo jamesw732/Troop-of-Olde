@@ -43,7 +43,7 @@ class World:
             npc = self.make_char(**get_npc_states_from_data(data, name))
             self.make_ctrl(npc.uuid)
             data["cname"] = name
-            print(self.make_npc_init_dict(data))
+            # print(self.make_npc_init_dict(data))
 
     def make_npc_init_dict(self, npc_data):
         login_state = LoginState(npc_data)
@@ -74,7 +74,7 @@ class World:
                  for item_id in login_state["inventory"]]
         inventory = Container(inventory_id, "inventory", items)
         self.inst_id_to_container[inventory_id] = inventory
-        init_dict["inventory"] = equipment
+        init_dict["inventory"] = inventory
         # Make powers
         powers = [self.make_power(power_id) if power_id >= 0 else None
                   for power_id in login_state["powers"]]

@@ -11,11 +11,13 @@ from .. import *
 # Login/Character Creation
 @rpc(network.peer)
 def send_pc_spawn_state(connection, time_received, state: PCSpawnState):
-    print(state)
+    print(world.make_pc_init_dict(state))
+    # print(state)
 
 @rpc(network.peer)
 def send_npc_spawn_state(connection, time_received, state: NPCSpawnState):
-    print(state)
+    # print(state)
+    pass
 
 @rpc(network.peer)
 def remote_load_world(connection, time_received, zone:str):

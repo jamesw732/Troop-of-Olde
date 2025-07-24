@@ -51,27 +51,34 @@ class World:
         """Converts data from a PCSpawnState to a dict that can be input into ServerCharacter"""
         init_dict = dict()
         # Need to loop over States to access by key
-        for i, key in enumerate(login_state.statedef):
-            if key in default_char_attrs:
-                init_dict[key] = login_state[i]
-            elif key == "equipment":
-                equipment_id = self.container_inst_id_ct
-                self.container_inst_id_ct += 1
-                items = [self.make_item(item_id) if item_id >= 0 else None for item_id in login_state[i]]
-                equipment = Container(equipment_id, "equipment", items)
-                self.inst_id_to_container[equipment_id] = equipment
-                init_dict["equipment"] = equipment
-            elif key == "inventory":
-                inventory_id = self.container_inst_id_ct
-                self.container_inst_id_ct += 1
-                items = [self.make_item(item_id) if item_id >= 0 else None for item_id in login_state[i]]
-                inventory = Container(inventory_id, "inventory", items)
-                self.inst_id_to_container[inventory_id] = inventory
-                init_dict["inventory"] = equipment
-            elif key == "powers":
-                powers = [self.make_power(power_id) if power_id >= 0 else None for power_id in login_state[i]]
-                init_dict["powers"] = powers
-        on_destroy = self.make_on_destroy(uuid)
+        for key in default_char_attrs:
+            if key in spawn_state.statedef:
+                init_dict[key] = spawn_state[key]
+        # Make equipment
+        equipment_id = spawn_state["equipment_id"]
+        equipment_inst_ids = spawn_state["equipment_inst_ids"]
+        items = [self.make_item(item_id, inst_id) if item_id >= 0 and inst_id >= 0
+                    else None
+                 for item_id, inst_id in zip(self.init_data["equipment"], equipment_inst_ids)]
+        equipment = Container(equipment_id, "equipment", items)
+        self.inst_id_to_container[equipment_id] = equipment
+        init_dict["equipment"] = equipment
+        # Make inventory
+        inventory_id = spawn_state["inventory_id"]
+        inventory_inst_ids = spawn_state["inventory_inst_ids"]
+        items = [self.make_item(item_id, inst_id) if item_id >= 0 and inst_id >= 0
+                    else None
+                 for item_id, inst_id in zip(self.init_data["inventory"], inventory_inst_ids)]
+        inventory = Container(inventory_id, "inventory", items)
+        self.inst_id_to_container[inventory_id] = inventory
+        init_dict["inventory"] = inventory
+        # Make powers
+        powers_inst_ids = spawn_state["powers_inst_ids"]
+        powers = [self.make_power(power_id, inst_id) if power_id >= 0 and inst_id >= 0
+                    else None
+                 for power_id, inst_id in zip(self.init_data["powers"], powers_inst_ids)]
+        init_dict["powers"] = powers
+        on_destroy = self.make_on_destroy(init_dict["uuid"])
         init_dict["on_destroy"] = on_destroy
         return init_dict
 
