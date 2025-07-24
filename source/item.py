@@ -2,7 +2,7 @@ from ursina import *
 import json
 import copy
 
-from .base import default_equipment, default_inventory, slot_to_ind, equipment_slots, data_path
+from .base import slot_to_ind, equipment_slots, data_path
 from .states import Stats
 
 # Eventually, this will be a database connection rather than a json stored in memory

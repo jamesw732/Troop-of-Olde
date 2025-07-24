@@ -49,7 +49,7 @@ class World:
         are tuples of (item id, inst item id)
         inventory: list whose first element is a container id, then rest of elements
         are tuples of (item id, inst item id)
-        skills: SkillsState
+        skills: list[int]
         powers: list whose elements are tuples of (power id, inst power id)
         """
         if "equipment" in kwargs:

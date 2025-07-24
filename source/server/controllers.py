@@ -93,7 +93,8 @@ class MobController(Entity):
         # Potentially raise skill level
         level_up, skill = get_level_up(src, tgt, wpn)
         if level_up:
-            src.skills[skill] += 1
+            src.skills[skill_to_idx[skill]] += 1
+            network.peer.remote_update_skills(src_conn, src.skills)
         return True
 
     def use_power(self, power):

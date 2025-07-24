@@ -17,6 +17,7 @@ all_skills = [
     "2h melee",
     "fists",
 ]
+skill_to_idx = {skill: i for i, skill in enumerate(all_skills)}
 
 all_stats = [
     "health",
@@ -30,12 +31,10 @@ all_stats = [
 ]
 
 num_equipment_slots = 4
-default_equipment = [None] * num_equipment_slots
 equipment_slots = ["armor", "ring", "mh", "oh"]
 slot_to_ind = {"armor": 0, "ring": 1, "mh": 2, "oh": 3}
 
 num_inventory_slots = 20
-default_inventory = [None] * num_inventory_slots
 
 default_num_powers = 10
 power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
@@ -53,7 +52,6 @@ default_char_attrs = {
     "maxenergy": 100,
     "energy": 100,
     "staticenergy": 100,
-    "maxarmor": 0,
     "armor": 0,
     "str": 0,
     "dex": 0,
@@ -90,7 +88,7 @@ init_char_attrs = {
     "equipment": None,
     "inventory": None,
     "powers": [None] * default_num_powers,
-    "skills": {skill: 1 for skill in all_skills}
+    "skills": [1] * len(all_skills)
 }
 
 def get_speed_modifier(speed):

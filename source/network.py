@@ -18,7 +18,6 @@ class Network(Entity):
         self.my_uuid = None
 
         self.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
-        self.peer.register_type(SkillsState, SkillsState.serialize, SkillsState.deserialize)
         self.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
         self.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)
         self.peer.register_type(PhysicalState, PhysicalState.serialize, PhysicalState.deserialize)

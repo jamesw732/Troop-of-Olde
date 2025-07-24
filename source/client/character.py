@@ -21,7 +21,7 @@ class ClientCharacter(Character):
         cbstate: PlayerCombatState or NPCCombatState, used to overwrite stats from server
         inventory: Container of num_inventory_slots Items
         equipment: Container of num_equipment_slots Items
-        skills: SkillsState containing skill levels
+        skills: list[int] containing skill levels
         powers: list of num_powers Powers
         """
         self.model_child = Actor()

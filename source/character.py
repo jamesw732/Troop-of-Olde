@@ -27,15 +27,16 @@ class Character(Entity):
         pstate: PhysicalState
         inventory: Container of num_inventory_slots Items
         equipment: Container of num_equipment_slots Items
-        skills: SkillsState containing skill levels
+        skills: list[int] containing skill levels
         powers: list of num_powers Powers
         """
+        # Inventory and equipment should default to None, not a list of Nones
         if inventory is None:
             inventory = [None] * num_inventory_slots
         if equipment is None:
             equipment = [None] * num_equipment_slots
         if skills is None:
-            skills = SkillsState()
+            skills = [1] * len(all_skills)
         if powers is None:
             powers = [None] * default_num_powers
         self.uuid = uuid
@@ -57,9 +58,8 @@ class Character(Entity):
         self.inventory = inventory
         self.num_powers = default_num_powers
         self.powers = powers
-
-        # self.skills = {skill: skills.get(skill, 1) for skill in all_skills}
-        self.skills = {skill: skills[i] for i, skill in enumerate(all_skills)}
+        # Make skills match length of default, this allows for missing skills on disk
+        self.skills = skills + self.skills[len(skills):]
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""

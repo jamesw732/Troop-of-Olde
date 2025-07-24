@@ -16,7 +16,7 @@ def remote_load_world(connection, time_received, zone:str):
 
 @rpc(network.peer)
 def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipment: list[int],
-             inventory: list[int], skills: SkillsState, powers: list[int], cbstate: PlayerCombatState):
+             inventory: list[int], skills: list[int], powers: list[int], cbstate: PlayerCombatState):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
     uuid: unique id of new Character, used to refer to it across the network
@@ -110,6 +110,14 @@ def remote_update_skill(connection, time_received, skill: str, val: int):
     char.skills[skill] = val
     if ui.playerwindow:
         ui.playerwindow.skills.set_label_text(skill)
+
+@rpc(network.peer)
+def remote_update_skills(connection, time_received, skills: list[int]):
+    char = world.pc
+    for i, skill in enumerate(all_skills):
+        char.skills[i] = skills[i]
+        if ui.playerwindow:
+            ui.playerwindow.skills.set_label_text(skill)
 
 # Items
 @rpc(network.peer)

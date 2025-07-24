@@ -6,7 +6,7 @@ from ursina import *
 from ursina import Vec3, Vec4, color, load_model, Entity, destroy
 from ursina.mesh_importer import imported_meshes
 
-from .base import all_skills, default_char_attrs
+from .base import *
         
 
 class State(list):
@@ -96,10 +96,15 @@ class State(list):
 
 class LoginState(list):
     """State sent by client to request to enter the world."""
+    custom_defaults = {
+        "cname": "Demo Player",
+        "equipment": [-1] * num_equipment_slots,
+        "inventory": [-1] * num_inventory_slots,
+        "powers": [-1] * default_num_powers,
+    }
     defaults = default_char_attrs
     statedef = {
         "cname": str,
-        "uuid": int,
         "model_name": str,
         "model_color": Vec4,
         "scale": Vec3,
@@ -109,7 +114,7 @@ class LoginState(list):
         "energy": int,
         "statichealth": int,
         "staticenergy": int,
-        "staticarmor": int,
+        "armor": int,
         "str": int,
         "dex": int,
         "ref": int,
@@ -140,7 +145,7 @@ class BaseCombatState(State):
         "energy": int,
         "statichealth": int,
         "staticenergy": int,
-        "staticarmor": int,
+        "armor": int,
         "str": int,
         "dex": int,
         "ref": int,
@@ -159,8 +164,6 @@ class PlayerCombatState(State):
         "maxenergy": int,
         "staticenergy": int,
         "armor": int,
-        "maxarmor": int,
-        "staticarmor": int,
         "str": int,
         "dex": int,
         "ref": int,
@@ -182,7 +185,7 @@ class Stats(State):
     statedef = {
         "statichealth": int,
         "staticenergy": int,
-        "staticarmor": int,
+        "armor": int,
         "str": int,
         "dex": int,
         "ref": int,
@@ -207,13 +210,6 @@ class PhysicalState(State):
     defaults = default_char_attrs
 
 
-class SkillsState(State):
-    statedef = {
-        skill: int for skill in all_skills
-    }
-    defaults = {skill: 1 for skill in all_skills}
-
-
 def get_player_states_from_data(pc_data, player_name):
     """Returns the states necessary to request a Player Character
     be loaded from server.
@@ -223,14 +219,14 @@ def get_player_states_from_data(pc_data, player_name):
     pstate_raw = pc_data.get("pstate", {})
     pstate_raw["cname"] = player_name
     basestate_raw = pc_data.get("basestate", {})
-    skills_raw = pc_data.get("skills", {})
+    skills_raw = pc_data.get("skills", [])
     equipment = pc_data.get("equipment", [])
     inventory = pc_data.get("inventory", [])
     powers = pc_data.get("powers", [])
 
     pstate = PhysicalState(pstate_raw)
     basestate = BaseCombatState(basestate_raw)
-    skills = SkillsState(skills_raw)
+    skills = skills_raw + [1] * (len(all_skills) - len(skills_raw))
 
     return pstate, basestate, equipment, inventory, skills, powers
 

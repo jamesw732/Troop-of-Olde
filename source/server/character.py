@@ -27,7 +27,7 @@ class ServerCharacter(Character):
         cbstate: BaseCombatState, used as first step to build up combat attrs
         inventory: Container of num_inventory_slots Items
         equipment: Container of num_equipment_slots Items
-        skills: SkillsState containing skill levels
+        skills: list[int] containing skill levels
         powers: list of num_powers Powers
         """
         super().__init__(uuid, pstate=pstate, equipment=equipment,

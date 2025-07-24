@@ -2,7 +2,7 @@ from ursina import *
 
 from .base import *
 from ..world import world
-from ... import all_skills
+from ... import all_skills, skill_to_idx
 
 class SkillsWindow(Entity):
     def __init__(self, *args, **kwargs):
@@ -19,20 +19,29 @@ class SkillsWindow(Entity):
         self.max_chars = int(self.world_scale_x / text_width * (1 - 2 * self.edge_margin))
 
         self.labels = {}
-        self.write_skills()
+        self.create_labels()
 
-    def write_skills(self):
+    def create_labels(self):
+        """Creates the skills labels"""
         for i, skill in enumerate(all_skills):
-            position = (self.edge_margin, -self.edge_margin - (self.vertical_spacing + self.text_height) * i, -1)
+            position = (self.edge_margin,
+                        -self.edge_margin - (self.vertical_spacing + self.text_height) * i,
+                        -1)
             self.create_label(skill, position)
 
     def create_label(self, skill, position):
         fmt = (f"{skill}", "{}")
-        txt = self.format_text(fmt, world.pc.skills[skill])
         self.labels[skill] = Text(parent=self, origin=(-.5, .5),
              world_scale=self.text_size, position=position,
-             text=txt, color=color.white, font='VeraMono.ttf')
+             color=color.white, font='VeraMono.ttf')
         self.labels[skill].fmt = fmt
+        self.set_label_text(skill)
+
+    def set_label_text(self, skill):
+        label = self.labels[skill]
+        fmt = label.fmt
+        txt = self.format_text(fmt, world.pc.skills[skill_to_idx[skill]])
+        label.text = txt
 
     def format_text(self, fmt, *args):
         first_part = fmt[0]
@@ -40,12 +49,6 @@ class SkillsWindow(Entity):
         length = len(first_part) + len(second_part)
         pad = ' ' * (self.max_chars - length)
         return pad.join([first_part, second_part])
-
-    def set_label_text(self, skill):
-        label = self.labels[skill]
-        fmt = label.fmt
-        txt = self.format_text(fmt, world.pc.skills[skill])
-        label.text = txt
 
     def enable_colliders(self):
         pass

@@ -16,8 +16,7 @@ from .. import *
 @rpc(network.peer)
 def request_enter_world(connection, time_received, pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: list[int],
-                        inventory: list[int], skills: SkillsState,
-                        powers: list[int]):
+                        inventory: list[int], skills: list[int], powers: list[int]):
     """Add a new player character to the world and update all clients.
     Expected inputs are the outputs of get_pc_data_from_json"""
     new_pc = world.make_char(pstate=pstate, cbstate=base_state, equipment=equipment,
