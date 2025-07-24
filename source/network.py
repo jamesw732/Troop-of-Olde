@@ -20,10 +20,8 @@ class Network(Entity):
         self.peer.register_type(LoginState, LoginState.serialize, LoginState.deserialize)
         self.peer.register_type(PCSpawnState, PCSpawnState.serialize, PCSpawnState.deserialize)
         self.peer.register_type(NPCSpawnState, NPCSpawnState.serialize, NPCSpawnState.deserialize)
-        self.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
         self.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
         self.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)
-        self.peer.register_type(PhysicalState, PhysicalState.serialize, PhysicalState.deserialize)
         self.peer.register_type(Stats, Stats.serialize, Stats.deserialize)
 
     @every(UPDATE_RATE)

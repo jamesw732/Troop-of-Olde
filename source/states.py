@@ -179,6 +179,7 @@ class PCSpawnState(State):
         "skills": list[int],
     }
 
+
 class NPCSpawnState(State):
     """State sent by server to spawn an NPC into the world."""
     custom_defaults = {
@@ -200,23 +201,9 @@ class NPCSpawnState(State):
     }
 
 
-class BaseCombatState(State):
-    statedef = {
-        "health": int,
-        "energy": int,
-        "statichealth": int,
-        "staticenergy": int,
-        "armor": int,
-        "str": int,
-        "dex": int,
-        "ref": int,
-        "haste": int,
-        "speed": int,
-    }
-    defaults = default_char_attrs
-
 
 class PlayerCombatState(State):
+    """Used for authoritative stat updates for the player character"""
     statedef = {
         "health": int,
         "maxhealth": int,
@@ -235,6 +222,7 @@ class PlayerCombatState(State):
 
 
 class NPCCombatState(State):
+    """Used for authoritative stat updates for NPCs"""
     statedef = {
         "health": int,
         "maxhealth": int,
@@ -243,6 +231,11 @@ class NPCCombatState(State):
 
 
 class Stats(State):
+    """Used for common stat updates from items and effects.
+
+    This State is kind of an anomaly, it's the only one that
+    uses apply_diff and isn't ever sent over the network. It
+    could just be its own object, not connected to States."""
     statedef = {
         "statichealth": int,
         "staticenergy": int,
@@ -254,56 +247,3 @@ class Stats(State):
         "speed": int
     }
     defaults = {stat: 0 for stat in statedef}
-
-
-class PhysicalState(State):
-    """Encodes the physical, engine-based attributes used for Character creation.
-
-    Not to be used for generic Character updates, only for creation."""
-    statedef = {
-        "model_name": str,
-        "model_color": Vec4,
-        "scale": Vec3,
-        "position": Vec3,
-        "rotation": Vec3,
-        "cname": str
-    }
-    defaults = default_char_attrs
-
-
-def get_player_states_from_data(pc_data, player_name):
-    """Returns the states necessary to request a Player Character
-    be loaded from server.
-    pc_data: npc data loaded from json and keyed by name
-    player_name: the name of the character
-    returns a list of states to use as arguments to request_enter_world"""
-    pstate_raw = pc_data.get("pstate", {})
-    pstate_raw["cname"] = player_name
-    basestate_raw = pc_data.get("basestate", {})
-    skills_raw = pc_data.get("skills", [])
-    equipment = pc_data.get("equipment", [])
-    inventory = pc_data.get("inventory", [])
-    powers = pc_data.get("powers", [])
-
-    pstate = PhysicalState(pstate_raw)
-    basestate = BaseCombatState(basestate_raw)
-    skills = skills_raw + [1] * (len(all_skills) - len(skills_raw))
-
-    return pstate, basestate, equipment, inventory, skills, powers
-
-
-def get_npc_states_from_data(npc_data, npc_name):
-    """Return the states necessary to load an NPC from JSON data.
-    npc_data: npc data loaded from json and keyed by name
-    npc_name: the name of the character
-    returns a dict mapping ServerCharacter argument name to state"""
-    pstate_raw = npc_data.get("physical", {})
-    pstate_raw["cname"] = npc_name
-    basestate_raw = npc_data.get("basestate", {})
-
-    pstate = PhysicalState(pstate_raw)
-    basestate = BaseCombatState(basestate_raw)
-
-    return {"pstate": pstate, "cbstate": basestate}
-
-

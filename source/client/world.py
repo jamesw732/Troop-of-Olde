@@ -37,10 +37,18 @@ class World:
             Entity(**data)
 
     def load_player_data(self, cname):
+        """Loads player data from players.json as a LoginState"""
         players_path = os.path.join(data_path, "players.json")
         with open(players_path) as players:
             pc_data = json.load(players)[cname]
         pc_data["cname"] = cname
+        # Pad containers with fill
+        pc_data["equipment"] = pc_data["equipment"] \
+            + [-1] * (num_equipment_slots - len(pc_data["equipment"]))
+        pc_data["inventory"] = pc_data["inventory"] \
+            + [-1] * (num_inventory_slots - len(pc_data["inventory"]))
+        pc_data["powers"] = pc_data["powers"] \
+            + [-1] * (default_num_powers - len(pc_data["powers"]))
         self.init_data["equipment"] = pc_data["equipment"]
         self.init_data["inventory"] = pc_data["inventory"]
         self.init_data["powers"] = pc_data["powers"]
@@ -78,11 +86,18 @@ class World:
                     else None
                  for power_id, inst_id in zip(self.init_data["powers"], powers_inst_ids)]
         init_dict["powers"] = powers
-        on_destroy = self.make_on_destroy(init_dict["uuid"])
+        on_destroy = self.make_pc_on_destroy(init_dict["uuid"])
         init_dict["on_destroy"] = on_destroy
         return init_dict
 
-    def make_on_destroy(self, uuid):
+    def make_npc_init_dict(self, spawn_state):
+        """Converts data from a PCSpawnState to a dict that can be input into ServerCharacter"""
+        init_dict = dict(spawn_state)
+        on_destroy = self.make_npc_on_destroy(init_dict["uuid"])
+        init_dict["on_destroy"] = on_destroy
+        return init_dict
+
+    def make_pc_on_destroy(self, uuid):
         def on_destroy():
             self.pc = None
             char = self.uuid_to_char[uuid]
@@ -96,43 +111,25 @@ class World:
             del char
         return on_destroy
 
-    def make_pc(self, uuid, **kwargs):
-        """Create the Player Character from the server's inputs.
-
-        kwargs obtained from network.peer.spawn_pc:
-        uuid: unique id. Used to refer to Characters over network.
-        pstate: PhysicalState; defines physical attrs
-        cbstate: PlayerCombatState which overwrites 
-        equipment: list whose first element is a container id, then rest of elements
-        are tuples of (item id, inst item id)
-        inventory: list whose first element is a container id, then rest of elements
-        are tuples of (item id, inst item id)
-        skills: list[int]
-        powers: list whose elements are tuples of (power id, inst power id)
-        """
-        if "equipment" in kwargs:
-            kwargs["equipment"] = self.make_container_from_ids("equipment",
-                                                               kwargs["equipment"],
-                                                               num_equipment_slots)
-        if "inventory" in kwargs:
-            kwargs["inventory"] = self.make_container_from_ids("inventory",
-                                                               kwargs["inventory"],
-                                                               num_inventory_slots)
-        if "powers" in kwargs:
-            kwargs["powers"] = self.make_powers_from_ids(kwargs["powers"])
+    def make_npc_on_destroy(self, uuid):
         def on_destroy():
-            self.pc = None
             char = self.uuid_to_char[uuid]
             del self.uuid_to_char[uuid]
             char.model_child.detachNode()
             del char.model_child
             for src in char.targeted_by:
                 src.target = None
-            char.targeted_by = []
-            char.ignore_traverse = []
+            self.pc.ignore_traverse.remove(char.clickbox)
             del char
-        self.pc = ClientCharacter(uuid, **kwargs, on_destroy=on_destroy)
-        self.uuid_to_char[uuid] = self.pc
+        return on_destroy
+
+    def make_pc(self, init_dict):
+        """Create the Player Character from the server's inputs.
+
+        init_dict is a dict obtained from World.make_pc_init_dict
+        """
+        self.pc = ClientCharacter(**init_dict)
+        self.uuid_to_char[self.pc.uuid] = self.pc
         self.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
 
     def make_pc_ctrl(self):
@@ -148,21 +145,15 @@ class World:
         self.pc_ctrl = PlayerController(character=char, on_destroy=on_destroy)
         self.uuid_to_ctrl[uuid] = self.pc_ctrl
         
-    def make_npc(self, uuid, pstate, cbstate):
-        """Makes an npc while updating uuid map"""
-        def on_destroy():
-            char = self.uuid_to_char[uuid]
-            del self.uuid_to_char[uuid]
-            char.model_child.detachNode()
-            del char.model_child
-            for src in char.targeted_by:
-                src.target = None
-            self.pc.ignore_traverse.remove(char.clickbox)
-            del char
-        new_char = ClientCharacter(uuid, pstate=pstate, cbstate=cbstate, on_destroy=on_destroy)
-        self.uuid_to_char[uuid] = new_char
+    def make_npc(self, init_dict):
+        """Create an NPC from the server's inputs.
+
+        init_dict is a dict obtained from World.make_npc_init_dict"""
+        new_char = ClientCharacter(**init_dict)
+        self.uuid_to_char[new_char.uuid] = new_char
         if self.pc:
             self.pc.ignore_traverse.append(new_char.clickbox)
+        return new_char
 
     def make_npc_ctrl(self, uuid):
         """Makes an npc controller while updating uuid map.
@@ -178,32 +169,12 @@ class World:
         char = self.uuid_to_char[uuid]
         self.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
 
-    def make_container_from_ids(self, name, ids, default_size):
-        container_id = ids[0]
-        item_ids = ids[1:]
-        items = [None] * default_size
-        for i, (item_id, inst_id) in enumerate(item_ids):
-            if item_id < 0:
-                continue
-            items[i] = self.make_item(item_id, inst_id)
-        container = Container(container_id, name, items)
-        self.inst_id_to_container[container_id] = container
-        return container
-
     def make_item(self, item_id, inst_id):
         def on_destroy():
             del self.inst_id_to_item[inst_id]
         item = Item(item_id, inst_id, on_destroy=on_destroy)
         self.inst_id_to_item[inst_id] = item
         return item
-
-    def make_powers_from_ids(self, power_ids):
-        powers = [None] * default_num_powers
-        for i, (power_id, inst_id) in enumerate(power_ids):
-            if power_id < 0 or inst_id < 0:
-                continue
-            powers[i] = self.make_power(power_id, inst_id)
-        return powers
 
     def make_power(self, power_id, inst_id):
         power = Power(power_id, inst_id)
@@ -214,12 +185,7 @@ class World:
         """Convert a container (Character attribute) to one sendable over the network
 
         container: list containing Items
-        id_type: the literal id attribute of the item, or tuple of id attributes
-        In the latter case, returns a 1d list stacked in order of the id attributes"""
-        if isinstance(id_type, tuple):
-            return [getattr(item, id_subtype) if hasattr(item, id_subtype) else -1 
-                        for id_subtype in id_type
-                    for item in container]
+        id_type: the literal id attribute of the item"""
         return [getattr(item, id_type) if hasattr(item, id_type) else -1 for item in container]
 
     def ids_to_container(self, id_container):

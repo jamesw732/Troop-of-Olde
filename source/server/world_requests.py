@@ -14,48 +14,32 @@ from .. import *
 
 # LOGIN
 @rpc(network.peer)
-def send_login_state(connection, time_received, state: LoginState):
-    # print(world.make_char_init_dict(state))
-    pass
-
-@rpc(network.peer)
-def request_enter_world(connection, time_received, pstate: PhysicalState,
-                        base_state: BaseCombatState, equipment: list[int],
-                        inventory: list[int], skills: list[int], powers: list[int]):
+def request_enter_world(connection, time_received, login_state: LoginState):
     """Add a new player character to the world and update all clients.
     Expected inputs are the outputs of get_pc_data_from_json"""
-    new_pc = world.make_char(pstate=pstate, cbstate=base_state, equipment=equipment,
-                             inventory=inventory, skills=skills, powers=powers)
+    init_dict = world.make_char_init_dict(login_state)
+    new_pc = world.make_char(init_dict)
     new_ctrl = world.make_ctrl(new_pc.uuid)
     network.uuid_to_connection[new_pc.uuid] = connection
     network.connection_to_uuid[connection] = new_pc.uuid
     network.peer.remote_load_world(connection, "demo.json")
-    # extend instance id-based objects to include database id and instance id
-    inventory_ids = world.container_to_ids(new_pc.inventory, ("item_id", "inst_id"))
-    inventory_ids = [new_pc.inventory.container_id] + inventory_ids
-    equipment_ids = world.container_to_ids(new_pc.equipment, ("item_id", "inst_id"))
-    equipment_ids = [new_pc.equipment.container_id] + equipment_ids
-    power_ids = world.container_to_ids(new_pc.powers, ("power_id", "inst_id"))
-    # The new pc will be an npc for everybody else
-    new_char_cbstate = NPCCombatState(new_pc)
+    # State for new character sent to this client
+    new_pc_spawn_state = PCSpawnState(new_pc)
+    # State for new character sent to other clients
+    new_npc_spawn_state = NPCSpawnState(new_pc)
+    # Need to update all clients
     for conn in network.peer.get_connections():
         if conn == connection:
+            # Send over PC and all NPC's
             for uuid, ch in world.uuid_to_char.items():
-                if ch is new_pc:
-                    pc_cbstate = PlayerCombatState(new_pc)
-                    network.peer.spawn_pc(connection, uuid, pstate, equipment_ids,
-                                          inventory_ids, skills, power_ids, pc_cbstate)
+                if uuid == new_pc.uuid:
+                    network.peer.spawn_pc(connection, new_pc_spawn_state)
                 else:
-                    npc_pstate = PhysicalState(ch)
-                    npc_cbstate = NPCCombatState(ch)
-                    network.peer.spawn_npc(conn, uuid, npc_pstate, npc_cbstate)
-        # Existing users just need new character
+                    npc_spawn_state = NPCSpawnState(ch)
+                    network.peer.spawn_npc(conn, npc_spawn_state)
         else:
-            network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
-    pc_spawn_state = PCSpawnState(new_pc)
-    npc_spawn_state = NPCSpawnState(new_pc)
-    network.peer.send_pc_spawn_state(connection, pc_spawn_state)
-    network.peer.send_npc_spawn_state(connection, npc_spawn_state)
+            # Existing users just need new character
+            network.peer.spawn_npc(conn, new_npc_spawn_state)
 
 # PHYSICS
 @rpc(network.peer)

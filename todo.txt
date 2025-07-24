@@ -43,17 +43,18 @@ ids with database ids (eventually names). Will also need to make ClientCharacter
 Development Plan:
 - Make client.world.load_player_data function that stores equipment, inventory, and powers and
 returns the LoginState to be sent to server. (done)
-- Make Character.__init__ take no arguments, it'll just make everything a default.
-- Update server.world to create the character initialization dict from the LoginState.
-Don't make it actually initialize a character yet.
+- Make Character.__init__ take no arguments, it'll just make everything a default. (done)
+- Update server.world to create the character initialization dict from the LoginState. 
+Don't make it actually initialize a character yet. (done)
 - Update server.world to create a character initialization dict from the raw json npc data.
-Don't make it actually initialize a character yet.
+Don't make it actually initialize a character yet. (done)
 - Make server send back a PCSpawnState, and use it to create the character initialization dict.
-Don't make it actually initialize a character yet.
+Don't make it actually initialize a character yet. (done)
 - Make server send back a NPCSpawnState, and use it to create the character initialization dict.
-Don't make it actually initialize a character yet.
+Don't make it actually initialize a character yet. (done)
 - Make ServerCharacter and ClientCharacter accept **kwargs, it'll just loop over this and
-use setattr. Flatten players.json to remove base_state and physical.
+use setattr. Make character creation functions use new parameters and flatten players.json to
+remove base_state and physical.
 
 
 

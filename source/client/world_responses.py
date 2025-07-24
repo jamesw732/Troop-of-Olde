@@ -10,23 +10,12 @@ from .. import *
 
 # Login/Character Creation
 @rpc(network.peer)
-def send_pc_spawn_state(connection, time_received, state: PCSpawnState):
-    print(world.make_pc_init_dict(state))
-    # print(state)
-
-@rpc(network.peer)
-def send_npc_spawn_state(connection, time_received, state: NPCSpawnState):
-    # print(state)
-    pass
-
-@rpc(network.peer)
 def remote_load_world(connection, time_received, zone:str):
     """Remotely generate the world"""
     world.load_zone(zone)
 
 @rpc(network.peer)
-def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipment: list[int],
-             inventory: list[int], skills: list[int], powers: list[int], cbstate: PlayerCombatState):
+def spawn_pc(connection, time_received, spawn_state: PCSpawnState):
     """Does all the necessary steps to put the player character in the world, and makes the UI
     
     uuid: unique id of new Character, used to refer to it across the network
@@ -37,29 +26,17 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     powers: list with structure [*database_ids, *instance_ids] for powers
     cbstate: combat state of the new Character
     """
-    inv_id = inventory[0]
-    inventory = inventory[1:]
-    inv_l = len(inventory)
-    inventory = [inv_id] + list(zip(inventory[:inv_l//2], inventory[inv_l//2:]))
-    equip_id = equipment[0]
-    equipment = equipment[1:]
-    equip_l = len(equipment)
-    equipment = [equip_id] + list(zip(equipment[:equip_l//2], equipment[equip_l//2:]))
-    powers_l = len(powers)
-    powers = list(zip(powers[:powers_l//2], powers[powers_l//2:]))
-    world.make_pc(uuid, pstate=pstate, equipment=equipment, inventory=inventory,
-                  skills=skills, powers=powers, cbstate=cbstate)
+    init_dict = world.make_pc_init_dict(spawn_state)
+    world.make_pc(init_dict)
     world.make_pc_ctrl()
-
     ui.make_all_ui()
 
 @rpc(network.peer)
-def spawn_npc(connection, time_received, uuid: int,
-              pstate: PhysicalState, cbstate: NPCCombatState):
+def spawn_npc(connection, time_received, spawn_state: NPCSpawnState):
     """Remotely spawn a character that isn't the client's player character (could also be other players)"""
-    if uuid not in world.uuid_to_char:
-        world.make_npc(uuid, pstate, cbstate)
-        world.make_npc_ctrl(uuid)
+    init_dict = world.make_npc_init_dict(spawn_state)
+    new_npc = world.make_npc(init_dict)
+    world.make_npc_ctrl(new_npc.uuid)
 
 # Combat
 @rpc(network.peer)

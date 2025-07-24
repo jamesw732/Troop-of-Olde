@@ -6,7 +6,7 @@ import json
 from ursina.networking import rpc
 
 from .world import world
-from .. import data_path, network, get_player_states_from_data, LoginState
+from .. import network
 
 
 @rpc(network.peer)
@@ -19,14 +19,8 @@ def on_connect(connection, time_received):
     Eventually, this will not be done on connection, it will be done upon entering the world."""
     network.server_connection = connection
     player_name = "Demo Player"
-    players_path = os.path.join(data_path, "players.json")
-    with open(players_path) as players:
-        pc_data = json.load(players)[player_name]
-    states = get_player_states_from_data(pc_data, player_name)
-    network.peer.request_enter_world(connection, *states)
     login_state = world.load_player_data(player_name)
-    # print(login_state)
-    network.peer.send_login_state(connection, login_state)
+    network.peer.request_enter_world(connection, login_state)
 
 @rpc(network.peer)
 def on_disconnect(connection, time_received):

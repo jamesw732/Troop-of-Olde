@@ -9,47 +9,33 @@ from .. import *
 
 
 class ClientCharacter(Character):
-    def __init__(self, uuid, pstate=None, cbstate=None,
-                 equipment=None, inventory=None, skills=None, powers=None,
-                 on_destroy=lambda: None):
+    def __init__(self, **kwargs):
         """Initialize a Character for the Client.
 
-        In general, defaults should only be used for ease of testing, when parts of the
-        Character are not necessary to define.
-        uuid: unique id. Used to encode which player you're talking about online.
-        pstate: PhysicalState
-        cbstate: PlayerCombatState or NPCCombatState, used to overwrite stats from server
-        inventory: Container of num_inventory_slots Items
-        equipment: Container of num_equipment_slots Items
-        skills: list[int] containing skill levels
-        powers: list of num_powers Powers
+        Generally shouldn't be called directly, instead Characters should be
+        created by World.make_pc or World.make_npc. This is mainly because
+        updating the uuid maps is done in World, and World contains helpful
+        functions for interfacing with the network.
+        kwargs is obtained from World.make_pc_init_dict or World.make_npc_init_dict,
+        it is just a dict of attrs to loop through and set.
         """
         self.model_child = Actor()
         super().__init__()
-        self.uuid = uuid
-        self.equipment = equipment
-        self.inventory = inventory
-        self.skills = skills
-        self.powers = powers
-        self.on_destroy = on_destroy
-
-        self.clickbox = ClickBox(self)
-        self.namelabel = None
-        if pstate is not None:
-            pstate.apply(self)
-        if cbstate is not None:
-            cbstate.apply(self)
+        for key, val in kwargs.items():
+            setattr(self, key, val)
         if self.equipment is not None:
             for idx, item in enumerate(self.equipment):
                 if item is None:
                     continue
                 item.auto_set_leftclick(self.equipment)
-        if self.inventory is not None:
+        if self.equipment is not None:
             for idx, item in enumerate(self.inventory):
                 if item is None:
                     continue
                 item.auto_set_leftclick(self.inventory)
-        self.on_destroy = on_destroy
+
+        self.clickbox = ClickBox(self)
+        self.namelabel = None
 
     @Character.model_name.setter
     def model_name(self, new_model):

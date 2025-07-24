@@ -114,7 +114,7 @@ class Character(Entity):
     def equipment_id(self):
         if not self.equipment:
             return -1
-        return self.equipment.inst_id
+        return self.equipment.container_id
 
     @property
     def equipment_inst_ids(self):
@@ -126,7 +126,7 @@ class Character(Entity):
     def inventory_id(self):
         if not self.inventory:
             return -1
-        return self.inventory.inst_id
+        return self.inventory.container_id
 
     @property
     def inventory_inst_ids(self):
