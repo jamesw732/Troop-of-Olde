@@ -39,8 +39,9 @@ num_inventory_slots = 20
 default_num_powers = 10
 power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
 
-# Default network-facing character attrs
+# Default values for network-facing character attrs
 default_char_attrs = {
+    "cname": "Character",
     "uuid": -1,
     "model_name": "humanoid.glb",
     "model_color": Vec4(0, 0, 0, 1),

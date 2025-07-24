@@ -15,7 +15,7 @@ from .. import *
 # LOGIN
 @rpc(network.peer)
 def send_login_state(connection, time_received, state: LoginState):
-    print(state)
+    print(world.make_char_init_dict(state))
 
 @rpc(network.peer)
 def request_enter_world(connection, time_received, pstate: PhysicalState,
