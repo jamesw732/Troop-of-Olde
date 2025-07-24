@@ -39,10 +39,9 @@ class Character(Entity):
             skills = [1] * len(all_skills)
         if powers is None:
             powers = [None] * default_num_powers
-        self.uuid = uuid
 
-        self._model_name = ""
-        self._model_color = Vec4(1, 0, 0, 1)
+        # self._model_name = ""
+        # self._model_color = Vec4(1, 0, 0, 1)
         super().__init__()
 
         # Initialize default values for everything
@@ -52,6 +51,7 @@ class Character(Entity):
         for attr, val in init_char_attrs.items():
             setattr(self, attr, copy(val))
         # Populate all attrs
+        self.uuid = uuid
         if pstate is not None:
             pstate.apply(self)
         self.equipment = equipment
@@ -143,3 +143,33 @@ class Character(Entity):
         if isinstance(new_color, str):
             new_color = color.colors[new_color]
         self._model_color = new_color
+
+    @property
+    def equipment_id(self):
+        if not self.equipment:
+            return -1
+        return self.equipment.inst_id
+
+    @property
+    def equipment_inst_ids(self):
+        if not self.equipment:
+            return [-1] * num_equipment_slots
+        return [item.inst_id if item else -1 for item in self.equipment]
+
+    @property
+    def inventory_id(self):
+        if not self.inventory:
+            return -1
+        return self.inventory.inst_id
+
+    @property
+    def inventory_inst_ids(self):
+        if not self.inventory:
+            return [-1] * num_inventory_slots
+        return [item.inst_id if item else -1 for item in self.inventory]
+
+    @property
+    def powers_inst_ids(self):
+        if not self.powers:
+            return [-1] * default_num_powers
+        return [power.inst_id if power else -1 for power in self.powers]

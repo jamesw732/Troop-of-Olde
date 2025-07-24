@@ -10,6 +10,14 @@ from .. import *
 
 # Login/Character Creation
 @rpc(network.peer)
+def send_pc_spawn_state(connection, time_received, state: PCSpawnState):
+    print(state)
+
+@rpc(network.peer)
+def send_npc_spawn_state(connection, time_received, state: NPCSpawnState):
+    print(state)
+
+@rpc(network.peer)
 def remote_load_world(connection, time_received, zone:str):
     """Remotely generate the world"""
     world.load_zone(zone)

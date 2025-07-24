@@ -13,7 +13,19 @@ from .base import *
 
 class State(list):
     """Base class for all State types. Never meant to be initialized directly,
-    always inherited by other State types."""
+    always inherited by other State types.
+
+    In general, States are used to aggregate a large number of parameters meant to
+    be sent over the network, or abstract frequently used parameters sent over the
+    network. They can read either generic objects such as Characters (by pulling attrs)
+    or dicts (by pulling keys). The latter is important for transferring login data
+    from the client to the server before the client makes the player character, but
+    the former is the more typical use case. States should not have any knowledge
+    about the types they pull data from, any complexity should be delegated to
+    a class's getter methods (@property methods). In other words, if you find yourself
+    trying to redefine State._get_val_from_src, it's probably better to just invent
+    a new property for the class you're working with.
+    """
     statedef = {}
     defaults = {}
     type_to_default = {
@@ -74,7 +86,9 @@ class State(list):
                 try:
                     val = self.statedef[attr](*val)
                 except TypeError:
-                    pass
+                    if attr not in self.defaults:
+                        return self.type_to_default[self.statedef[attr]]
+                    val = self.defaults[attr]
         return val
 
     def _apply_attr(self, dst, attr, val):
@@ -97,13 +111,13 @@ class State(list):
 
 
 class LoginState(State):
-    """State sent by client to request to enter the world."""
+    """State sent by client to request to enter the world.
+    src should be a dict obtained from players.json"""
     custom_defaults = {
         "cname": "Demo Player",
         "equipment": [-1] * num_equipment_slots,
         "inventory": [-1] * num_inventory_slots,
         "powers": [-1] * default_num_powers,
-        "skills": [1] * len(all_skills),
     }
     defaults = default_char_attrs | custom_defaults
     statedef = {
@@ -131,15 +145,64 @@ class LoginState(State):
 
 
 class PCSpawnState(State):
-    """State sent by server to confirm spawning into the world."""
-    defaults = {}
-    statedef = {attr: type(val) for attr, val in defaults.items()}
-
+    """State sent by server to confirm spawning into the world.
+    src should be a ServerCharacter"""
+    custom_defaults = {
+        "cname": "Demo Player",
+        "equipment_id": -1,
+        "equipment_inst_ids": [-1] * num_equipment_slots,
+        "inventory_id": -1,
+        "inventory_inst_ids": [-1] * num_inventory_slots,
+        "powers_inst_ids": [-1] * default_num_powers,
+    }
+    defaults = default_char_attrs | custom_defaults
+    statedef = {
+        "uuid": int,
+        "cname": str,
+        "model_name": str,
+        "model_color": Vec4,
+        "scale": Vec3,
+        "position": Vec3,
+        "rotation": Vec3,
+        "health": int,
+        "energy": int,
+        "statichealth": int,
+        "staticenergy": int,
+        "maxhealth": int,
+        "maxenergy": int,
+        "armor": int,
+        "str": int,
+        "dex": int,
+        "ref": int,
+        "haste": int,
+        "speed": int,
+        "equipment_id": int,
+        "equipment_inst_ids": list[int],
+        "inventory_id": int,
+        "inventory_inst_ids": list[int],
+        "powers_inst_ids": list[int],
+        "skills": list[int],
+    }
 
 class NPCSpawnState(State):
     """State sent by server to spawn an NPC into the world."""
-    defaults = {}
-    statedef = {attr: type(val) for attr, val in defaults.items()}
+    custom_defaults = {
+        "cname": "NPC",
+    }
+    defaults = default_char_attrs | custom_defaults
+    statedef = {
+        "uuid": int,
+        "cname": str,
+        "model_name": str,
+        "model_color": Vec4,
+        "scale": Vec3,
+        "position": Vec3,
+        "rotation": Vec3,
+        "health": int,
+        "energy": int,
+        "maxhealth": int,
+        "maxenergy": int,
+    }
 
 
 class BaseCombatState(State):

@@ -41,9 +41,9 @@ ids with database ids (eventually names). Will also need to make ClientCharacter
 
 
 Development Plan:
-3. Convert ServerCharacter to just accept **kwargs, and maybe make Character not accept anything,
+- Convert ServerCharacter to just accept **kwargs, and maybe make Character not accept anything,
 just instantiate defaults (maybe read from default_attrs, but will want None for equipment/inventory)
-4. Flatten players.json to just make every single key a Character attr.
+- Flatten players.json to just make every single key a Character attr.
 
 
 

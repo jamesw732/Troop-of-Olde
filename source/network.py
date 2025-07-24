@@ -18,6 +18,8 @@ class Network(Entity):
         self.my_uuid = None
 
         self.peer.register_type(LoginState, LoginState.serialize, LoginState.deserialize)
+        self.peer.register_type(PCSpawnState, PCSpawnState.serialize, PCSpawnState.deserialize)
+        self.peer.register_type(NPCSpawnState, NPCSpawnState.serialize, NPCSpawnState.deserialize)
         self.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
         self.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
         self.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)

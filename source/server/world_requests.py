@@ -14,6 +14,10 @@ from .. import *
 
 # LOGIN
 @rpc(network.peer)
+def send_login_state(connection, time_received, state: LoginState):
+    print(state)
+
+@rpc(network.peer)
 def request_enter_world(connection, time_received, pstate: PhysicalState,
                         base_state: BaseCombatState, equipment: list[int],
                         inventory: list[int], skills: list[int], powers: list[int]):
@@ -47,6 +51,10 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         # Existing users just need new character
         else:
             network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
+    pc_spawn_state = PCSpawnState()
+    npc_spawn_state = NPCSpawnState()
+    network.peer.send_pc_spawn_state(connection, pc_spawn_state)
+    network.peer.send_npc_spawn_state(connection, npc_spawn_state)
 
 # PHYSICS
 @rpc(network.peer)

@@ -41,6 +41,7 @@ power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
 
 # Default network-facing character attrs
 default_char_attrs = {
+    "uuid": -1,
     "model_name": "humanoid.glb",
     "model_color": Vec4(0, 0, 0, 1),
     "scale": Vec3(2, 2, 2),
@@ -58,6 +59,7 @@ default_char_attrs = {
     "ref": 0,
     "haste": 0,
     "speed": 0,
+    "skills": [1] * len(all_skills),
 }
 
 # Default values for internal attrs used to initialize a character
@@ -88,7 +90,6 @@ init_char_attrs = {
     "equipment": None,
     "inventory": None,
     "powers": [None] * default_num_powers,
-    "skills": [1] * len(all_skills)
 }
 
 def get_speed_modifier(speed):

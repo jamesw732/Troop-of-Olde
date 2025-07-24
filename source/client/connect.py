@@ -23,6 +23,8 @@ def on_connect(connection, time_received):
         pc_data = json.load(players)[player_name]
     states = get_player_states_from_data(pc_data, player_name)
     network.peer.request_enter_world(connection, *states)
+    login_state = LoginState()
+    network.peer.send_login_state(connection, login_state)
 
 @rpc(network.peer)
 def on_disconnect(connection, time_received):
