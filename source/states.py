@@ -25,6 +25,10 @@ class State(dict):
     a class's getter methods (@property methods). In other words, if you find yourself
     trying to redefine State._get_val_from_src, it's probably better to just invent
     a new property for the class you're working with.
+
+    To define a new state, you should just need to define a custom statedef, which
+    is a map from attr to type, and defaults, which is a map from attr to value,
+    and must be defined on all keys of statedef.
     """
     statedef = {}
     defaults = {}
@@ -199,7 +203,6 @@ class NPCSpawnState(State):
         "maxhealth": int,
         "maxenergy": int,
     }
-
 
 
 class PlayerCombatState(State):
