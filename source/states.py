@@ -41,6 +41,7 @@ class State(list):
         Will never have gaps.
 
         src: dict or Character object"""
+        self.key_to_idx = {key: i for i, key in enumerate(self.statedef)}
         for attr in self.statedef:
             self.append(self._get_val_from_src(attr, src))
 
@@ -108,6 +109,17 @@ class State(list):
             v = reader.read(t)
             state[i] = v
         return state
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            key = self.key_to_idx[key]
+        val = super().__getitem__(key)
+        return val
+
+    def __setitem__(self, key, val):
+        if isinstance(key, str):
+            key = self.key_to_idx[key]
+        super().__setitem__(key, val)
 
 
 class LoginState(State):

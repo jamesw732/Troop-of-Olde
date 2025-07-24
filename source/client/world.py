@@ -47,6 +47,48 @@ class World:
         login_state = LoginState(pc_data)
         return login_state
 
+    def make_pc_init_dict(self, spawn_state):
+        """Converts data from a PCSpawnState to a dict that can be input into ServerCharacter"""
+        init_dict = dict()
+        # Need to loop over States to access by key
+        for i, key in enumerate(login_state.statedef):
+            if key in default_char_attrs:
+                init_dict[key] = login_state[i]
+            elif key == "equipment":
+                equipment_id = self.container_inst_id_ct
+                self.container_inst_id_ct += 1
+                items = [self.make_item(item_id) if item_id >= 0 else None for item_id in login_state[i]]
+                equipment = Container(equipment_id, "equipment", items)
+                self.inst_id_to_container[equipment_id] = equipment
+                init_dict["equipment"] = equipment
+            elif key == "inventory":
+                inventory_id = self.container_inst_id_ct
+                self.container_inst_id_ct += 1
+                items = [self.make_item(item_id) if item_id >= 0 else None for item_id in login_state[i]]
+                inventory = Container(inventory_id, "inventory", items)
+                self.inst_id_to_container[inventory_id] = inventory
+                init_dict["inventory"] = equipment
+            elif key == "powers":
+                powers = [self.make_power(power_id) if power_id >= 0 else None for power_id in login_state[i]]
+                init_dict["powers"] = powers
+        on_destroy = self.make_on_destroy(uuid)
+        init_dict["on_destroy"] = on_destroy
+        return init_dict
+
+    def make_on_destroy(self, uuid):
+        def on_destroy():
+            self.pc = None
+            char = self.uuid_to_char[uuid]
+            del self.uuid_to_char[uuid]
+            char.model_child.detachNode()
+            del char.model_child
+            for src in char.targeted_by:
+                src.target = None
+            char.targeted_by = []
+            char.ignore_traverse = []
+            del char
+        return on_destroy
+
     def make_pc(self, uuid, **kwargs):
         """Create the Player Character from the server's inputs.
 

@@ -25,6 +25,7 @@ def on_connect(connection, time_received):
     states = get_player_states_from_data(pc_data, player_name)
     network.peer.request_enter_world(connection, *states)
     login_state = world.load_player_data(player_name)
+    print(login_state)
     network.peer.send_login_state(connection, login_state)
 
 @rpc(network.peer)

@@ -55,27 +55,30 @@ class World:
         uuid = self.uuid_counter
         init_dict["uuid"] = uuid
         self.uuid_counter += 1
-        # Downside of login_state being a list is that we need to loop over it to access by key
-        for i, key in enumerate(login_state.statedef):
-            if key in default_char_attrs:
+        # Need to loop over States to access by key
+        for i, key in enumerate(default_char_attrs):
+            if key in login_state.statedef:
                 init_dict[key] = login_state[i]
-            elif key == "equipment":
-                equipment_id = self.container_inst_id_ct
-                self.container_inst_id_ct += 1
-                items = [self.make_item(item_id) if item_id >= 0 else None for item_id in login_state[i]]
-                equipment = Container(equipment_id, "equipment", items)
-                self.inst_id_to_container[equipment_id] = equipment
-                init_dict["equipment"] = equipment
-            elif key == "inventory":
-                inventory_id = self.container_inst_id_ct
-                self.container_inst_id_ct += 1
-                items = [self.make_item(item_id) if item_id >= 0 else None for item_id in login_state[i]]
-                inventory = Container(inventory_id, "inventory", items)
-                self.inst_id_to_container[inventory_id] = inventory
-                init_dict["inventory"] = equipment
-            elif key == "powers":
-                powers = [self.make_power(power_id) if power_id >= 0 else None for power_id in login_state[i]]
-                init_dict["powers"] = powers
+        # Make equipment
+        equipment_id = self.container_inst_id_ct
+        self.container_inst_id_ct += 1
+        items = [self.make_item(item_id) if item_id >= 0 else None
+                 for item_id in login_state["equipment"]]
+        equipment = Container(equipment_id, "equipment", items)
+        self.inst_id_to_container[equipment_id] = equipment
+        init_dict["equipment"] = equipment
+        # Make inventory
+        inventory_id = self.container_inst_id_ct
+        self.container_inst_id_ct += 1
+        items = [self.make_item(item_id) if item_id >= 0 else None
+                 for item_id in login_state["inventory"]]
+        inventory = Container(inventory_id, "inventory", items)
+        self.inst_id_to_container[inventory_id] = inventory
+        init_dict["inventory"] = equipment
+        # Make powers
+        powers = [self.make_power(power_id) if power_id >= 0 else None
+                  for power_id in login_state["powers"]]
+        init_dict["powers"] = powers
         on_destroy = self.make_on_destroy(uuid)
         init_dict["on_destroy"] = on_destroy
         return init_dict

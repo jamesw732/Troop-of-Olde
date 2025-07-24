@@ -40,6 +40,7 @@ default_num_powers = 10
 power_key_to_slot = {f"power_{i + 1}": i for i in range(default_num_powers)}
 
 # Default values for network-facing character attrs
+# Anything used for character creation that's exposed to the network should go here.
 default_char_attrs = {
     "cname": "Character",
     "uuid": -1,
@@ -64,6 +65,7 @@ default_char_attrs = {
 }
 
 # Default values for internal attrs used to initialize a character
+# Anything that shouldn't or can't be exposed to the network should go here
 init_char_attrs = {
     "mh_combat_timer": 0,
     "oh_combat_timer": 0,
