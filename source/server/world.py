@@ -42,8 +42,14 @@ class World:
         for name, data in world_data["npcs"].items():
             npc = self.make_char(**get_npc_states_from_data(data, name))
             self.make_ctrl(npc.uuid)
+            data["cname"] = name
+            print(self.make_npc_init_dict(data))
 
-    def make_pc_init_dict(self, login_state):
+    def make_npc_init_dict(self, npc_data):
+        login_state = LoginState(npc_data)
+        return self.make_char_init_dict(login_state)
+
+    def make_char_init_dict(self, login_state):
         """Converts data from a LoginState to a dict that can be input into ServerCharacter"""
         init_dict = dict()
         uuid = self.uuid_counter
@@ -74,14 +80,6 @@ class World:
         init_dict["on_destroy"] = on_destroy
         return init_dict
 
-    def make_npc_init_dict(self, cname, zone_path):
-        init_dict = dict()
-        uuid = self.uuid_counter
-        init_dict["uuid"] = uuid
-        self.uuid_counter += 1
-        # for i, key in enumerate(LoginState.statedef):
-            
-
     def make_on_destroy(self, uuid):
         def on_destroy():
             char = self.uuid_to_char[uuid]
@@ -98,7 +96,6 @@ class World:
                 del network.uuid_to_connection[uuid]
                 del network.connection_to_uuid[connection]
         return on_destroy
-
 
     def make_char(self, **kwargs):
         """Makes the player character while updating uuid map"""
