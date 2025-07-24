@@ -9,7 +9,7 @@ class Network(Entity):
     """Represents a peer's interface into the network state"""
     def __init__(self):
         super().__init__()
-        self.peer = RPCPeer(max_list_length=100)
+        self.peer = RPCPeer(max_list_length=1000)
 
         self.connection_to_uuid = dict()
         self.uuid_to_connection = dict()
@@ -17,6 +17,7 @@ class Network(Entity):
         self.server_connection = None
         self.my_uuid = None
 
+        self.peer.register_type(LoginState, LoginState.serialize, LoginState.deserialize)
         self.peer.register_type(BaseCombatState, BaseCombatState.serialize, BaseCombatState.deserialize)
         self.peer.register_type(PlayerCombatState, PlayerCombatState.serialize, PlayerCombatState.deserialize)
         self.peer.register_type(NPCCombatState, NPCCombatState.serialize, NPCCombatState.deserialize)

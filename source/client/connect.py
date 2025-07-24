@@ -5,7 +5,7 @@ import json
 
 from ursina.networking import rpc
 
-from .. import data_path, network, get_player_states_from_data
+from .. import data_path, network, get_player_states_from_data, LoginState
 
 
 @rpc(network.peer)
@@ -16,6 +16,7 @@ def on_connect(connection, time_received):
     Will need to generate world on peer, spawn all characters including
     peer's, and bind peer's character to my_uuid.
     Eventually, this will not be done on connection, it will be done upon entering the world."""
+    network.server_connection = connection
     player_name = "Demo Player"
     players_path = os.path.join(data_path, "players.json")
     with open(players_path) as players:

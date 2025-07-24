@@ -41,10 +41,6 @@ ids with database ids (eventually names). Will also need to make ClientCharacter
 
 
 Development Plan:
-1. Create a new LoginState that combines PhysicalState, BaseCombatState, powers, equipment, inventory,
-skills. Create a new default_attrs dict in base.py, but exclude equipment and inventory from this
-because this dict should be reusable. Default equipment and inventory should be added manually.
-2. Create a blank LoginState and send it to server, printing output.
 3. Convert ServerCharacter to just accept **kwargs, and maybe make Character not accept anything,
 just instantiate defaults (maybe read from default_attrs, but will want None for equipment/inventory)
 4. Flatten players.json to just make every single key a Character attr.

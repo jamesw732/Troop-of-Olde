@@ -1,6 +1,8 @@
 """Contains API for States, including functions for building states."""
 import os
 import json
+import types
+import typing
 
 from ursina import *
 from ursina import Vec3, Vec4, color, load_model, Entity, destroy
@@ -88,21 +90,22 @@ class State(list):
     @classmethod
     def deserialize(cls, reader):
         state = cls()
-        for i, t in enumerate(cls.statedef.values()):
+        for i, (k, t) in enumerate(cls.statedef.items()):
             v = reader.read(t)
             state[i] = v
         return state
 
 
-class LoginState(list):
+class LoginState(State):
     """State sent by client to request to enter the world."""
     custom_defaults = {
         "cname": "Demo Player",
         "equipment": [-1] * num_equipment_slots,
         "inventory": [-1] * num_inventory_slots,
         "powers": [-1] * default_num_powers,
+        "skills": [1] * len(all_skills),
     }
-    defaults = default_char_attrs
+    defaults = default_char_attrs | custom_defaults
     statedef = {
         "cname": str,
         "model_name": str,
@@ -127,13 +130,13 @@ class LoginState(list):
     }
 
 
-class PCSpawnState(list):
+class PCSpawnState(State):
     """State sent by server to confirm spawning into the world."""
     defaults = {}
     statedef = {attr: type(val) for attr, val in defaults.items()}
 
 
-class NPCSpawnState(list):
+class NPCSpawnState(State):
     """State sent by server to spawn an NPC into the world."""
     defaults = {}
     statedef = {attr: type(val) for attr, val in defaults.items()}

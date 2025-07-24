@@ -40,7 +40,6 @@ def spawn_pc(connection, time_received, uuid: int, pstate: PhysicalState, equipm
     world.make_pc(uuid, pstate=pstate, equipment=equipment, inventory=inventory,
                   skills=skills, powers=powers, cbstate=cbstate)
     world.make_pc_ctrl()
-    network.server_connection = connection
 
     ui.make_all_ui()
 
