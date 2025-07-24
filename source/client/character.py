@@ -25,20 +25,30 @@ class ClientCharacter(Character):
         powers: list of num_powers Powers
         """
         self.model_child = Actor()
-        super().__init__(uuid, pstate=pstate, equipment=equipment,
-                         inventory=inventory, skills=skills, powers=powers)
+        super().__init__()
+        self.uuid = uuid
+        self.equipment = equipment
+        self.inventory = inventory
+        self.skills = skills
+        self.powers = powers
+        self.on_destroy = on_destroy
+
         self.clickbox = ClickBox(self)
         self.namelabel = None
+        if pstate is not None:
+            pstate.apply(self)
         if cbstate is not None:
             cbstate.apply(self)
-        for idx, item in enumerate(self.equipment):
-            if item is None:
-                continue
-            item.auto_set_leftclick(self.equipment)
-        for idx, item in enumerate(self.inventory):
-            if item is None:
-                continue
-            item.auto_set_leftclick(self.inventory)
+        if self.equipment is not None:
+            for idx, item in enumerate(self.equipment):
+                if item is None:
+                    continue
+                item.auto_set_leftclick(self.equipment)
+        if self.inventory is not None:
+            for idx, item in enumerate(self.inventory):
+                if item is None:
+                    continue
+                item.auto_set_leftclick(self.inventory)
         self.on_destroy = on_destroy
 
     @Character.model_name.setter

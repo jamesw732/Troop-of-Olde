@@ -16,50 +16,16 @@ from .combat import get_wpn_range
 from .states import *
 
 class Character(Entity):
-    def __init__(self, uuid, pstate=None, inventory=None, equipment=None,
-                 skills=None, powers=None):
+    def __init__(self):
         """Base Character class representing the intersection of server and client-side Characters.
 
-        In general, defaults should only be used for ease of testing, when parts of the
-        Functionality from here should liberally be pulled into ClientCharacter and ServerCharacter
-        when necessary.
-        uuid: unique id. Used to encode which player you're talking about online.
-        pstate: PhysicalState
-        inventory: Container of num_inventory_slots Items
-        equipment: Container of num_equipment_slots Items
-        skills: list[int] containing skill levels
-        powers: list of num_powers Powers
+        Populates default values for everything.
         """
-        # Inventory and equipment should default to None, not a list of Nones
-        if inventory is None:
-            inventory = [None] * num_inventory_slots
-        if equipment is None:
-            equipment = [None] * num_equipment_slots
-        if skills is None:
-            skills = [1] * len(all_skills)
-        if powers is None:
-            powers = [None] * default_num_powers
-
-        # self._model_name = ""
-        # self._model_color = Vec4(1, 0, 0, 1)
         super().__init__()
-
-        # Initialize default values for everything
-        # Physical attrs
         for attr, val in default_char_attrs.items():
             setattr(self, attr, copy(val))
         for attr, val in init_char_attrs.items():
             setattr(self, attr, copy(val))
-        # Populate all attrs
-        self.uuid = uuid
-        if pstate is not None:
-            pstate.apply(self)
-        self.equipment = equipment
-        self.inventory = inventory
-        self.num_powers = default_num_powers
-        self.powers = powers
-        # Make skills match length of default, this allows for missing skills on disk
-        self.skills = skills + self.skills[len(skills):]
 
     def update_max_ratings(self):
         """Adjust max ratings, for example after receiving a stat update."""

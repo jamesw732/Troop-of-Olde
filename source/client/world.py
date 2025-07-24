@@ -16,6 +16,7 @@ class World:
         self.structures = []
         self.pc = None
         self.pc_ctrl = None
+        self.init_data = {}
 
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
@@ -37,6 +38,17 @@ class World:
                 if "color" in data and isinstance(data["color"], str):
                     data["color"] = color.colors[data["color"]]
                 self.structures.append(Entity(**data))
+
+    def load_player_data(self, cname):
+        players_path = os.path.join(data_path, "players.json")
+        with open(players_path) as players:
+            pc_data = json.load(players)[cname]
+        pc_data["cname"] = cname
+        self.init_data["equipment"] = pc_data["equipment"]
+        self.init_data["inventory"] = pc_data["inventory"]
+        self.init_data["powers"] = pc_data["powers"]
+        login_state = LoginState(pc_data)
+        return login_state
 
     def make_pc(self, uuid, **kwargs):
         """Create the Player Character from the server's inputs.

@@ -30,14 +30,23 @@ class ServerCharacter(Character):
         skills: list[int] containing skill levels
         powers: list of num_powers Powers
         """
-        super().__init__(uuid, pstate=pstate, equipment=equipment,
-                         inventory=inventory, skills=skills, powers=powers)
+        super().__init__()
+        self.uuid = uuid
+        self.equipment = equipment
+        self.inventory = inventory
+        self.skills = skills
+        self.powers = powers
+        self.on_destroy = on_destroy
+
+        if pstate is not None:
+            pstate.apply(self)
         if cbstate is not None:
             cbstate.apply(self)
         self.on_destroy = on_destroy
-        for item in self.equipment:
-            if item is None:
-                continue
-            item.handle_stats(self, self.equipment)
+        if self.equipment is not None:
+            for item in self.equipment:
+                if item is None:
+                    continue
+                item.handle_stats(self, self.equipment)
         self.update_max_ratings()
         self.effects = []

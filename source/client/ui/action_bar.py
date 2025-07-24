@@ -3,12 +3,12 @@ from ursina import *
 from .base import *
 from .window import UIWindow
 from ..world import world
-from ... import power_key_to_slot
+from ... import power_key_to_slot, default_num_powers
 
 
 class ActionBar(UIWindow):
     def __init__(self):
-        self.num_slots = world.pc.num_powers
+        self.num_slots = default_num_powers
         self.total_slot_width = 0.5
         self.slot_height = self.total_slot_width / self.num_slots
 

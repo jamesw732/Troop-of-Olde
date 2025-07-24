@@ -41,9 +41,20 @@ ids with database ids (eventually names). Will also need to make ClientCharacter
 
 
 Development Plan:
-- Convert ServerCharacter to just accept **kwargs, and maybe make Character not accept anything,
-just instantiate defaults (maybe read from default_attrs, but will want None for equipment/inventory)
-- Flatten players.json to just make every single key a Character attr.
+- Make client.world.load_player_data function that stores equipment, inventory, and powers and
+returns the LoginState to be sent to server. (done)
+- Make Character.__init__ take no arguments, it'll just make everything a default.
+- Update server.world to create the character initialization dict from the LoginState.
+Don't make it actually initialize a character yet.
+- Update server.world to create a character initialization dict from the raw json npc data.
+Don't make it actually initialize a character yet.
+- Make server send back a PCSpawnState, and use it to create the character initialization dict.
+Don't make it actually initialize a character yet.
+- Make server send back a NPCSpawnState, and use it to create the character initialization dict.
+Don't make it actually initialize a character yet.
+- Make ServerCharacter and ClientCharacter accept **kwargs, it'll just loop over this and
+use setattr. Flatten players.json to remove base_state and physical.
+
 
 
 

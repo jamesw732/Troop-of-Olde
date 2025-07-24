@@ -51,8 +51,8 @@ def request_enter_world(connection, time_received, pstate: PhysicalState,
         # Existing users just need new character
         else:
             network.peer.spawn_npc(conn, new_pc.uuid, pstate, new_char_cbstate)
-    pc_spawn_state = PCSpawnState()
-    npc_spawn_state = NPCSpawnState()
+    pc_spawn_state = PCSpawnState(new_pc)
+    npc_spawn_state = NPCSpawnState(new_pc)
     network.peer.send_pc_spawn_state(connection, pc_spawn_state)
     network.peer.send_npc_spawn_state(connection, npc_spawn_state)
 
