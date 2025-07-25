@@ -114,8 +114,8 @@ class LoginState(State):
     src should be a dict obtained from players.json"""
     custom_defaults = {
         "cname": "Demo Player",
-        "equipment": [-1] * num_equipment_slots,
-        "inventory": [-1] * num_inventory_slots,
+        "equipment": [""] * num_equipment_slots,
+        "inventory": [""] * num_inventory_slots,
         "powers": [""] * default_num_powers,
     }
     defaults = default_char_attrs | custom_defaults
@@ -136,8 +136,8 @@ class LoginState(State):
         "ref": int,
         "haste": int,
         "speed": int,
-        "equipment": list[int],
-        "inventory": list[int],
+        "equipment": list[str],
+        "inventory": list[str],
         "powers": list[str],
         "skills": list[int],
     }

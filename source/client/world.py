@@ -45,9 +45,9 @@ class World:
         pc_data["cname"] = cname
         # Pad containers with fill
         pc_data["equipment"] = pc_data["equipment"] \
-            + [-1] * (num_equipment_slots - len(pc_data["equipment"]))
+            + [""] * (num_equipment_slots - len(pc_data["equipment"]))
         pc_data["inventory"] = pc_data["inventory"] \
-            + [-1] * (num_inventory_slots - len(pc_data["inventory"]))
+            + [""] * (num_inventory_slots - len(pc_data["inventory"]))
         pc_data["powers"] = pc_data["powers"] \
             + [""] * (default_num_powers - len(pc_data["powers"]))
         self.init_data["equipment"] = pc_data["equipment"]
@@ -66,18 +66,18 @@ class World:
         # Make equipment
         equipment_id = spawn_state["equipment_id"]
         equipment_inst_ids = spawn_state["equipment_inst_ids"]
-        items = [self.make_item(item_id, inst_id) if item_id >= 0 and inst_id >= 0
+        items = [self.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
                     else None
-                 for item_id, inst_id in zip(self.init_data["equipment"], equipment_inst_ids)]
+                 for item_mnem, inst_id in zip(self.init_data["equipment"], equipment_inst_ids)]
         equipment = Container(equipment_id, "equipment", items)
         self.inst_id_to_container[equipment_id] = equipment
         init_dict["equipment"] = equipment
         # Make inventory
         inventory_id = spawn_state["inventory_id"]
         inventory_inst_ids = spawn_state["inventory_inst_ids"]
-        items = [self.make_item(item_id, inst_id) if item_id >= 0 and inst_id >= 0
+        items = [self.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
                     else None
-                 for item_id, inst_id in zip(self.init_data["inventory"], inventory_inst_ids)]
+                 for item_mnem, inst_id in zip(self.init_data["inventory"], inventory_inst_ids)]
         inventory = Container(inventory_id, "inventory", items)
         self.inst_id_to_container[inventory_id] = inventory
         init_dict["inventory"] = inventory
@@ -170,10 +170,10 @@ class World:
         char = self.uuid_to_char[uuid]
         self.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
 
-    def make_item(self, item_id, inst_id):
+    def make_item(self, item_mnem, inst_id):
         def on_destroy():
             del self.inst_id_to_item[inst_id]
-        item = Item(item_id, inst_id, on_destroy=on_destroy)
+        item = Item(item_mnem, inst_id, on_destroy=on_destroy)
         self.inst_id_to_item[inst_id] = item
         return item
 

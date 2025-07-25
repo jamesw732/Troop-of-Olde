@@ -1,5 +1,5 @@
 {
-    "1": {
+    "bronze_shortsword": {
         "name": "Bronze Shortsword",
         "type": "weapon",
         "info": {
@@ -14,7 +14,7 @@
         },
         "icon": "bronze_shortsword.png"
     },
-    "2": {
+    "iron_longsword": {
         "name": "Iron Longsword",
         "type": "weapon",
         "info": {
@@ -29,7 +29,7 @@
         },
         "icon": "iron_longsword.png"
     },
-    "3": {
+    "iron_broadsword": {
         "name": "Iron Broadsword",
         "type": "weapon",
         "info": {

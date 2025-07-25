@@ -62,8 +62,8 @@ class World:
         # Make equipment
         equipment_id = self.container_inst_id_ct
         self.container_inst_id_ct += 1
-        items = [self.make_item(item_id) if item_id >= 0 else None
-                 for item_id in login_state["equipment"]]
+        items = [self.make_item(item_mnem) if item_mnem != ""  else None
+                 for item_mnem in login_state["equipment"]]
         items += [None] * (len(items) - num_equipment_slots)
         equipment = Container(equipment_id, "equipment", items)
         self.inst_id_to_container[equipment_id] = equipment
@@ -71,8 +71,8 @@ class World:
         # Make inventory
         inventory_id = self.container_inst_id_ct
         self.container_inst_id_ct += 1
-        items = [self.make_item(item_id) if item_id >= 0 else None
-                 for item_id in login_state["inventory"]]
+        items = [self.make_item(item_mnem) if item_mnem != "" else None
+                 for item_mnem in login_state["inventory"]]
         items += [None] * (len(items) - num_inventory_slots)
         inventory = Container(inventory_id, "inventory", items)
         self.inst_id_to_container[inventory_id] = inventory
@@ -126,12 +126,12 @@ class World:
         self.uuid_to_ctrl[uuid] = new_ctrl
         return new_ctrl
 
-    def make_item(self, item_id):
+    def make_item(self, item_mnem):
         inst_id = self.item_inst_id_ct
         self.item_inst_id_ct += 1
         def on_destroy():
             del self.inst_id_to_item[inst_id]
-        item = Item(item_id, inst_id, on_destroy=on_destroy)
+        item = Item(item_mnem, inst_id, on_destroy=on_destroy)
         self.inst_id_to_item[inst_id] = item
         return item
     

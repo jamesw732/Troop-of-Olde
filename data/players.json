@@ -5,8 +5,8 @@
         "scale": [2, 2, 2],
         "model_color": [0, 0, 0, 1],
         "haste": 100,
-        "equipment": [-1, -1, 2, 1],
-        "inventory": [1, 3],
+        "equipment": ["", "", "iron_longsword", "bronze_shortsword"],
+        "inventory": ["bronze_shortsword", "iron_broadsword"],
         "powers": ["kick", "light_heal", "fire_blast", "rejuvenation", "empowered_strikes"]
     }
 }

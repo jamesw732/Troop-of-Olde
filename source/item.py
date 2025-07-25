@@ -21,14 +21,14 @@ class Item:
         "unequip": "auto_unequip"
     }
 
-    def __init__(self, item_id, inst_id, on_destroy=lambda: None):
+    def __init__(self, item_mnem, inst_id, on_destroy=lambda: None):
         """An Item represents the internal state of an in-game item. It is mostly just a dict.
         item_id: int, id corresponding to an entry in the database; not unique WRT item instances
         inst_id: unique id used to refer to this item over the network
         on_destroy: operations to perform once an Item is destroyed, currently unused"""
-        self.item_id = item_id
+        self.item_mnem = item_mnem
         self.inst_id = inst_id
-        data = copy.deepcopy(items_dict[str(item_id)])
+        data = copy.deepcopy(items_dict[item_mnem])
         self.on_destroy = on_destroy
 
         self.name = data.get("name", "")
