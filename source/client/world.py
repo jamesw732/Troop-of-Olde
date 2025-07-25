@@ -5,6 +5,7 @@ import os
 
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
+from .ui import ui
 from .. import *
 
 class World:
@@ -53,7 +54,6 @@ class World:
         self.init_data["inventory"] = pc_data["inventory"]
         self.init_data["powers"] = pc_data["powers"]
         login_state = LoginState(pc_data)
-        print(login_state)
         return login_state
 
     def make_pc_init_dict(self, spawn_state):
@@ -178,7 +178,10 @@ class World:
         return item
 
     def make_power(self, power_mnem, inst_id):
-        power = Power(power_mnem, inst_id)
+        def on_use():
+            ui.actionbar.start_cd_animation()
+            ui.bars.update_display()
+        power = Power(power_mnem, inst_id, on_use=on_use)
         self.inst_id_to_power[inst_id] = power
         return power
 

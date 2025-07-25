@@ -106,6 +106,7 @@ class MobController(Entity):
         power.use(self.character, tgt)
 
     def handle_effects(self):
+        """Increments effect timers and handles all necessary changes to character."""
         char = self.character
         updated_cbstate = False
         for effect in char.effects:

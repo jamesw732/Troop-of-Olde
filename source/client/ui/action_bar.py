@@ -2,12 +2,13 @@ from ursina import *
 
 from .base import *
 from .window import UIWindow
-from ..world import world
 from ... import power_key_to_slot, default_num_powers
 
 
 class ActionBar(UIWindow):
-    def __init__(self):
+    def __init__(self, char, ctrl):
+        self.char = char
+        self.ctrl = ctrl
         self.num_slots = default_num_powers
         self.total_slot_width = 0.5
         self.slot_height = self.total_slot_width / self.num_slots
@@ -29,7 +30,7 @@ class ActionBar(UIWindow):
         pbar_world_pos = camera.ui.scale * Vec3(self.margin, -self.header_height - self.margin, -1) \
                 + self.world_position
         pbar_world_scale = camera.ui.scale * Vec3(self.total_slot_width, self.slot_height, 1)
-        self.powerbar = PowerBar(parent=self, world_position=pbar_world_pos,
+        self.powerbar = PowerBar(char, ctrl, parent=self, world_position=pbar_world_pos,
                                  origin=(-0.5, 0.5), world_scale=pbar_world_scale, collider='box',
                                color=window_fg_color, model='quad')
         
@@ -39,26 +40,27 @@ class ActionBar(UIWindow):
         for i, icon in enumerate(self.powerbar.power_icons):
             if icon is None or icon.cd_overlay is not None:
                 continue
-            icon.cd_overlay = Timer(world.pc.powers[i], parent=icon, origin=(-.5, .5),
+            icon.cd_overlay = Timer(self.char, self.char.powers[i], parent=icon, origin=(-.5, .5),
                                      position=(0, 0, -5), 
                                      model='quad', color=color.gray, alpha=0.6,
                                      scale_x = 1)
 
 
 class PowerBar(Entity):
-    def __init__(self, **kwargs):
+    def __init__(self, char, ctrl, **kwargs):
+        self.char = char
+        self.ctrl = ctrl
         super().__init__(**kwargs)
         self.power_icons = [None] * self.parent.num_slots
         self.labels = []
         outlines = []
-        for i, power in enumerate(world.pc.powers):
+        for i, power in enumerate(self.char.powers):
             if power is not None:
                 self.power_icons[i] = Entity(parent=self, origin=(-0.5, 0.5),
                                              scale=(1 / self.parent.num_slots, 1), 
                                              position=(i / self.parent.num_slots, 0, -1),
                                              model='quad', texture=power.icon)
                 self.power_icons[i].cd_overlay = None
-                power.on_use = self.parent.start_cd_animation
             label = str(i + 1)
             self.labels.append(Text(text=label, parent=self, world_scale=(12, 12),
                                          position=((i + 0.05) / self.parent.num_slots, -.95, -2),
@@ -75,10 +77,10 @@ class PowerBar(Entity):
 
     def handle_power_input(self, key):
         slot = power_key_to_slot[key]
-        power = world.pc.powers[slot]
+        power = self.char.powers[slot]
         if power is None:
             return
-        world.pc_ctrl.handle_power_input(power)
+        self.ctrl.handle_power_input(power)
 
     def on_click(self):
         ui_mouse_x = mouse.x * camera.ui.scale_x
@@ -86,14 +88,15 @@ class PowerBar(Entity):
         slot_world_scale_x = self.world_scale_x / self.parent.num_slots
         slot = int(rel_mouse_x // slot_world_scale_x)
 
-        power = world.pc.powers[slot]
+        power = self.char.powers[slot]
         if power is None:
             return
-        world.pc_ctrl.handle_power_input(power)
+        self.ctrl.handle_power_input(power)
 
 
 class Timer(Entity):
-    def __init__(self, power, *args, **kwargs):
+    def __init__(self, char, power, *args, **kwargs):
+        self.char = char
         self.power = power
         super().__init__(*args, **kwargs)
         self.ignore_focus = True
@@ -101,8 +104,8 @@ class Timer(Entity):
     def update(self):
         self.alpha = 0.6
         # Choose gcd or individual cd timer, whichever will finish later
-        if world.pc.gcd - world.pc.gcd_timer >= self.power.cooldown - self.power.timer:
-            self.scale_x = 1 - world.pc.gcd_timer / world.pc.gcd
+        if self.char.gcd - self.char.gcd_timer >= self.power.cooldown - self.power.timer:
+            self.scale_x = 1 - self.char.gcd_timer / self.char.gcd
         else:
             self.scale_x = 1 - self.power.timer / self.power.cooldown
         if self.scale_x <= 0:

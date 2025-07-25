@@ -1,11 +1,11 @@
 from ursina import *
 
 from .base import *
-from ..world import world
 from ... import all_skills, skill_to_idx
 
 class SkillsWindow(Entity):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, char, *args, **kwargs):
+        self.char = char
         super().__init__(*args, **kwargs)
         self.text_size = Vec2(12, 12)
         # Absolute text width
@@ -40,7 +40,7 @@ class SkillsWindow(Entity):
     def set_label_text(self, skill):
         label = self.labels[skill]
         fmt = label.fmt
-        txt = self.format_text(fmt, world.pc.skills[skill_to_idx[skill]])
+        txt = self.format_text(fmt, self.char.skills[skill_to_idx[skill]])
         label.text = txt
 
     def format_text(self, fmt, *args):

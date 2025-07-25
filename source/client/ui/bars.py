@@ -2,11 +2,11 @@ from ursina import *
 
 from .base import *
 from .window import UIWindow
-from ..world import world
 
 
 class BarWindow(UIWindow):
-    def __init__(self):
+    def __init__(self, char):
+        self.char = char
         # super().__init__(position=(0, -1, 0), scale=(1, 2.5))
         super().__init__(position=(-0.495 * window.aspect_ratio, 0.49), scale=(0.2, 0.08), bg_alpha=220/255)
 
@@ -40,15 +40,15 @@ class BarWindow(UIWindow):
         self.update_energy()
 
     def update_health(self):
-        if world.pc.maxhealth == 0:
+        if self.char.maxhealth == 0:
             ratio = 0
         else:
-            ratio = world.pc.health / world.pc.maxhealth
+            ratio = self.char.health / self.char.maxhealth
         self.healthbar.scale = (ratio, self.bar_height)
 
     def update_energy(self):
-        if world.pc.maxenergy == 0:
+        if self.char.maxenergy == 0:
             ratio = 0
         else:
-            ratio = world.pc.energy / world.pc.maxenergy
+            ratio = self.char.energy / self.char.maxenergy
         self.energybar.scale = (ratio, self.bar_height)

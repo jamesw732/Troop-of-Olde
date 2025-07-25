@@ -14,5 +14,5 @@ class ServerPower(Power):
         """Does the server-side things involved with using a power.
         Used by char on their active target."""
         super().use(src, tgt)
-        effect = Effect(self.effect_id, src, tgt)
+        effect = Effect(self.effect_mnem, src, tgt)
         effect.attempt_apply()

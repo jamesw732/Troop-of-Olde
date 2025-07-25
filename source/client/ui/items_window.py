@@ -2,7 +2,6 @@ from ursina import *
 import copy
 
 from .base import *
-from ..world import world
 from ... import *
 
 """Explanation of terminology used in this file:
@@ -14,9 +13,9 @@ ItemFrame represents a grid of items, and handles most of the items UI inputs
 """
 
 class ItemsWindow(Entity):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, char, *args, **kwargs):
+        self.char = char
         super().__init__(*args, **kwargs)
-
         # This is used to normalize lengths relative to the width/height of the ItemsWindow
         # Given a width/length, multiply the length by window_wh_ratio to get the correct
         # length relative to the width
@@ -34,7 +33,7 @@ class ItemsWindow(Entity):
         equip_frame_scale = Vec3(equip_frame_width, equip_frame_height, 1)
         equip_frame_pos = ((1 - equip_frame_width) / 2, equip_frame_height + edge_margin - 1, -1)
 
-        self.equipment_frame = ItemFrame(equip_grid_size, world.pc.equipment,
+        self.equipment_frame = ItemFrame(equip_grid_size, self.char.equipment,
                                         slot_labels=equipment_slots,
                                         parent=self, position=equip_frame_pos, scale=equip_frame_scale)
 
@@ -48,7 +47,7 @@ class ItemsWindow(Entity):
         inventory_position = (4 * edge_margin, -edge_margin, -1)
         inventory_frame_scale = Vec2(inventory_frame_width, inventory_frame_height)
 
-        self.inventory_frame = ItemFrame(inventory_grid_size, world.pc.inventory,
+        self.inventory_frame = ItemFrame(inventory_grid_size, self.char.inventory,
                                          parent=self, position=inventory_position, scale=inventory_frame_scale)
 
         self.container_to_frame = {"equipment": self.equipment_frame,
