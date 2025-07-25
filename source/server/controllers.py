@@ -51,9 +51,8 @@ class MobController(Entity):
         # Queued power handling
         if char.get_on_gcd():
             char.tick_gcd()
-        elif char.next_power is not None and not char.next_power.on_cooldown:
-            self.use_power(char.next_power)
         self.handle_effects()
+        # Need to update 
 
     def handle_combat(self, slot):
         src = self.character
@@ -104,6 +103,8 @@ class MobController(Entity):
         if self.character.energy < power.cost:
             return
         power.use(self.character, tgt)
+        # Upon using a power, need to update energy to clients
+        network.broadcast_cbstate_update(self.character)
 
     def handle_effects(self):
         """Increments effect timers and handles all necessary changes to character."""

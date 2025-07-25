@@ -19,7 +19,7 @@
         "tick_rate": 0.5,
         "duration": 5
     },
-    "rejuvenate": {
+    "rejuvenation": {
         "tick_effects": {
             "heal": 5
         },

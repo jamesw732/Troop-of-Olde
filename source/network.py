@@ -41,9 +41,9 @@ class Network(Entity):
         npc_state = NPCCombatState(char)
         for connection, uuid in self.connection_to_uuid.items():
             if uuid == char.uuid:
-                self.peer.update_pc_cbstate(connection, uuid, pc_state)
+                self.peer.update_pc_cbstate(connection, pc_state)
             else:
-                self.peer.update_npc_cbstate(connection, uuid, npc_state)
+                self.peer.update_npc_cbstate(connection, char.uuid, npc_state)
 
 
 # RPC needs to know about network at compile time, so this global seems necessary

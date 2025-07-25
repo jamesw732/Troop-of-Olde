@@ -73,7 +73,7 @@ def remote_set_target(connection, time_received, uuid: int):
         ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
-def update_pc_cbstate(connection, time_received, uuid: int, cbstate: PlayerCombatState):
+def update_pc_cbstate(connection, time_received, cbstate: PlayerCombatState):
     if world.pc is None:
         return
     cbstate.apply(world.pc)

@@ -41,12 +41,12 @@ class Power(Entity):
 
     def use(self, src, tgt):
         self.start_cooldowns(src)
+        src.energy -= self.cost
         self.on_use()
 
     def start_cooldowns(self, src):
         self.timer = 0
         self.on_cooldown = True
-        src.energy -= self.cost
         src.gcd = self.gcd_duration
         src.gcd_timer = 0
         src.next_power = None
