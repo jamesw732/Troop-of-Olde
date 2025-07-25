@@ -1,5 +1,5 @@
 {
-    "0": {
+    "kick": {
         "name": "Kick",
         "icon": "kick.png",
         "power_type": "ability",
@@ -10,7 +10,7 @@
         "target": "single",
         "gcd_duration": 5
     },
-    "1": {
+    "light_heal": {
         "name": "Light Heal",
         "icon": "heal-royal-1.png",
         "power_type": "spell",
@@ -21,7 +21,7 @@
         "target": "single",
         "gcd_duration": 5
     },
-    "2": {
+    "fire_blast": {
         "name": "Fire Blast",
         "icon": "fireball-red-1.png",
         "power_type": "spell",
@@ -32,7 +32,7 @@
         "target": "single",
         "gcd_duration": 5
     },
-    "3": {
+    "rejuvenation": {
         "name": "Rejuvenation",
         "icon": "heal-jade-1.png",
         "power_type": "spell",
@@ -43,7 +43,7 @@
         "target": "single",
         "gcd_duration": 5
     },
-    "4": {
+    "empowered_strikes": {
         "name": "Empowered Strikes",
         "icon": "enchant-royal-1.png",
         "power_type": "spell",

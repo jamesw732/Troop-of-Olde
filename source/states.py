@@ -116,7 +116,7 @@ class LoginState(State):
         "cname": "Demo Player",
         "equipment": [-1] * num_equipment_slots,
         "inventory": [-1] * num_inventory_slots,
-        "powers": [-1] * default_num_powers,
+        "powers": [""] * default_num_powers,
     }
     defaults = default_char_attrs | custom_defaults
     statedef = {
@@ -138,7 +138,7 @@ class LoginState(State):
         "speed": int,
         "equipment": list[int],
         "inventory": list[int],
-        "powers": list[int],
+        "powers": list[str],
         "skills": list[int],
     }
 

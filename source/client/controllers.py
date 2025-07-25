@@ -109,7 +109,7 @@ class PlayerController(Entity):
         if self.character.energy < power.cost:
             return
         power.use(self.character, tgt)
-        network.peer.request_use_power(network.server_connection, power.power_id)
+        network.peer.request_use_power(network.server_connection, power.inst_id)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):

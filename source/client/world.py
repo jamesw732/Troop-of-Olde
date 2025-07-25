@@ -48,11 +48,12 @@ class World:
         pc_data["inventory"] = pc_data["inventory"] \
             + [-1] * (num_inventory_slots - len(pc_data["inventory"]))
         pc_data["powers"] = pc_data["powers"] \
-            + [-1] * (default_num_powers - len(pc_data["powers"]))
+            + [""] * (default_num_powers - len(pc_data["powers"]))
         self.init_data["equipment"] = pc_data["equipment"]
         self.init_data["inventory"] = pc_data["inventory"]
         self.init_data["powers"] = pc_data["powers"]
         login_state = LoginState(pc_data)
+        print(login_state)
         return login_state
 
     def make_pc_init_dict(self, spawn_state):
@@ -82,9 +83,9 @@ class World:
         init_dict["inventory"] = inventory
         # Make powers
         powers_inst_ids = spawn_state["powers_inst_ids"]
-        powers = [self.make_power(power_id, inst_id) if power_id >= 0 and inst_id >= 0
+        powers = [self.make_power(power_mnem, inst_id) if power_mnem != "" and inst_id >= 0
                     else None
-                 for power_id, inst_id in zip(self.init_data["powers"], powers_inst_ids)]
+                 for power_mnem, inst_id in zip(self.init_data["powers"], powers_inst_ids)]
         init_dict["powers"] = powers
         on_destroy = self.make_pc_on_destroy(init_dict["uuid"])
         init_dict["on_destroy"] = on_destroy
@@ -176,8 +177,8 @@ class World:
         self.inst_id_to_item[inst_id] = item
         return item
 
-    def make_power(self, power_id, inst_id):
-        power = Power(power_id, inst_id)
+    def make_power(self, power_mnem, inst_id):
+        power = Power(power_mnem, inst_id)
         self.inst_id_to_power[inst_id] = power
         return power
 

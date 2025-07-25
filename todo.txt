@@ -4,57 +4,8 @@ Implementation todo list.
 Consolidate the database for the static game data (no need to handle player data yet,
 this is still a future problem). I don't think I'll need an SQLite database for the static
 data, just need to rework the structure. In particular:
-- Flatten players.json to not differentiate between the combat state and physical state.
-Just have one login state for characters, which will require significant refactoring of
-the Character class and states.
 - Change all jsons to not use ids, instead use names, which will be unique.
-- Make a separate npcs.json file which defines stuff like model, stats, etc. Should also flatten
-these as in players.json. Then, the zones will define NPC names along with positions/rotations.
 
-
-Flattening player.json will be a pretty big project, so I'm going to try to detail
-the processes for logging in and creating an NPC. Don't try to make it even more complicated
-by also updating the items/powers/effects jsons to use names instead of IDs yet.
-Logging in:
-1. The player joins the server and loads their character's data in from players.json
-2. The client aggregates the character's login data, I think it would be possible to have
-a LoginState that just stores everything, including the engine attributes, combat stats, inventory,
-equipment, powers. This should be the cleanest way to avoid having tons of arguments.
-The client should store this state, as it will help create the character after the server sends its
-response.
-3. The server's world creates the character from the transmitted data. It will need to convert the
-inventory, equipment, and powers to real objects, but this work is already done. Will need to simplify
-ServerCharacter and Character to just accept **kwargs, and then overwrite all of the attrs.
-4. Once the new character is created, the server needs to retransmit it to all the clients.
-The data it needs to send is, of course, different depending on whether it's the player's character or not.
-Create a PCSpawnState and an NPCSpawnState for this.
-PCSpawnState will contain:
-- All physical/stat attrs
-- Lists of int instance ids for item containers and powers
-NPCSpawnState will contain:
-- All physical attrs
-- Reduced stat attrs (maybe just health, maxhealth, energy, maxenergy)
-5. When each client receives this data, they must then create the character, most of this work is done already.
-Main thing to change is how we handle items and powers, which will use the saved LoginState to match instance
-ids with database ids (eventually names). Will also need to make ClientCharacter just accept **kwargs.
-
-
-
-Development Plan:
-- Make client.world.load_player_data function that stores equipment, inventory, and powers and
-returns the LoginState to be sent to server. (done)
-- Make Character.__init__ take no arguments, it'll just make everything a default. (done)
-- Update server.world to create the character initialization dict from the LoginState. 
-Don't make it actually initialize a character yet. (done)
-- Update server.world to create a character initialization dict from the raw json npc data.
-Don't make it actually initialize a character yet. (done)
-- Make server send back a PCSpawnState, and use it to create the character initialization dict.
-Don't make it actually initialize a character yet. (done)
-- Make server send back a NPCSpawnState, and use it to create the character initialization dict.
-Don't make it actually initialize a character yet. (done)
-- Make ServerCharacter and ClientCharacter accept **kwargs, it'll just loop over this and
-use setattr. Make character creation functions use new parameters and flatten players.json to
-remove base_state and physical.
 
 
 

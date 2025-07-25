@@ -78,8 +78,8 @@ class World:
         self.inst_id_to_container[inventory_id] = inventory
         init_dict["inventory"] = inventory
         # Make powers
-        powers = [self.make_power(power_id) if power_id >= 0 else None
-                  for power_id in login_state["powers"]]
+        powers = [self.make_power(power_mnem) if power_mnem != "" else None
+                  for power_mnem in login_state["powers"]]
         powers += [None] * (len(powers) - default_num_powers)
         init_dict["powers"] = powers
         on_destroy = self.make_char_on_destroy(uuid)
@@ -135,10 +135,10 @@ class World:
         self.inst_id_to_item[inst_id] = item
         return item
     
-    def make_power(self, power_id):
+    def make_power(self, power_mnem):
         inst_id = self.power_inst_id_ct
         self.power_inst_id_ct += 1
-        power = ServerPower(power_id, inst_id)
+        power = ServerPower(power_mnem, inst_id)
         self.inst_id_to_power[inst_id] = power
         return power
 
