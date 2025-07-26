@@ -5,8 +5,7 @@ import types
 import typing
 
 from ursina import *
-from ursina import Vec3, Vec4, color, load_model, Entity, destroy
-from ursina.mesh_importer import imported_meshes
+from ursina import Vec3, Vec4
 
 from .base import *
         

@@ -36,6 +36,9 @@ class ClientCharacter(Character):
 
         self.clickbox = ClickBox(self)
         self.namelabel = None
+        hand = self.model_child.exposeJoint(None, "modelRoot", "hand.R")
+        sword = Entity(model='sword', parent=hand, world_scale=(1, 1, 1), rotation=(180, 0, 90),
+                       color=color.gray)
 
     @Character.model_name.setter
     def model_name(self, new_model):

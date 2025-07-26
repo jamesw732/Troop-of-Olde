@@ -108,7 +108,7 @@ def request_swap_items(connection, time_received, to_id: int, to_slot: int,
     for container_id, container in unique_containers.items():
         container = world.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
-        network.broadcast_cbstate_update(char)
+    network.broadcast_cbstate_update(char)
 
 @rpc(network.peer)
 def request_auto_equip(connection, time_received, itemid: int, slot: int, container_id: int):

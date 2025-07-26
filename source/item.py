@@ -41,10 +41,25 @@ class Item:
         self.icon_path = data.get("icon", "")
         self.icon = None
 
-        # remove "slot", when there's just one make "slots" a singleton list
-        if "slots" in self.info:
-            self.info["slots"] = [slot_to_ind[slot] if isinstance(slot, str) else slot
-                                  for slot in self.info["slots"]]
+        if self.type == "weapon":
+            hands = self.info.get("style", "1h melee")[:2]
+            if "equip_slots" in self.info:
+                self.info["equip_slots"] = [slot_to_ind[slot] if isinstance(slot, str) else slot
+                                      for slot in self.info["equip_slots"]]
+            else:
+                if hands == "1h":
+                    self.info["equip_slots"] = [slot_to_ind[slot] for slot in ["mh", "oh"]]
+                else:
+                    self.info["equip_slots"] = [slot_to_ind["mh"]]
+            if "equip_exclude_slots" in self.info:
+                self.info["equip_exclude_slots"] = [slot_to_ind[slot] if isinstance(slot, str) else slot
+                                      for slot in self.info["equip_exclude_slots"]]
+            else:
+                if hands == "1h":
+                    self.info["equip_exclude_slots"] = []
+                else:
+                    self.info["equip_exclude_slots"] = ["oh"]
+
 
     def get_valid_move(self, to_container, to_slot):
         """Get whether this item can go to to_slot in to_container
@@ -52,7 +67,7 @@ class Item:
         to_slot: intended slot within to_container to move this item to"""
         # extend this as new types are added, or add a field of Item specifying equipment
         if self.type in ["weapon"] and to_container.name == "equipment":
-            if to_slot not in self.info["slots"]:
+            if to_slot not in self.info["equip_slots"]:
                 return False
         return True
 
@@ -115,7 +130,7 @@ class Container(list):
         if self.name == "equipment":
             if item is None:
                 return -1
-            valid_slots = item.info.get("slots", [])
+            valid_slots = item.info.get("equip_slots", [])
             for s in valid_slots:
                 if self[s] is None or s in extra_includes:
                     return s
@@ -129,7 +144,7 @@ def internal_autoequip(char, container, slot):
     """Auto equips an item internally"""
     item = container[slot]
     # Find the correct slot to equip to
-    equipping_mh_wpn = item.type == "weapon" and slot_to_ind["mh"] in item.info["slots"]
+    equipping_mh_wpn = item.type == "weapon" and slot_to_ind["mh"] in item.info["equip_slots"]
     mh_slot = slot_to_ind["mh"]
     wearing_2h = char.equipment[mh_slot] is not None \
             and char.equipment[mh_slot].info["style"][:2] == "2h"
@@ -138,7 +153,7 @@ def internal_autoequip(char, container, slot):
     else:
         new_slot = char.equipment.get_first_empty(item)
         if new_slot < 0:
-            new_slot = item.info.get("slots", [])[0]
+            new_slot = item.info.get("equip_slots", [])[0]
     # Perform the move
     full_item_move(char, char.equipment, new_slot, container, slot)
 
@@ -146,7 +161,7 @@ def internal_autounequip(char, old_slot):
     """Auto unequips an item internally"""
     new_slot = char.inventory.get_first_empty()
     if new_slot < 0:
-        new_slot = item.info.get("slots", [])[0]
+        return
     full_item_move(char, char.inventory, new_slot, char.equipment, old_slot)
 
 def full_item_move(char, to_container, to_slot, from_container, from_slot):

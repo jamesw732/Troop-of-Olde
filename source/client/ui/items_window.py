@@ -228,10 +228,5 @@ class ItemIcon(Entity):
 
     def get_equippable_slots(self):
         """Returns available equipment slots for item"""
-        iteminfo = self.item.info
-        slot = iteminfo.get("slot")
-        if slot is not None:
-            return [slot]
-        slots = iteminfo.get("slots", [])
-        return slots
+        return self.item.info.get("equip_slots", [])
 

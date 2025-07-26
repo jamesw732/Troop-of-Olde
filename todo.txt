@@ -1,16 +1,6 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Consolidate the database for the static game data (no need to handle player data yet,
-this is still a future problem). I don't think I'll need an SQLite database for the static
-data, just need to rework the structure. In particular:
-- Change all jsons to not use ids, instead use names, which will be unique.
-
-
-
-
-
-===================================NEXT================================================
 Finish adding animations.
 Animation checklist:
 - Add weapon models
@@ -20,24 +10,89 @@ Animation checklist:
 - Sideways walk animations?
 - Death
 
+
+Two parts to adding weapons:
+- Adding/removing them to/from the scene
+- Managing animations
+
+Just work on adding/removing weapons to/from the scene for now.
+Will need to consider how it ties into the rest of the procedure for moving items.
+This procedure is:
+- UI processes input to move. If it's an auto equip/unequip, then we just send a
+request to server to auto equip/unequip this item. If it was a manual move, we do some
+work to validate whether the move is valid or not, and then send a networking request.
+The item is never moved client-side.
+- Server-side, we call one of the auto functions, which essentially just call full_item_move.
+Then, we send back the new updated container and update the character's stats to all clients.
+We don't currently send the equipment to other players, but this will need to change. Will
+require storing equipment on NPCs, which shouldn't be too bad, but will require updating
+states.
+- Server calls remote_update_container, which just overwrites all items in the
+corresponding container and updates the UI icons. Realistically, the graphical item model
+logic could go in here, but it'll probably be cleaner to include it as part of the
+controllers.
+
+
+
+Suggestions to improve the process:
+In Item:
+- option_to_meth probably shouldn't be in Item
+- Item shouldn't store its icon, instead store a separate map from item inst_id to ItemIcon.
+For now, this map can be in ItemsWindow because ItemIcons don't exist outside of ItemsWindow.
+- Rather than requiring "slots" in items.json, should make this optional, and implement
+an automatic population. Should also rename it to "equippable_slots" to be more descriptive.
+Should also add an "exclude_equip_slots" field, for example signifying that equipping a 2H
+removes the offhand.
+
+Item move logic:
+- I really wish there wasn't a bunch of hardcoded "equipment" cases in full_item_move.
+- full_item_move is basically doing three independent things, it's:
+    1. Computing the consequences of this move
+    2. Checking that the consequences are valid
+    3. Performing the consequences.
+I think it would be good to split these up into different functions.
+So, what should this function look like?
+    - Determine which items we want to move
+    - For each item and its destination container, determine both the valid slots to move
+    to and the slots which this item forces an unequip for. This should be done in a new
+    function, and it will return a tuple (valid slots, exclude slots). The logic is if
+    equipping, look in item for valid/exclude, and if not, return all indices of
+    destination container for valid slots and an empty list for exclude.
+    Hardest case to handle will be equipping an offhand while wearing a 2h weapon.
+    - Compute the consequences as before. The logic will be basically the same, but rather
+    than hard-coded logic, it will depend on the returned valid/exclude slots. Can make
+    get_first_empty depend on valid slots rather than an Item. Should be quite a bit shorter.
+    - Check whether all the consequences of the move are valid.
+    - Perform the moves if all valid.
+Bonus points if I can get internal_autoequip to not be hardcoded in terms of equipment.
+
+In items_window.py:
+- handle_release_icon should use new logic to determine if a move is valid.
+
+
+===================================NEXT================================================
 Once animations are done, I want to continue to make some bigger moves.
 
+- Clean up networking code and game logic. Basically, for every functionality implemented,
+go through it from start to finish and think about what data needs to be transferred.
+The necessary questions for each input are:
+    What does my client need to do?
+    What data does my client need to send to the server?
+    What does the server need to do?
+    What does the server need to send back to my client?
+    What does the server need to send back to other clients?
+    What does my client need to do in response?
+    What do other clients have to do in response?
 - Flesh out the UI. Add enemy status window (health/energy/effects), add effects to own
 status window, add tooltips to items and powers.
 - Add respawns and looting.
 - Add NPC AI logic
+- Fix networking neglects, including disconnects, animations, etc.
 
 
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:
-- Replace some "if" checks and "get"s with try/except blocks. I rely too hard on crash errors,
-I should instead leverage warnings that don't break the game. Would require thinking to see
-how best to do this.
-- Current on_destroy functions for characters, controllers, etc are kind of complicated and
-will need to be extended for further cleanup (ie, ui cleanup eventually). I like the idea of
-having a callable class that just stores a list of on_destroy callbacks, and calls each
-one sequentially.
 
 
 Networking:
@@ -121,11 +176,14 @@ this, worst case can remove the collider.
 - There's also a bug with new text entering the game window with the wrong transparency. I think
 text should probably be ignored by set_alpha altogether.
 
-Cleanup
+Architecture:
 - Pull functions out from UI __init__'s so that the UI class has more control over what
 happens during creation. Mapping container ids to ItemFrames is a good example of this,
 that will need to be done for all future containers, so the UI should have a function for
 doing that.
+- ItemIcon should eventually be pulled out of items_window.py once items exist outside of 
+the player items window. They should then be created by UI, which should also now store
+inst_id_to_item_icon.
 
 
 Database:

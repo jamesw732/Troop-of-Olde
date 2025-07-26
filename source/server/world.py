@@ -149,8 +149,5 @@ class World:
         id_type: the literal id attribute of the item"""
         return [getattr(item, id_type) if hasattr(item, id_type) else -1 for item in container]
 
-    def ids_to_container(self, id_container):
-        """Convert container of inst ids to a list of objects"""
-        return [self.inst_id_to_item.get(itemid, None) for itemid in id_container]
 
 world = World()

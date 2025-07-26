@@ -2,6 +2,7 @@
 from ursina import Entity, Sky, color
 import json
 import os
+import glob
 
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
@@ -23,6 +24,10 @@ class World:
         self.inst_id_to_item = dict()
         self.inst_id_to_power = dict()
         self.inst_id_to_container = dict()
+
+        glb_models = glob.glob("*.glb", root_dir=models_path)
+        for path in glb_models:
+            load_model(path)
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -191,9 +196,5 @@ class World:
         container: list containing Items
         id_type: the literal id attribute of the item"""
         return [getattr(item, id_type) if hasattr(item, id_type) else -1 for item in container]
-
-    def ids_to_container(self, id_container):
-        """Convert container of inst ids to a list of objects"""
-        return [self.inst_id_to_item.get(itemid, None) for itemid in id_container]
 
 world = World()
