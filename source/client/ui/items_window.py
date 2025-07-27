@@ -144,12 +144,12 @@ class ItemFrame(Entity):
     def input(self, key):
         if key == "left mouse up" and self.dragging_icon is not None:
             # Item was being dragged and was just released
-            other_container = mouse.hovered_entity
-            if not isinstance(other_container, ItemFrame):
+            other_entity = mouse.hovered_entity
+            if not isinstance(other_entity, ItemFrame):
                 self.dragging_icon.position = Vec3(0, 0, -1)
             else:
-                hovered_slot = other_container.get_hovered_slot()
-                drop_box = other_container.boxes[hovered_slot]
+                hovered_slot = other_entity.get_hovered_slot()
+                drop_box = other_entity.boxes[hovered_slot]
                 # Clicked and released quickly without moving out of this box
                 if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
                     option = self.dragging_icon.item.leftclick
@@ -157,38 +157,19 @@ class ItemFrame(Entity):
                     getattr(self.dragging_icon, meth)()
                 # Clicked and released on another box
                 else:
-                    self.handle_release_icon(self.dragging_icon, drop_box)
+                    my_icon = self.dragging_icon
+                    my_slot = my_icon.parent.slot
+                    my_container = self.container
+                    other_box = drop_box
+                    other_icon = other_box.icon
+                    other_slot = other_box.slot
+                    other_container = other_box.container
+                    conn = network.server_connection
+                    network.peer.request_swap_items(conn, other_container.inst_id, other_slot,
+                                                       my_container.inst_id, my_slot)
             self.dragging_icon = None
             self.dragging_box = None
 
-    def handle_release_icon(self, my_icon, other_box):
-        """Performs checks client-side to make sure an item move is valid, then
-        sends request to server. Only called when manually dragging items.
-
-        Expected to have some delay when latency is high. In this case, should
-        predict the new locations client-side."""
-        other_icon = other_box.icon
-        other_slot = other_box.slot
-
-        my_slot = my_icon.parent.slot
-
-        # Should eventually make this handling more general, maybe give ItemBoxes knowledge
-        # of what valid items can go in them rather than hardcoding equipment.
-        equipping_mine = other_box.container.name == "equipment"
-        equipping_other = self.container.name == "equipment"
-
-        # Make sure items can go to new locations if being equipped
-        if equipping_other and other_box.icon is not None:
-            if my_slot not in other_box.icon.get_equippable_slots():
-                my_icon.position = Vec3(0, 0, -1)
-                return
-        if equipping_mine:
-            if other_slot not in my_icon.get_equippable_slots():
-                my_icon.position = Vec3(0, 0, -1)
-                return
-        conn = network.server_connection
-        network.peer.request_swap_items(conn, other_box.container.container_id, other_slot,
-                                           self.container.container_id, my_slot)
 
     def update(self):
         if self.dragging_icon is not None and mouse.position:
@@ -219,7 +200,7 @@ class ItemIcon(Entity):
         """UI/networking wrapper for Item.internal_autoequip"""
         conn = network.server_connection
         network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
-                                           self.parent.container.container_id)
+                                           self.parent.container.inst_id)
 
     def auto_unequip(self):
         """UI/networking wrapper for Item.internal_autounequip"""

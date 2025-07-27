@@ -23,7 +23,7 @@ class UI:
         items_window = self.playerwindow.items
         equipment = items_window.equipment_frame
         inventory = items_window.inventory_frame
-        self.item_frames[equipment.container.container_id] = equipment
-        self.item_frames[inventory.container.container_id] = inventory
+        self.item_frames[equipment.container.inst_id] = equipment
+        self.item_frames[inventory.container.inst_id] = inventory
 
 ui = UI()

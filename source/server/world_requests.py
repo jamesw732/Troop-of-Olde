@@ -118,7 +118,7 @@ def request_auto_equip(connection, time_received, itemid: int, slot: int, contai
     from_container = world.inst_id_to_container[container_id]
     internal_autoequip(char, from_container, slot)
     for container in [from_container, char.equipment]:
-        container_id = container.container_id
+        container_id = container.inst_id
         container = world.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
         network.broadcast_cbstate_update(char)
@@ -130,7 +130,7 @@ def request_auto_unequip(connection, time_received, itemid: int, slot: int):
     char = world.uuid_to_char[uuid]
     internal_autounequip(char, slot)
     for container in [char.equipment, char.inventory]:
-        container_id = container.container_id
+        container_id = container.inst_id
         container = world.container_to_ids(container)
         network.peer.remote_update_container(connection, container_id, container)
         network.broadcast_cbstate_update(char)

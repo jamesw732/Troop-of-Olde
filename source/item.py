@@ -103,13 +103,13 @@ class Item:
         return self.name
 
 class Container(list):
-    def __init__(self, container_id, name, items):
+    def __init__(self, inst_id, name, items):
         """List[Item] wrapper with some added functionality
         container_id: network id used to refer to this container across network
         name: str descriptor of this container
         items: list of Item objects
         """
-        self.container_id = container_id
+        self.inst_id = inst_id
         self.name = name
         super().__init__(items)
 
