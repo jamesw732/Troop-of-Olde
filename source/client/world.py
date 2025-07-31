@@ -190,11 +190,5 @@ class World:
         self.inst_id_to_power[inst_id] = power
         return power
 
-    def container_to_ids(self, container, id_type="inst_id"):
-        """Convert a container (Character attribute) to one sendable over the network
-
-        container: list containing Items
-        id_type: the literal id attribute of the item"""
-        return [getattr(item, id_type) if hasattr(item, id_type) else -1 for item in container]
 
 world = World()

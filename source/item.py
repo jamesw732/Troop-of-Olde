@@ -56,18 +56,6 @@ class Item:
                 else:
                     self.info["equip_exclude_slots"] = [slot_to_ind["oh"]]
 
-    def auto_set_leftclick(self, container):
-        """Automatically set the left-click option of item"""
-        if self is None or container is None or container.name is None:
-            return
-        primary_option = "equip"
-        if container.name == "equipment":
-            primary_option = "unequip"
-        elif container.name == "inventory":
-            if self.type in ["weapon"]:
-                primary_option = "equip"
-        self.leftclick = primary_option
-
     def __str__(self):
         return self.name
 
@@ -85,14 +73,5 @@ class Container(list):
         self.name = name
         super().__init__(items)
 
-    def overwrite_items(self, other):
-        """Overwrites own items with other container's"""
-        if len(self) != len(other):
-            return
-        for slot, item in enumerate(other):
-            self[slot] = item
-            if item is not None:
-                item.auto_set_leftclick(self)
-
     def __repr__(self):
-        return str([item.__repr__() for item in self])
+        return str([repr(item) for item in self])

@@ -107,18 +107,22 @@ def remote_update_skills(connection, time_received, skills: list[int]):
 
 # Items
 @rpc(network.peer)
-def remote_update_container(connection, time_received, container_id: int, container: list[int]):
-    """Update internal containers and visual containers
+def remote_update_equipment(connection, time_received, item_ids: list[int]):
+    """Updates PC's equipment"""
+    items = [world.inst_id_to_item.get(item_id) for item_id in item_ids]
+    world.pc.overwrite_equipment(items)
+    equip_frame = ui.item_frames.get(world.pc.equipment.inst_id)
+    if equip_frame:
+        equip_frame.update_ui_icons()
 
-    Mimic most of the process in ItemIcon.swap_locs for hosts, but
-    this will only be done by non-hosts"""
-    new_container = [world.inst_id_to_item.get(itemid, None) for itemid in container]
-    old_container = world.inst_id_to_container[container_id]
-    old_container.overwrite_items(new_container)
-
-    item_frame = ui.item_frames.get(container_id)
-    if item_frame:
-        item_frame.update_ui_icons()
+@rpc(network.peer)
+def remote_update_inventory(connection, time_received, item_ids: list[int]):
+    """Updates PC's inventory"""
+    items = [world.inst_id_to_item.get(item_id) for item_id in item_ids]
+    world.pc.overwrite_inventory(items)
+    inventory_frame = ui.item_frames.get(world.pc.inventory.inst_id)
+    if inventory_frame:
+        inventory_frame.update_ui_icons()
 
 # UI Updates
 @rpc(network.peer)
