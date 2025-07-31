@@ -111,18 +111,16 @@ def remote_update_equipment(connection, time_received, item_ids: list[int]):
     """Updates PC's equipment"""
     items = [world.inst_id_to_item.get(item_id) for item_id in item_ids]
     world.pc.overwrite_equipment(items)
-    equip_frame = ui.item_frames.get(world.pc.equipment.inst_id)
-    if equip_frame:
-        equip_frame.update_ui_icons()
+    equip_frame = ui.item_frames["equipment"]
+    equip_frame.update_ui_icons()
 
 @rpc(network.peer)
 def remote_update_inventory(connection, time_received, item_ids: list[int]):
     """Updates PC's inventory"""
     items = [world.inst_id_to_item.get(item_id) for item_id in item_ids]
     world.pc.overwrite_inventory(items)
-    inventory_frame = ui.item_frames.get(world.pc.inventory.inst_id)
-    if inventory_frame:
-        inventory_frame.update_ui_icons()
+    inventory_frame = ui.item_frames["inventory"]
+    inventory_frame.update_ui_icons()
 
 # UI Updates
 @rpc(network.peer)

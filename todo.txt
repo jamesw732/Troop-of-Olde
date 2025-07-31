@@ -54,6 +54,10 @@ status window, add tooltips to items and powers.
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:
+I think the on_destroy callbacks are unnecessary. The whole point of them is to
+augment functions with behavior that affects the World class. But since destruction
+should be initiated by the network anyways, the network has access to the World
+class, so the server can just perform those functions directly.
 
 
 Networking:
@@ -99,11 +103,8 @@ Incomplete stat implementations:
 
 
 Character:
-- Stats object should probably have a more elegant interaction with Characters. Would
-be nice to unify Stats with all the different Effect types.
-- Would really like to not have so many arguments to Character, would it be possible
-to make a new State which combines existing States? Probably...
-- Need to fix default inventory/equipment
+- Refine the split between different types of characters.
+Need to handle differences between own player character/other player character/npc
 
 
 
