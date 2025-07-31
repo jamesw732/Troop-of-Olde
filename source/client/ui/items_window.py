@@ -148,25 +148,29 @@ class ItemFrame(Entity):
             if not isinstance(other_entity, ItemFrame):
                 self.dragging_icon.position = Vec3(0, 0, -1)
             else:
+                item = self.dragging_icon.item
+                my_slot = self.dragging_icon.parent.slot
+                my_container = self.container
                 hovered_slot = other_entity.get_hovered_slot()
                 drop_box = other_entity.boxes[hovered_slot]
                 # Clicked and released quickly without moving out of this box
-                if drop_box == self.dragging_box and time.time() - self.click_start_time < self.drag_threshold:
-                    option = self.dragging_icon.item.leftclick
-                    meth = Item.option_to_meth[option]
-                    getattr(self.dragging_icon, meth)()
+                if my_slot == hovered_slot and time.time() - self.click_start_time < self.drag_threshold:
+                    option = item.leftclick
+                    if option == "equip":
+                        char = self.parent.char
+                        other_slot = char.find_auto_equip_slot(item)
+                        other_container = char.equipment
+                    if option == "unequip":
+                        char = self.parent.char
+                        other_slot = char.find_auto_inventory_slot()
+                        other_container = char.inventory
                 # Clicked and released on another box
                 else:
-                    my_icon = self.dragging_icon
-                    my_slot = my_icon.parent.slot
-                    my_container = self.container
-                    other_box = drop_box
-                    other_icon = other_box.icon
-                    other_slot = other_box.slot
-                    other_container = other_box.container
-                    conn = network.server_connection
-                    network.peer.request_swap_items(conn, other_container.inst_id, other_slot,
-                                                       my_container.inst_id, my_slot)
+                    other_slot = hovered_slot
+                    other_container = drop_box.container
+                conn = network.server_connection
+                network.peer.request_swap_items(conn, other_container.inst_id, other_slot,
+                                                   my_container.inst_id, my_slot)
             self.dragging_icon = None
             self.dragging_box = None
 
@@ -195,19 +199,3 @@ class ItemIcon(Entity):
         load_texture(texture_path)
         self.item.icon = self
         super().__init__(*args, origin=(-.5, .5), model='quad', texture=texture, **kwargs)
-
-    def auto_equip(self):
-        """UI/networking wrapper for Item.internal_autoequip"""
-        conn = network.server_connection
-        network.peer.request_auto_equip(conn, self.item.inst_id, self.parent.slot,
-                                           self.parent.container.inst_id)
-
-    def auto_unequip(self):
-        """UI/networking wrapper for Item.internal_autounequip"""
-        conn = network.server_connection
-        network.peer.request_auto_unequip(conn, self.item.inst_id, self.parent.slot)
-
-    def get_equippable_slots(self):
-        """Returns available equipment slots for item"""
-        return self.item.info.get("equip_slots", [])
-

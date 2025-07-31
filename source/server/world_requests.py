@@ -94,44 +94,18 @@ def request_use_power(connection, time_received, inst_id: int):
 
 # ITEMS
 @rpc(network.peer)
-def request_swap_items(connection, time_received, to_id: int, to_slot: int,
-                       from_id: int, from_slot: int):
+def request_swap_items(connection, time_received, to_container_id: int, to_slot: int,
+                       from_container_id: int, from_slot: int):
     """Request host to swap items internally, host will send back updated container states"""
     if not network.peer.is_hosting():
         return
     uuid = network.connection_to_uuid[connection]
     char = world.uuid_to_char[uuid]
-    to_container = world.inst_id_to_container[to_id]
-    from_container = world.inst_id_to_container[from_id]
-    full_item_move(char, to_container, to_slot, from_container, from_slot)
-    unique_containers = {to_id: to_container, from_id: from_container}
+    to_container = world.inst_id_to_container[to_container_id]
+    from_container = world.inst_id_to_container[from_container_id]
+    container_swap_locs(char, to_container, to_slot, from_container, from_slot)
+    unique_containers = {to_container_id: to_container, from_container_id: from_container}
     for container_id, container in unique_containers.items():
-        container = world.container_to_ids(container)
+        container = world.container_to_ids(container) # add method to serialize
         network.peer.remote_update_container(connection, container_id, container)
     network.broadcast_cbstate_update(char)
-
-@rpc(network.peer)
-def request_auto_equip(connection, time_received, itemid: int, slot: int, container_id: int):
-    """Request host to automatically equip an item."""
-    uuid = network.connection_to_uuid[connection]
-    char = world.uuid_to_char[uuid]
-    from_container = world.inst_id_to_container[container_id]
-    internal_autoequip(char, from_container, slot)
-    for container in [from_container, char.equipment]:
-        container_id = container.inst_id
-        container = world.container_to_ids(container)
-        network.peer.remote_update_container(connection, container_id, container)
-        network.broadcast_cbstate_update(char)
-
-@rpc(network.peer)
-def request_auto_unequip(connection, time_received, itemid: int, slot: int):
-    """Request host to automatically unequip an item."""
-    uuid = network.connection_to_uuid[connection]
-    char = world.uuid_to_char[uuid]
-    internal_autounequip(char, slot)
-    for container in [char.equipment, char.inventory]:
-        container_id = container.inst_id
-        container = world.container_to_ids(container)
-        network.peer.remote_update_container(connection, container_id, container)
-        network.broadcast_cbstate_update(char)
-

@@ -80,6 +80,25 @@ class Character(Entity):
         """Returns whether the character is currently on the global cooldown for powers"""
         return self.gcd_timer < self.gcd
 
+    def find_auto_equip_slot(self, item):
+        """Finds the equipment slot to auto equip item to"""
+        exclude_slots = set()
+        for slot in item.info["equip_slots"]:
+            cur_item = self.equipment[slot]
+            if cur_item is None and slot not in exclude_slots:
+                return slot
+            elif cur_item is not None:
+                exclude_slots |= set(cur_item.info["equip_exclude_slots"])
+        return item.info["equip_slots"][0]
+
+    def find_auto_inventory_slot(self):
+        """Finds the inventory slot to auto place item to"""
+        try:
+            return next((s for s, item in enumerate(self.inventory) if item is None))
+        except StopIteration:
+            return -1
+
+
     @property
     def model_name(self):
         """Getter for model_name property, used for interoperability with

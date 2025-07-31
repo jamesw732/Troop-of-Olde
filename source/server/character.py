@@ -32,6 +32,6 @@ class ServerCharacter(Character):
         for item in self.equipment:
             if item is None:
                 continue
-            item.handle_stats(self, self.equipment)
+            item.stats.apply_diff(self)
         self.update_max_ratings()
         self.effects = []

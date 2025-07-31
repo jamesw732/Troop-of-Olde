@@ -18,7 +18,17 @@ Two parts to adding weapons:
 Just work on adding/removing weapons to/from the scene for now.
 Will need to consider how it ties into the rest of the procedure for moving items.
 
-
+Todo list:
+- Propagate the rest of the new equipment/inventory divorce. Add new Character
+methods overwrite_equipment and overwrite_inventory. It may be appropriate to
+remove a lot of instances of using container ids, but I don't think it's worth
+ripping out container ids entirely.
+- Make client predict where it thinks items are going to go. This should make
+the inventory more responsive to double clicks, especially with high ping
+- Converting request_swap_items into request_move_item, instead takes item inst
+id. Will need to store item container/location. This will make server-side item
+moves not depend on what the client thinks the game state is.
+- Document changes to new item movement philosophy in developer.tex.
 
 
 
