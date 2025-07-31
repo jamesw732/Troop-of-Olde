@@ -94,13 +94,15 @@ def request_use_power(connection, time_received, inst_id: int):
 
 # ITEMS
 @rpc(network.peer)
-def request_swap_items(connection, time_received, to_container_id: int, to_slot: int,
-                       from_container_id: int, from_slot: int):
-    """Request host to swap items internally, host will send back updated container states"""
+def request_move_item(connection, time_received, item_id: int, to_container_name: str, to_slot: int):
     uuid = network.connection_to_uuid[connection]
     char = world.uuid_to_char[uuid]
-    to_container = world.inst_id_to_container[to_container_id]
-    from_container = world.inst_id_to_container[from_container_id]
+    if not hasattr(char, to_container_name):
+        return
+    to_container = getattr(char, to_container_name)
+    item = world.inst_id_to_item[item_id]
+    from_container = item.container
+    from_slot = item.slot
     char.container_swap_locs(to_container, to_slot, from_container, from_slot)
 
     equipment = [item.inst_id if item is not None else -1 for item in char.equipment]

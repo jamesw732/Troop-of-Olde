@@ -150,7 +150,6 @@ class ItemFrame(Entity):
             else:
                 item = self.dragging_icon.item
                 my_slot = self.dragging_icon.parent.slot
-                my_container = self.container
                 hovered_slot = other_entity.get_hovered_slot()
                 drop_box = other_entity.boxes[hovered_slot]
                 # Clicked and released quickly without moving out of this box
@@ -169,8 +168,7 @@ class ItemFrame(Entity):
                     other_slot = hovered_slot
                     other_container = drop_box.container
                 conn = network.server_connection
-                network.peer.request_swap_items(conn, other_container.inst_id, other_slot,
-                                                   my_container.inst_id, my_slot)
+                network.peer.request_move_item(conn, item.inst_id, other_container.name, other_slot)
             self.dragging_icon = None
             self.dragging_box = None
 

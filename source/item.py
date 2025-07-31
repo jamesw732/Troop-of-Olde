@@ -26,6 +26,8 @@ class Item:
         self.inst_id = inst_id
         data = copy.deepcopy(items_dict[item_mnem])
         self.on_destroy = on_destroy
+        self.container = None
+        self.slot = None
 
         self.name = data.get("name", "")
         self.type = data.get("type", "")
@@ -65,13 +67,21 @@ class Item:
 class Container(list):
     def __init__(self, inst_id, name, items):
         """List[Item] wrapper with some added functionality
-        container_id: network id used to refer to this container across network
+        inst_id: network id used to refer to this container across network. Currently unused.
         name: str descriptor of this container
         items: list of Item objects
         """
         self.inst_id = inst_id
         self.name = name
-        super().__init__(items)
+        super().__init__([None] * len(items))
+        for i, item in enumerate(items):
+            self[i] = item
+
+    def __setitem__(self, slot, item):
+        super().__setitem__(slot, item)
+        if item is not None:
+            item.container = self
+            item.slot = slot
 
     def __repr__(self):
         return str([repr(item) for item in self])
