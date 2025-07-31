@@ -103,7 +103,7 @@ def request_swap_items(connection, time_received, to_container_id: int, to_slot:
     char = world.uuid_to_char[uuid]
     to_container = world.inst_id_to_container[to_container_id]
     from_container = world.inst_id_to_container[from_container_id]
-    container_swap_locs(char, to_container, to_slot, from_container, from_slot)
+    char.container_swap_locs(to_container, to_slot, from_container, from_slot)
     unique_containers = {to_container_id: to_container, from_container_id: from_container}
     for container_id, container in unique_containers.items():
         container = world.container_to_ids(container) # add method to serialize

@@ -98,6 +98,82 @@ class Character(Entity):
         except StopIteration:
             return -1
 
+    def container_swap_locs(self, to_container, to_slot, from_container, from_slot):
+        """Swap two indices of containers (possibly same or different) if possible.
+
+        Handles specific-container logic such as equipping 2-handed weapons also removing
+        offhand."""
+        item1 = from_container[from_slot]
+        if item1 is None:
+            # Should be safe to assume otherwise, but just in case
+            return
+        item2 = to_container[to_slot]
+        initial_swaps = [(item1, to_container, to_slot, from_container, from_slot),
+                         (item2, from_container, from_slot, to_container, to_slot)]
+        # Dict mapping tgt container name to src container name to (item, tgt slot, src slot)
+        # Essentially a table of tgt container by src container
+        move_dict = dict()
+        def move_dict_insert(item, tgt_container, tgt_slot, src_container, src_slot):
+            """Takes a move in flat structure and puts it in move_dict"""
+            if tgt_container.name not in move_dict:
+                move_dict[tgt_container.name] = {}
+            if src_container.name not in move_dict[tgt_container.name]:
+                move_dict[tgt_container.name][src_container.name] = []
+            move_dict[tgt_container.name][src_container.name].append((item, tgt_slot, src_slot))
+        for item, tgt_container, tgt_slot, src_container, src_slot in initial_swaps:
+            move_dict_insert(item, tgt_container, tgt_slot, src_container, src_slot)
+        # Compute all consequences of moving item to equipment, particularly for 2h
+        if "equipment" in move_dict:
+            if "inventory" in move_dict["equipment"]:
+                moves = move_dict["equipment"]["inventory"]
+                for item, tgt_slot, src_slot in list(moves):
+                    if item is None:
+                        continue
+                    # Unequip items equipped to slots used by this item
+                    for exclude_slot in item.info["equip_exclude_slots"]:
+                        item_to_move = self.equipment[exclude_slot]
+                        if item_to_move is None:
+                            continue
+                        empty_inv_slot = self.find_auto_inventory_slot()
+                        if empty_inv_slot < 0:
+                            return
+                        move_dict_insert(item_to_move, self.inventory, empty_inv_slot,
+                                         self.equipment, exclude_slot)
+                        move_dict_insert(None, self.equipment, exclude_slot,
+                                         self.inventory, empty_inv_slot)
+                    # Unequip items equipped to another slot that need tgt_slot
+                    for slot, multislot_item in enumerate(self.equipment):
+                        if multislot_item is None:
+                            continue
+                        for exclude_slot in multislot_item.info["equip_exclude_slots"]:
+                            if exclude_slot == tgt_slot:
+                                move_dict_insert(multislot_item, self.inventory, src_slot,
+                                                 self.equipment, slot)
+                                move_dict_insert(None, self.equipment, slot,
+                                                 self.inventory, src_slot)
+        # Validate equipment moves
+        for src_container, moves in move_dict.get("equipment", {}).items():
+            for item, tgt_slot, src_slot in moves:
+                if item is None:
+                    continue
+                if tgt_slot not in item.info["equip_slots"]:
+                    return
+        # Perform all moves, case by case
+        for item, tgt_slot, src_slot in move_dict.get("equipment", {}).get("inventory", {}):
+            self.equipment[tgt_slot] = item
+            if item is not None:
+                item.leftclick = "unequip"
+                item.stats.apply_diff(self)
+        for item, tgt_slot, src_slot in move_dict.get("equipment", {}).get("equipment", {}):
+            self.equipment[tgt_slot] = item
+        for item, tgt_slot, src_slot in move_dict.get("inventory", {}).get("equipment", {}):
+            self.inventory[tgt_slot] = item
+            if item is not None:
+                item.leftclick = "equip" # This may need some better logic some day
+                item.stats.apply_diff(self, remove=True)
+        for item, tgt_slot, src_slot in move_dict.get("inventory", {}).get("inventory", {}):
+            self.inventory[tgt_slot] = item
+        self.update_max_ratings()
 
     @property
     def model_name(self):
