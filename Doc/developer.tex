@@ -253,11 +253,11 @@ which part, otherwise the blending will be incorrect. See the attack animation c
 an example of how to do it.
 
 \subsubsection{controllers.py}
-Controllers, in general, combine all of the lower-level code in order to act on \codeword{Character}s.
-While the line between controller-owned functionality and \codeword{Character}-owned functionality
-is a bit blurred, the one hard line that I try to enforce is that all networking logic belongs
-to the controller classes. Furthermore, \codeword{Character}s are primarily state-driven, while
-controllers are primarily functionality-based. 
+Controllers synthesize code from lower level game objects such as Characters, powers, and items,
+in order to act on Characters while separating "invisible" data from them. For example, Controllers
+perform client-side linear interpolation to smooth out Character movement, this functionality is
+intentionally separate from Characters because we want game objects to be as closely tied to the
+game state as possible, and with as little auxiliary data as possible.
 
 \codeword{PlayerController} is the controller for the player character. It should only be initialized
 once during the lifetime of the player character. It drives client-side physics and sends updates

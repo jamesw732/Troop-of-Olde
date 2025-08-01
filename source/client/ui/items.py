@@ -1,15 +1,14 @@
 from ursina import *
+from pathlib import Path
 
 from .base import *
 from ... import *
 
 
-inst_id_to_item_icon = {}
-
-
 class ItemFrame(Entity):
     """A rectangular grid storing items."""
-    def __init__(self, grid_size, container, slot_labels=[], **kwargs):
+    def __init__(self, char, grid_size, container, slot_labels=[], **kwargs):
+        self.char = char
         self.grid_size = grid_size
         self.container = container
         # pad the slot labels with empty strings
@@ -30,10 +29,6 @@ class ItemFrame(Entity):
             self.boxes[i] = ItemBox(text=self.slot_labels[i], slot=i, container=self.container,
                                parent=self, position=pos * ((1 + box_spacing) * box_scale),
                                scale=box_scale)
-            icon = self.make_item_icon(container[i], self.boxes[i])
-            self.boxes[i].icon = icon
-            if icon is not None:
-                self.boxes[i].label.text = ""
 
         grid(self, int(grid_size[1]), int(grid_size[0]), color=color.black)
 
@@ -42,27 +37,6 @@ class ItemFrame(Entity):
         self.drag_threshold = 0.2
         self.click_start_time = time.time()
         self.step = Vec3(0, 0, 0)
-
-    def update_ui_icons(self):
-        """Public function which refreshes all icons in whole UI element"""
-        for slot, box in enumerate(self.boxes):
-            item = self.container[slot]
-            if item is None:
-                icon = None
-            else:
-                icon = inst_id_to_item_icon[item.inst_id]
-            box.set_item_icon(icon)
-
-    def make_item_icon(self, item, box):
-        """Creates an item icon and puts it in the UI.
-        item: Item to make the icon for
-        box: ItemBox to put the ItemIcon in
-        """
-        if item is None:
-            return None
-        icon = ItemIcon(item, parent=box, scale=(1, 1), position=(0, 0, -2))
-        inst_id_to_item_icon[item.inst_id] = icon
-        return icon
 
     def on_click(self):
         hovered_slot = self.get_hovered_slot()
@@ -96,12 +70,12 @@ class ItemFrame(Entity):
                 if my_slot == hovered_slot and time.time() - self.click_start_time < self.drag_threshold:
                     option = item.leftclick
                     if option == "equip":
-                        char = self.parent.char
-                        other_slot = char.find_auto_equip_slot(item)
+                        char = self.char
+                        other_slot = self.char.find_auto_equip_slot(item)
                         other_container = char.equipment
                     if option == "unequip":
-                        char = self.parent.char
-                        other_slot = char.find_auto_inventory_slot()
+                        char = self.char
+                        other_slot = self.char.find_auto_inventory_slot()
                         other_container = char.inventory
                 # Clicked and released on another box
                 else:
@@ -115,6 +89,7 @@ class ItemFrame(Entity):
     def update(self):
         if self.dragging_icon is not None and mouse.position:
             self.dragging_icon.set_position(mouse.position + self.step, camera.ui)
+
 
 class ItemBox(Entity):
     def __init__(self, *args, text="", slot=None, container=None,  **kwargs):
@@ -141,7 +116,6 @@ class ItemIcon(Entity):
     """UI Representation of an Item."""
     def __init__(self, item, *args, **kwargs):
         self.item = item
-        texture = item.icon_path
-        texture_path = os.path.join(item_icons_dir, texture)
-        load_texture(texture_path)
+        texture = item.icon_name
+        load_texture(texture, folder=Path(item_icons_dir))
         super().__init__(*args, origin=(-.5, .5), model='quad', texture=texture, **kwargs)

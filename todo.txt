@@ -16,14 +16,10 @@ Two parts to adding weapons:
 - Managing animations
 
 Just work on adding/removing weapons to/from the scene for now.
-Will need to consider how it ties into the rest of the procedure for moving items.
 
 Todo list:
 - Make client predict where it thinks items are going to go. This should make
 the inventory more responsive to double clicks, especially with high ping
-- Converting request_swap_items into request_move_item, instead takes item inst
-id. Will need to store item container/location. This will make server-side item
-moves not depend on what the client thinks the game state is.
 - Document changes to new item movement philosophy in developer.tex.
 
 
@@ -54,10 +50,14 @@ status window, add tooltips to items and powers.
 
 =========================================BACKLOG=================================================
 Generic Code cleanup:
-I think the on_destroy callbacks are unnecessary. The whole point of them is to
-augment functions with behavior that affects the World class. But since destruction
-should be initiated by the network anyways, the network has access to the World
-class, so the server can just perform those functions directly.
+- Are the client-side on_destroy callbacks necessary?
+    Pros:
+        - Allows destroys to be initiated by controllers
+        - Makes network code not depend directly on destroy logic
+        - Consistent with server, where on_destroy is more essential
+    Cons:
+        - Makes the destroy process more opaque, after all the reason the client
+        should destroy objects is because the server told it to.
 
 
 Networking:

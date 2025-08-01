@@ -1,7 +1,8 @@
+from .action_bar import ActionBar
 from .bars import BarWindow
 from .game_window import GameWindow
+from .items_manager import ItemsManager
 from .player_window import PlayerWindow
-from .action_bar import ActionBar
 
 
 class UI:
@@ -10,21 +11,14 @@ class UI:
         self.playerwindow = None
         self.gamewindow = None
         self.actionbar = None
-        self.item_frames = {}
+        self.items_manager = None
 
     def make_all_ui(self, char, ctrl):
+        self.items_manager = ItemsManager(char)
         self.bars = BarWindow(char)
-        self.playerwindow = PlayerWindow(char)
+        self.playerwindow = PlayerWindow(char, self.items_manager)
         self.gamewindow = GameWindow()
         self.actionbar = ActionBar(char, ctrl)
-
-        # Should probably not do this post-hoc, pull parts of PlayerWindow.__init__
-        # into functions and call them here
-        items_window = self.playerwindow.items
-        equipment = items_window.equipment_frame
-        inventory = items_window.inventory_frame
-        self.item_frames["equipment"] = equipment
-        self.item_frames["inventory"] = inventory
 
 
 ui = UI()

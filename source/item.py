@@ -36,7 +36,7 @@ class Item:
         self.stats = Stats(self.stats)
         if self.type in self.type_to_options:
             self.leftclick = self.type_to_options[self.type][0]
-        self.icon_path = data.get("icon", "")
+        self.icon_name = data.get("icon", "")
 
         if self.type == "weapon":
             hands = self.info.get("style", "1h melee")[:2]

@@ -106,7 +106,6 @@ def request_move_item(connection, time_received, item_id: int, to_container_name
     char.container_swap_locs(to_container, to_slot, from_container, from_slot)
 
     equipment = [item.inst_id if item is not None else -1 for item in char.equipment]
-    network.peer.remote_update_equipment(connection, equipment)
     inventory = [item.inst_id if item is not None else -1 for item in char.inventory]
-    network.peer.remote_update_inventory(connection, inventory)
+    network.peer.remote_update_equipment_inventory(connection, equipment, inventory)
     network.broadcast_cbstate_update(char)

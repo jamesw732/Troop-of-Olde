@@ -1,12 +1,13 @@
 from ursina import *
+from pathlib import Path
 
 import math
 import os
 
 # File/Directory paths
-data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
-assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets"))
-models_path = os.path.join(assets_path, "models")
+data_path = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data")))
+assets_path = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets")))
+models_path = Path(os.path.join(assets_path, "models"))
 
 
 fists_base_dmg = 2

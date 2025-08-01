@@ -8,7 +8,7 @@ from .window import UIWindow
 
 
 class PlayerWindow(UIWindow):
-    def __init__(self, char):
+    def __init__(self, char, items_manager):
         self.char = char
         scale = (0.24, 0.45)
         global window
@@ -24,11 +24,13 @@ class PlayerWindow(UIWindow):
         subheader_height = 3 * margin_length + button_height
         tab_scale = (1 - 2 * margin_length, 1 - subheader_height)
         tab_pos = (.025, -subheader_height + margin_length, -1)
-
         # Make Items window/button
-        self.items = ItemsWindow(self.char, parent=self.body, model='quad', origin=(-.5, .5),
-                                 scale=tab_scale, position=tab_pos,
-                                 color=window_fg_color)
+        self.items = ItemsWindow(
+            self.char, items_manager,
+            parent=self.body, model='quad', origin=(-.5, .5),
+            scale=tab_scale, position=tab_pos,
+            color=window_fg_color
+        )
         self.itemsbutton = Entity(
             parent=self.body, model='quad', origin=(-.5, .5),
             position=(margin_length, -margin_length, -1), scale=button_scale,
@@ -50,13 +52,14 @@ class PlayerWindow(UIWindow):
         Text(parent=self.skillsbutton, text="Skills", world_scale=(15, 15),
              origin=(0, 0), position=(0.5, -0.5, -2))
         # Make Stats window/button
-        self.stats = StatsWindow(self.char, parent=self.body, model='quad', origin=(-.5, .5),
-                                 scale=tab_scale, position=tab_pos,
-                                 color=window_fg_color)
+        self.stats = StatsWindow(
+            self.char, parent=self.body, model='quad', origin=(-.5, .5),
+            scale=tab_scale, position=tab_pos, color=window_fg_color
+        )
         self.statsbutton = Entity(
             parent=self.body, model='quad', origin=(-.5, .5),
-            position=(2 * button_width + 3 * margin_length, -margin_length, -1), scale=button_scale,
-            color=header_color, collider="box"
+            position=(2 * button_width + 3 * margin_length, -margin_length, -1),
+            scale=button_scale, color=header_color, collider="box"
         )
         self.statsbutton.on_click = lambda: self.open_window("open stats")
         Text(parent=self.statsbutton, text="Stats", world_scale=(15, 15),

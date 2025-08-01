@@ -27,7 +27,7 @@ class World:
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
-            load_model(path)
+            load_model(path, folder=models_path)
 
     def load_zone(self, file):
         """Load the world by parsing a json
