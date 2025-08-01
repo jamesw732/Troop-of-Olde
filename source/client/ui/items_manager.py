@@ -65,7 +65,8 @@ class ItemsManager(Entity):
                 self.dragging_icon.position = Vec3(0, 0, -1)
             else:
                 item = self.dragging_icon.item
-                my_slot = self.dragging_icon.parent.slot
+                my_slot = self.dragging_box.slot
+                my_container = self.dragging_box.parent.container
                 hovered_slot = other_entity.get_hovered_slot()
                 drop_box = other_entity.boxes[hovered_slot]
                 # Clicked and released quickly without moving out of this box
@@ -84,6 +85,8 @@ class ItemsManager(Entity):
                 else:
                     other_slot = hovered_slot
                     other_container = drop_box.container
+                self.char.container_swap_locs(other_container, other_slot, my_container, my_slot)
+                self.update_item_icons()
                 conn = network.server_connection
                 network.peer.request_move_item(conn, item.inst_id, other_container.name, other_slot)
             self.dragging_icon = None
