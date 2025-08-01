@@ -3,12 +3,16 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Finish adding animations.
 Animation checklist:
+Immediate Must Haves:
 - Add weapon models
-- Combat animation (weapons)
+- Attack animations with weapons
+- Spellcasting
+- Death
+Eventual Must Haves:
 - Jumping animation
 - Backwards walk animation
-- Sideways walk animations?
-- Death
+Nice to haves:
+- Sideways walk animations
 
 
 Two parts to adding weapons:
@@ -40,6 +44,10 @@ The necessary questions for each input are:
     What does the server need to send back to other clients?
     What does my client need to do in response?
     What do other clients have to do in response?
+Expected changes from thinking about this:
+    - No more broadcast_cbstate_update, in general much more intentional network responses
+    - Proper split between different types of Characters, especially client-side
+
 - Flesh out the UI. Add enemy status window (health/energy/effects), add effects to own
 status window, add tooltips to items and powers.
 - Add respawns and looting.
