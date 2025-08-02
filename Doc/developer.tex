@@ -157,10 +157,18 @@ States can also be applied to Characters by overwriting the attributes, or by ad
 (for example, Stats).
 \subsubsection{character.py}
 This file defines the base Character class, which represents an in-game character.
-This class is not intended to be initialized,
-instead it is just the intersection of client characters and server characters. It is
-inherited by ClientCharacter and ServerCharacter, which should be initialized instead.
+This class is not intended to be initialized, instead it is just the intersection of
+client characters and server characters. Client and server-specific behavior is defined
+in ClientCharacter and ServerCharacter classes, but to handle the added complexity of
+going through the network, these classes should only be instantiated by the corresponding
+World classes, outside of unit testing. The processes for this are detailed in the client
+and server character.py sections.
 
+This class does not take any arguments for initialization, instead it sets default values for
+all attributes, and defines shared functionality between ClientCharacter and ServerCharacter.
+
+While this class primarily contains small helper functions, it also defines behavior for
+moving items between inventory and equipment.
 \subsubsection{power.py}
 This file contains the definition of the Power class. This class represents Character
 abilities/spells, which are ways to interact with other Characters in combat.
@@ -234,10 +242,28 @@ be used over the network. The network is updated 20 times per second.
 
 \subsection{Client Subpackage}
 \subsubsection{character.py}
-The client-side Character class accepts a \codeword{PlayerCombatState} for its \codeword{cbstate},
-which is just a server-authoritative overwrite for all its combat data (health, stats, etc).
-While this is an Ursina game, the Character models are not loaded as Ursina Entities. Instead,
-they are loaded as Panda3D actors, which enables animation of the character. 
+This class defines the client-specific Character behavior. The process for creating a
+ClientCharacter with the server is roughly:
+\begin{enumerate}
+    \item Call \codeword{World.load_player_data} to pull data from players.json into something
+        sendable over the network.
+    \item Call \codeword{Network.peer.request_enter_world} with the login data.
+    \item Server will call \codeword{World.make_char_init_dict} to get ServerCharacter
+        arguments and call \codeword{World.make_char} to initialize and store a ServerCharacter.
+    \item Server will extract necessary spawn data from the new character (different
+        depending on whether sending to the source client or a different client), and call
+        \codeword{Network.peer.spawn_pc} (\codeword{Network.peer.spawn_npc}) for other
+        clients.
+    \item The client will then call \codeword{World.make_pc_init_dict} to get the
+        ClientCharacter arguments, and then call \codeword{World.make_pc} to initialize
+        and store the ClientCharacter.
+\end{enumerate}
+The differences between player characters, player characters for other clients, and NPCs
+are not represented at all in \codeword{ClientCharacter}, but this is subject to change.
+Currently, the differences are only present in the initialization data and the controllers.
+
+To handle animation, the character model is loaded in as a Panda3D Actor rather than an Entity,
+which can be set by specifying a \codeword{model_name}.
 \subsection{animator.py}
 The character model is animated by the \codeword{Anim} class, which is owned by the client-side
 controllers. This class implements a custom animation blending system on top of Panda3D's
@@ -254,7 +280,7 @@ an example of how to do it.
 
 \subsubsection{controllers.py}
 Controllers synthesize code from lower level game objects such as Characters, powers, and items,
-in order to act on Characters while separating "invisible" data from them. For example, Controllers
+in order to execute game logic. For example, Controllers
 perform client-side linear interpolation to smooth out Character movement, this functionality is
 intentionally separate from Characters because we want game objects to be as closely tied to the
 game state as possible, and with as little auxiliary data as possible.
@@ -292,26 +318,9 @@ player character. It drives client-side movement/rotation interpolation for NPCs
 interpolation is much more basic than the one implemented for player movement. Essentially,
 whenever we receive a new state, we introduce some lag and interpolate towards it. 
 \subsubsection{world.py}
-This file defines the world state and defines methods for creating client-side objects from
-data received by the server. The reason this layer is necessary is because we need to perform
-some higher level operations for networking-compatible objects (in particular, mapping an object's
-id to itself). Also, this data is typically not immediately compatible with the base level objects,
-and it is much more modular and testable if the networking parsing is done outside of the lower level
-classes. It also defines the world creation code.
-
-The login process is somewhat complicated, so I explain it here. First, upon connecting to the
-server, the client reads the players.json file for ``Demo Player'', extracts networking-compatible
-input data using \codeword{states.get_player_states_from_data}, then sends it to the server using
-\codeword{network.peer.request_enter_world}. Note \codeword{Items} and \codeword{Powers} are sent as
-lists of database ids. Here, the new character will be created by the server.
-Since the server needed to create \codeword{Items} and \codeword{Powers} equipped with networking
-information, the client can't just make the objects by itself. Instead, the server parses
-these objects again, building lists containing both the database id's and instance id's of the
-objects, and sends {\it that} back, instead of the raw lists containing just the database ids.
-The server will send back the updated data to the client, and also sends a minimized version of the
-character state to all other clients. This client will then construct their new player character
-from this data, along with the \codeword{PlayerController}. In the same RPC call, the server also
-issues the command to create the UI, and the player will be ready to play at this point.
+This class should be used for creating all game objects that need to be sent over the
+network. It provides methods for creating game objects from network data and augmenting
+them with network-relevant information.
 \subsubsection{UI Subpackage}
 The UI provides a high-level interface into the game state. It has access to pretty much anything that
 can affect the world. One potentially common pattern is that the game logic does something that
@@ -330,14 +339,13 @@ the UI-level inputs) and performs game operations from those inputs. It is typic
 to act through the controllers where possible, but this is not necessary.
 \subsection{Server Subpackage}
 \subsubsection{character.py}
-This file defines the server-side \codeword{ServerCharacter} class, which is a pretty small deviation from
-the base \codeword{Character} class. Its combat state is a \codeword{BaseCombatState}, which
-defines the base combat stats to build up from (with \codeword{Items}/\codeword{Effects}). It also
-applies the stats of equipped items to the Character.
+This file defines the server-side \codeword{ServerCharacter} class, which is a pretty small
+deviation from the base \codeword{Character} class. See the client's character.py section
+to see how ServerCharacters for players should be initialized.
 
-Here, the property \codeword{model_name} is defined so that the server can communicate models
-to clients without actually updating the models itself. In \codeword{PhysicalStates},
-\codeword{model_name} is sent instead of \codeword{model} for this very reason.
+Creating NPCs is similar, except the client doesn't need to be in the loop at the start, instead
+the server just reads the data from the disk.
+
 \subsubsection{effect.py}
 This file defines \codeword{Effects}, which are the result of \codeword{Powers}.
 There are several different kinds of effects - persistent/instant, harmful/beneficial.
@@ -348,10 +356,9 @@ Characters (even player characters). It drives the server-side game logic for th
 Characters, including physics, combat, and powers. Networking updates are sent to clients.
 from here.
 \subsubsection{world.py}
-This file is pretty much the same as in the client, except annoyingly, the server needs to
-create objects slightly differently. It's responsible for incrementing the instance id
-counters. It also has the capability to load NPCs for a zone, while the client cannot
-do this (it must instead rely on the server to send all the NPC data).
+This class should be used for creating all game objects that need to be sent over the
+network. It provides methods for creating game objects from network data and augmenting
+them with network-relevant information.
 \subsubsection{world\_requests.py}
 This is the top-level game logic file for the server. It defines all RPCs called by
 the client and executed on the server. As with world\_responses.py, the client does not
