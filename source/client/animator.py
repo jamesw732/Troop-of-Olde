@@ -9,8 +9,9 @@ combat_stance = "CombatStance"
 
 
 class Anim(Entity):
-    """Wrapper for Actor animation methods that encapsulates common animation sequences"""
-    def __init__(self, actor):
+    """Wrapper for Actor animation methods that encapsulates all runtime model adjustments,
+    including animation and physical item equipping."""
+    def __init__(self, actor, equipment=None):
         """actor: a Panda3D Actor object, which is the target of animation."""
         super().__init__()
         self.actor = actor
@@ -45,6 +46,13 @@ class Anim(Entity):
 
         self.end_run_cycle()
 
+        joint_names = ["spine.003", "hand.R", "hand.R", "hand.L"]
+        self.equipment_joints = [self.actor.exposeJoint(None, "modelRoot", joint) for joint in joint_names]
+        self.equipment_models = [None, None, None, None]
+        if equipment is not None:
+            for i, item in enumerate(equipment):
+                self.set_equipment_slot(i, item)
+
     def update(self):
         """Loop over fade in/fade out animations and update weights"""
         for part, anim_to_w in self.anim_blends.items():
@@ -61,7 +69,7 @@ class Anim(Entity):
                     self.set_anim_blend(anim, w, part=part)
                     if w == 0:
                         del self.fade_out_anims[anim]
-
+    # Animation methods
     def start_run_cycle(self):
         if not self.idle:
             return
@@ -128,3 +136,17 @@ class Anim(Entity):
     def set_anim_blend(self, name, w, part="modelRoot"):
         self.anim_blends[part][name] = w
         self.actor.setControlEffect(name, w, partName=part)
+    # Equip methods
+    def set_equipment_slot(self, slot, item):
+        cur_model = self.equipment_models[slot]
+        if cur_model is not None:
+            cur_model.detachNode()
+        if item is None:
+            return
+        model_name = item.model_name
+        if model_name == "":
+            return
+        joint = self.equipment_joints[slot]
+        model = Entity(model=model_name, parent=joint, world_scale=(1, 1, 1), rotation=(180, 0, 90),
+                       color=color.gray)
+        self.equipment_models[slot] = model

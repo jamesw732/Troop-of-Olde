@@ -25,7 +25,7 @@ class PlayerController(Entity):
         self.namelabel = NameLabel(character)
         self.namelabel.parent = self.focus
         self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
-        self.animator = Anim(self.character.model_child)
+        self.animator = Anim(self.character.model_child, equipment=character.equipment)
         # Uncomment this and shadow handling in world_responses to see network synchronization
         # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
         #                      color=color.yellow, rotation=self.character.rotation,
@@ -161,6 +161,25 @@ class PlayerController(Entity):
             self.animator.start_run_cycle()
         else:
             self.animator.end_run_cycle()
+
+    def overwrite_equipment(self, items):
+        char = self.character
+        if len(char.equipment) != len(items):
+            return
+        for slot, item in enumerate(items):
+            char.equipment[slot] = item
+            if item is not None:
+                item.leftclick = "unequip"
+            self.animator.set_equipment_slot(slot, item)
+
+    def overwrite_inventory(self, items):
+        char = self.character
+        if len(char.inventory) != len(items):
+            return
+        for slot, item in enumerate(items):
+            char.inventory[slot] = item
+            if item is not None:
+                item.leftclick = "equip"
 
     def handle_updown_keyboard_rotation(self, updown):
         """Handles up/down arrow key rotation.

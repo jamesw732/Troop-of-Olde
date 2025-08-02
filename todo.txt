@@ -4,8 +4,7 @@ Implementation todo list.
 Finish adding animations.
 Animation checklist:
 Immediate Must Haves:
-- Add weapon models
-- Attack animations with weapons
+- Add weapon models/handling
 - Spellcasting
 - Death
 Eventual Must Haves:
@@ -15,18 +14,18 @@ Nice to haves:
 - Sideways walk animations
 
 
-Two parts to adding weapons:
-- Adding/removing them to/from the scene
-- Managing animations
 
-Just work on adding/removing weapons to/from the scene for now.
-
-Todo list:
-- Make client predict where it thinks items are going to go. This should make
-the inventory more responsive to double clicks, especially with high ping
-- Document changes to new item movement philosophy in developer.tex.
-
-
+Weapon model todo list:
+- Animations need to depend on weapons
+- 2h weapons should have different animations
+- Client should get access to other clients' equipment
+I think this can be parallel to the current items update after moving an item.
+Rename remote_update_equipment_inventory to remote_pc_item_move_update, and
+make it include the new cbstate.
+Also add a remote_npc_item_move_update, which accepts an NPCCombatState and
+equipment, but not inventory. Call this for all connections other connections.
+The equipment update, defined in controllers, could probably just be for the
+animator, at least for now.
 
 
 

@@ -36,26 +36,10 @@ class ClientCharacter(Character):
 
         self.clickbox = ClickBox(self)
         self.namelabel = None
-        hand = self.model_child.exposeJoint(None, "modelRoot", "hand.R")
-        sword = Entity(model='sword', parent=hand, world_scale=(1, 1, 1), rotation=(180, 0, 90),
-                       color=color.gray)
 
-    def overwrite_equipment(self, items):
-        if len(self.equipment) != len(items):
-            return
-        for slot, item in enumerate(items):
-            self.equipment[slot] = item
-            if item is not None:
-                item.leftclick = "unequip"
-
-    def overwrite_inventory(self, items):
-        if len(self.inventory) != len(items):
-            return
-        for slot, item in enumerate(items):
-            self.inventory[slot] = item
-            if item is not None:
-                item.leftclick = "equip"
-
+        # hand = self.model_child.exposeJoint(None, "modelRoot", "hand.R")
+        # sword = Entity(model='sword.glb', parent=hand, world_scale=(1, 1, 1), rotation=(180, 0, 90),
+        #                color=color.gray)
 
     @Character.model_name.setter
     def model_name(self, new_model):

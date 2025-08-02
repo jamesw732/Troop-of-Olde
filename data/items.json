@@ -12,7 +12,8 @@
         "stats": {
             "statichealth": 10
         },
-        "icon": "bronze_shortsword.png"
+        "icon": "bronze_shortsword.png",
+        "model": "sword.glb"
     },
     "iron_longsword": {
         "name": "Iron Longsword",
@@ -27,7 +28,9 @@
         "stats": {
             "str": 10
         },
-        "icon": "iron_longsword.png"
+        "icon": "iron_longsword.png",
+        "model": "sword.glb"
+
     },
     "iron_broadsword": {
         "name": "Iron Broadsword",
@@ -39,6 +42,8 @@
             "style": "2h melee",
             "slots": ["mh"]
         },
-        "icon": "2h_sword.png"
+        "icon": "2h_sword.png",
+        "model": "sword.glb"
+
     }
 }
