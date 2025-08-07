@@ -4,6 +4,7 @@ import json
 import os
 
 from .character import ServerCharacter
+from .combat_system import CombatSystem
 from .controllers import MobController
 from .power import ServerPower
 from .. import *
@@ -27,6 +28,8 @@ class World:
         self.power_inst_id_ct = 0
         self.inst_id_to_container = dict()
         self.container_inst_id_ct = 0
+
+        self.combat_system = CombatSystem(self.uuid_to_char.values())
 
     def load_zone(self, file):
         """Load the world by parsing a json
