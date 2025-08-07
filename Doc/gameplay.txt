@@ -7,40 +7,30 @@ relatively small world with high replayability. Runs of the game should be beata
 a handful of hours.
 
 The world itself can help improve replayability. No ideas here are final, but this is my best estimation
-at replayability:
+at choices that would help replayability:
 - Randomly generated terrain may help give each run of the game a unique feel. But the world will need
-to be interesting whether there's random generation or not.
+to be interesting whether there's random generation or not. 
 - Randomly chosen enemies can help create variance in player's choices. If enemies are sufficiently
 different from one another, then the player will need to use different strategies. If enemies drop
 different things, then the player will need to make different choices about their character build.
 Both of these features are improved if there's room for the player to predict the kinds of enemies
 he/she faces.
-- Reduce unique names, or if using unique names, procedurally generate the names. This includes zone
+- Minimize unique names, or if using unique names, procedurally generate the names. This includes zone
 names, so rather than have named zones, maybe use biomes.
+- There's incentive to replay the game besides just having fun, for example with a difficulty scaling
+system.
 
-Tentative plan for biomes:
-- There will be a handful (5?) different biomes that the player will have to clear to complete the game.
-- Each biome will have different types of enemies: common, elite, and one boss.
-- Common enemies respawn, elites and bosses respawn as common enemies. This will usher the players to
-progress through the world, rather than just repeat encounters and become OP.
-- Killing the boss unlocks the next zone. You can't go back once you enter a new zone.
-- In multiplayer, all players must stay in the same zone.
-- There are different factions (3 per zone), boss defined by main faction and most of the rest
-of enemies follow the main faction, but straggler commons and elites can be different factions.
-Prevalence of each faction is randomly chosen on each run.
-Per faction, the number of different types of enemies are:
-1 boss
-3 elites
-5 common enemies
 
-Some biome/faction ideas:
-Forest - Cultists, Treants, Dark Elves
-Desert - Undead, Scarabs, Raiders
-Island - Pirates, Merfolk, Crabs (might be complex and definitely contingent on a water implementation)
-Jungle - Apes, Crocodilian people, Spiders
-Tundra - Vikings, Bears, Yetis
-Swamp - Frog people, Goblins, Fungus people
-Volcanic Expanse - Demons, Dragons, Fire Elementals/Golems
+Tentative plan for zones:
+There will be three zones (maybe more, depending on rate of development and pace of the game)
+that the players must progress through. The zones are fixed, but the enemies you will encounter
+in them are not.
+Each zone will have common enemies, elite enemies, and bosses. Killing the boss unlocks the next zone.
+You can't go back once you enter a new zone. In multiplayer, all players must stay in the same zone.
+Enemies are chosen from pools of:
+3 bosses,
+3-5 elites
+5-8 common enemies
 
 Quests will be present in the world, but small. There will be a handful of friendly NPCs which 
 will ask for a particular item and give some worthwhile reward. Would be best to make the location/items
@@ -54,6 +44,7 @@ Auto attacks:
 - You can toggle whether or not you are auto attacking, and they will be performed automatically.
 - You can dual wield two one-handed weapons. In this case, they operate on separate timers, and your offhand
 rate depends on your dual wield skill level.
+- You can also wear weapons that don't allow you to auto attack, for example wands (these buff your spells).
 Powers:
 - Powers are spells and abilities you cast/use to apply an effect to an enemy.
 - Powers are located on the action bar at the bottom of the screen.
@@ -74,22 +65,33 @@ instead it will depend on the action. Auto attacking will probably be constant (
 and their weapon), powers and special attacks will just use the GCD or use time of it.
 
 Balance constraints:
-- Health should feel like a finite resource.
+- Combat should feel like a puzzle where you need to weigh your resources (health, energy, and time)
+- Combat should be filled with meaningful choices
 - Minimize number of meaningless durations (like buffs in Everquest)
-- Player should have multiple choices in combat encounters
 
 Power ideas:
 Melee:
 - Stances; offensive and defensive.
 Ranged:
-- Elemental arrows (probably implement as a buff that lasts for a single shot, zero gcd)
+- Fire arrows that do fast DoT's
+- Poison arrows that do slow DoT's
+- Lightning arrows that stun the target
+- Cold arrows that slow the target
 - Arrow rain (works with elemental arrows)
 - Headshot (low accuracy but high damage attack)
 Magic:
 - DoT's that spread to other enemies
 - DoT's that end in an explosion
+- Fire spells that do fast DoT's
+- Poison spells that do slow DoT's
+- Lightning spells that stun the target
+- Cold spells that slow the target
 Healing:
 - Heals over time.
+- Instant, small heals
+- Short time to cast, small heals
+- Medium time to cast, medium heals
+- Long time to cast, long heals
 Support:
 - High-damage thorns that only last a few seconds.
 - Curses that cause the target's next spell to misfire. This will need a long cooldown.
@@ -99,6 +101,13 @@ Support:
 - Sacrifice health to restore energy to allies
 - Animal forms
 - Purification spells that remove debuffs
+- Interrupt next spell/ability used
+- Prevent target from healing
+- Damage/steal target's energy
+- Remove or temporarily disable beneficial effects from target
+- Pets with special attacks
+- Utility pets, like pets that can heal the player or take aggro
+- Short duration bind spells (long duration is bad)
 
 Elemental system:
 Speculating how to implement an elemental system (in the future), if at all.

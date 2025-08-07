@@ -28,7 +28,6 @@ class InputHandler(Entity):
         ctrl = world.pc_ctrl
         if ctrl is None:
             return
-        char = ctrl.character
         tgt = mouse.hovered_entity
         if key == "jump":
             ctrl.do_jump()
@@ -51,11 +50,6 @@ class InputHandler(Entity):
     def update(self):
         ctrl = world.pc_ctrl
         if ctrl is None:
-            # Eventually, this class will depend on PlayerController and this check will
-            # be deferred to PlayerController as a Character existence check
-            return
-        char = ctrl.character
-        if char is None:
             return
         # Client-side movement/rotation updates
         updown_rot = held_keys['rotate_up'] - held_keys['rotate_down']
@@ -67,11 +61,6 @@ class InputHandler(Entity):
     def tick_movement_inputs(self):
         ctrl = world.pc_ctrl
         if ctrl is None:
-            # Eventually, this class will depend on PlayerController and this check will
-            # be deferred to PlayerController as a Character existence check
-            return
-        char = ctrl.character
-        if char is None:
             return
         # Send movement/rotation inputs to server
         # Keyboard Movement

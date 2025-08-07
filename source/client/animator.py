@@ -46,7 +46,7 @@ class Anim(Entity):
 
         self.end_run_cycle()
 
-        joint_names = ["spine.003", "hand.R", "hand.R", "hand.L"]
+        joint_names = ["spine.002", "hand.R", "hand.R", "hand.L"]
         self.equipment_joints = [self.actor.exposeJoint(None, "modelRoot", joint) for joint in joint_names]
         self.equipment_models = [None, None, None, None]
         if equipment is not None:

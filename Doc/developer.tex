@@ -278,12 +278,17 @@ part name as an argument to the \codeword{partName} parameter of \codeword{Actor
 which part, otherwise the blending will be incorrect. See the attack animation code for
 an example of how to do it.
 
+This class also handles visual equipping and unequipping.
+
 \subsubsection{controllers.py}
 Controllers synthesize code from lower level game objects such as Characters, powers, and items,
-in order to execute game logic. For example, Controllers
+in order to drive game logic. For example, Controllers
 perform client-side linear interpolation to smooth out Character movement, this functionality is
 intentionally separate from Characters because we want game objects to be as closely tied to the
 game state as possible, and with as little auxiliary data as possible.
+
+Controllers are the preferred way to interface to the gamestate through networking and the input handler.
+Should controllers be removed and functionality deferred to the corresponding classes?
 
 \codeword{PlayerController} is the controller for the player character. It should only be initialized
 once during the lifetime of the player character. It drives client-side physics and sends updates

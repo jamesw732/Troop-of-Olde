@@ -1,6 +1,25 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
+Refactor Controllers to not carry pretty much all of the game logic.
+High-level Checklist:
+- Combat
+- Effects
+- Powers
+- Physics
+- Camera movement
+- Inventory/equipment overwriting
+- Animation
+
+
+
+
+
+
+
+
+
+
 Finish adding animations.
 Animation checklist:
 Immediate Must Haves:
@@ -14,16 +33,17 @@ Nice to haves:
 - Sideways walk animations
 
 
-
 Weapon model todo list:
+- Client should get access to other clients' equipment
 - Animations need to depend on weapons
 - 2h weapons should have different animations
-- Client should get access to other clients' equipment
-I think this can be parallel to the current items update after moving an item.
+
+Notes:
+I think client updates for npcs can be parallel to the current items update after moving an item.
 Rename remote_update_equipment_inventory to remote_pc_item_move_update, and
 make it include the new cbstate.
 Also add a remote_npc_item_move_update, which accepts an NPCCombatState and
-equipment, but not inventory. Call this for all connections other connections.
+equipment, but not inventory. Call this for all other connections.
 The equipment update, defined in controllers, could probably just be for the
 animator, at least for now.
 
