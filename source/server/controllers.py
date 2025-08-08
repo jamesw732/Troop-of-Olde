@@ -9,14 +9,7 @@ from .. import *
 
 
 class MobController(Entity):
-    """Controller for all server-side characters.
-
-    Handles server-side combat and physics.
-    Does not, and will not, handle NPC logic such as pathing, aggression, etc.
-    These will instead be handled by an NPCLogic (tentative name) class which reads the
-    game state and makes "inputs" to be processed by this class. These "inputs" should be
-    compatible with the processed outputs sent by PlayerController.
-    """
+    """Handles movement for all server-side characters"""
     def __init__(self, character, on_destroy=lambda: None):
         assert network.peer.is_hosting()
         super().__init__()
@@ -25,27 +18,6 @@ class MobController(Entity):
         # Relayed back to client to determine where in history this state was updated, always use most recent
         self.sequence_number = 0
         self.moving = False
-
-    def update(self):
-        char = self.character
-        # Death handling
-        if char.health <= 0:
-            self.kill()
-            return
-        # Queued power handling
-        if char.get_on_gcd():
-            char.tick_gcd()
-        # Need to update 
-
-    def use_power(self, power):
-        tgt = power.get_target(self.character)
-        if tgt is None:
-            return
-        if self.character.energy < power.cost:
-            return
-        power.use(self.character, tgt)
-        # Upon using a power, need to update energy to clients
-        network.broadcast_cbstate_update(self.character)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):
@@ -91,10 +63,3 @@ class MobController(Entity):
             for conn, uuid in network.connection_to_uuid.items():
                 if char.uuid != uuid:
                     network.peer.remote_end_run_anim(conn, char.uuid)
-
-    def kill(self):
-        self.character.alive = False
-        uuid = self.character.uuid
-        destroy(self.character)
-        destroy(self)
-        network.broadcast(network.peer.remote_kill, uuid)

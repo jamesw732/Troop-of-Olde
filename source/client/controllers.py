@@ -84,7 +84,7 @@ class PlayerController(Entity):
         else:
             camera.z = -1 * self.camdistance
         if char.get_on_gcd():
-            char.tick_gcd()
+            char.tick_gcd(time.dt)
         elif char.next_power is not None and not char.next_power.on_cooldown:
             self.use_power(char.next_power)
 

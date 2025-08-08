@@ -87,9 +87,8 @@ def request_use_power(connection, time_received, inst_id: int):
     """
     uuid = network.connection_to_uuid[connection]
     char = world.uuid_to_char[uuid]
-    ctrl = world.uuid_to_ctrl[char.uuid]
     power = world.inst_id_to_power[inst_id]
-    ctrl.use_power(power)
+    world.power_system.char_use_power(char, power)
 
 
 # ITEMS

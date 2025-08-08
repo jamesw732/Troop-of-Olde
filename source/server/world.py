@@ -6,8 +6,10 @@ import os
 from .character import ServerCharacter
 from .combat_system import CombatSystem
 from .controllers import MobController
+from .death_system import DeathSystem
 from .effect_system import EffectSystem
 from .power import ServerPower
+from .power_system import PowerSystem
 from .. import *
 
 
@@ -31,7 +33,9 @@ class World:
         self.container_inst_id_ct = 0
 
         self.combat_system = CombatSystem(self.uuid_to_char.values())
+        self.death_system = DeathSystem(self.uuid_to_char.values())
         self.effect_system = EffectSystem(self.uuid_to_char.values())
+        self.power_system = PowerSystem(self.uuid_to_char.values())
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -108,6 +112,9 @@ class World:
                 connection = network.uuid_to_connection[uuid]
                 del network.uuid_to_connection[uuid]
                 del network.connection_to_uuid[connection]
+            if uuid in self.uuid_to_ctrl:
+                ctrl = self.uuid_to_ctrl[uuid]
+                destroy(ctrl)
         return on_destroy
 
     def make_char(self, init_dict):

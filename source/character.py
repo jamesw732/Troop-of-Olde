@@ -71,9 +71,9 @@ class Character(Entity):
                 return False
         return True
 
-    def tick_gcd(self):
+    def tick_gcd(self, dt):
         """Ticks up the global cooldown for powers"""
-        self.gcd_timer = min(self.gcd_timer + time.dt, self.gcd)
+        self.gcd_timer = min(self.gcd_timer + dt, self.gcd)
 
     def get_on_gcd(self):
         """Returns whether the character is currently on the global cooldown for powers"""

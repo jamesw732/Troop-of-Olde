@@ -3,6 +3,10 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Refactor Controllers to not carry pretty much all of the game logic.
 High-level Checklist:
+Server:
+- Powers
+- Deaths
+Client:
 - Powers
 - Physics
 - Camera movement
