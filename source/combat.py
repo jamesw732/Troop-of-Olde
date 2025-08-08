@@ -6,9 +6,9 @@ from .base import sigmoid, sqdist, fists_base_dmg, slot_to_ind
 
 
 # PUBLIC
-def tick_combat_timer(char, slot, wpn):
+def tick_combat_timer(char, slot, wpn, dt):
     delay = get_wpn_delay(wpn)
-    tick_amt = time.dt * get_haste_modifier(char.haste)
+    tick_amt = dt * get_haste_modifier(char.haste)
     if slot == "mh":
         char.mh_combat_timer += tick_amt
         if char.mh_combat_timer >= delay:

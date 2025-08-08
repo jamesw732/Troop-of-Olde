@@ -3,14 +3,14 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Refactor Controllers to not carry pretty much all of the game logic.
 High-level Checklist:
-- Combat
-- Effects
 - Powers
 - Physics
 - Camera movement
 - Inventory/equipment overwriting
 - Animation
 
+
+Notes:
 
 
 

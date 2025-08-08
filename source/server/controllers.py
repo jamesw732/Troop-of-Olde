@@ -35,7 +35,6 @@ class MobController(Entity):
         # Queued power handling
         if char.get_on_gcd():
             char.tick_gcd()
-        self.handle_effects()
         # Need to update 
 
     def use_power(self, power):
@@ -47,39 +46,6 @@ class MobController(Entity):
         power.use(self.character, tgt)
         # Upon using a power, need to update energy to clients
         network.broadcast_cbstate_update(self.character)
-
-    def handle_effects(self):
-        """Increments effect timers and handles all necessary changes to character."""
-        char = self.character
-        updated_cbstate = False
-        for effect in char.effects:
-            effect_msgs = []
-            remove = False
-            if effect.timer == 0:
-                effect_msgs += effect.apply_start_effects()
-                effect.apply_persistent_effects()
-                updated_cbstate = True
-            if not char.alive:
-                remove = True
-            if effect.timer >= effect.duration:
-                effect.remove_persistent_effects()
-                effect_msgs += effect.apply_end_effects()
-                remove = True
-                updated_cbstate = True
-            effect.tick_timer += time.dt
-            if effect.tick_rate and effect.tick_timer >= effect.tick_rate:
-                effect.tick_timer -= effect.tick_rate
-                effect_msgs += effect.apply_tick_effects()
-                updated_cbstate = True
-            effect.timer += time.dt
-            conn = network.uuid_to_connection.get(effect.src.uuid)
-            if conn:
-                for msg in effect_msgs:
-                    network.peer.remote_print(conn, msg)
-            if remove: 
-                effect.remove()
-        if updated_cbstate:
-            network.broadcast_cbstate_update(char)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):

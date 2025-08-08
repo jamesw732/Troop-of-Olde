@@ -4,12 +4,22 @@ from ..base import *
 from ..combat import *
 from ..network import network
 
+
+dt = 1/5
+
+
 class CombatSystem(Entity):
+    """Ticks combat for all Characters.
+
+    Increments combat timers for all characters that are in combat.
+    If timer progresses past weapon's delay, performs an attack.
+    """
     def __init__(self, chars):
         super().__init__()
         self.chars = chars
 
-    def update(self):
+    @every(dt)
+    def tick_combat(self):
         for char in self.chars:
             if not char.target or not char.target.alive:
                 char.target = None
@@ -34,7 +44,7 @@ class CombatSystem(Entity):
         idx = slot_to_ind[slot]
         wpn = src.equipment[idx]
         # Check whether to attempt to perform an attack or not
-        attempting = tick_combat_timer(src, slot, wpn)
+        attempting = tick_combat_timer(src, slot, wpn, dt)
         if not attempting:
             return False
         for conn in network.connection_to_uuid:
