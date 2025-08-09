@@ -13,12 +13,15 @@ class UI:
         self.actionbar = None
         self.items_manager = None
 
-    def make_all_ui(self, char, ctrl):
+    def make_all_ui(self, world):
+        char = world.pc
+        power_system = world.power_system
+
         self.items_manager = ItemsManager(char)
         self.bars = BarWindow(char)
         self.playerwindow = PlayerWindow(char, self.items_manager)
         self.gamewindow = GameWindow()
-        self.actionbar = ActionBar(char, ctrl)
+        self.actionbar = ActionBar(char, power_system)
 
 
 ui = UI()

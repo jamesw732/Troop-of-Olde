@@ -6,9 +6,9 @@ from ... import power_key_to_slot, default_num_powers
 
 
 class ActionBar(UIWindow):
-    def __init__(self, char, ctrl):
+    def __init__(self, char, power_system):
         self.char = char
-        self.ctrl = ctrl
+        self.power_system = power_system
         self.num_slots = default_num_powers
         self.total_slot_width = 0.5
         self.slot_height = self.total_slot_width / self.num_slots
@@ -30,26 +30,24 @@ class ActionBar(UIWindow):
         pbar_world_pos = camera.ui.scale * Vec3(self.margin, -self.header_height - self.margin, -1) \
                 + self.world_position
         pbar_world_scale = camera.ui.scale * Vec3(self.total_slot_width, self.slot_height, 1)
-        self.powerbar = PowerBar(char, ctrl, parent=self, world_position=pbar_world_pos,
+        self.powerbar = PowerBar(char, power_system, parent=self, world_position=pbar_world_pos,
                                  origin=(-0.5, 0.5), world_scale=pbar_world_scale, collider='box',
                                color=window_fg_color, model='quad')
         
         grid(self.powerbar, 1, 10, color=color.black)
 
     def start_cd_animation(self):
+        print("Starting CD animation")
         for i, icon in enumerate(self.powerbar.power_icons):
             if icon is None or icon.cd_overlay is not None:
                 continue
-            icon.cd_overlay = Timer(self.char, self.char.powers[i], parent=icon, origin=(-.5, .5),
-                                     position=(0, 0, -5), 
-                                     model='quad', color=color.gray, alpha=0.6,
-                                     scale_x = 1)
+            icon.cd_overlay = Timer(self.char, self.char.powers[i], icon)
 
 
 class PowerBar(Entity):
-    def __init__(self, char, ctrl, **kwargs):
+    def __init__(self, char, power_system, **kwargs):
         self.char = char
-        self.ctrl = ctrl
+        self.power_system = power_system
         super().__init__(**kwargs)
         self.power_icons = [None] * self.parent.num_slots
         self.labels = []
@@ -75,13 +73,6 @@ class PowerBar(Entity):
                 cur_outlines.append(Text(text=label, parent=self.labels[i], position=(*offset, 0.9),
                                          origin=(-0.5, -0.5), world_scale=(12, 12), color=color.black))
 
-    def handle_power_input(self, key):
-        slot = power_key_to_slot[key]
-        power = self.char.powers[slot]
-        if power is None:
-            return
-        self.ctrl.handle_power_input(power)
-
     def on_click(self):
         ui_mouse_x = mouse.x * camera.ui.scale_x
         rel_mouse_x = ui_mouse_x - self.world_x
@@ -91,23 +82,33 @@ class PowerBar(Entity):
         power = self.char.powers[slot]
         if power is None:
             return
-        self.ctrl.handle_power_input(power)
+        used_power = self.power_system.handle_power_input(power)
+        if used_power:
+            self.parent.start_cd_animation()
 
 
 class Timer(Entity):
-    def __init__(self, char, power, *args, **kwargs):
+    def __init__(self, char, power, parent):
         self.char = char
         self.power = power
-        super().__init__(*args, **kwargs)
+        super().__init__(origin=(-.5, .5), position=(0, 0, -5), model='quad',
+                         color=color.gray, alpha=0.6, scale_x = 1, parent=parent)
         self.ignore_focus = True
 
     def update(self):
-        self.alpha = 0.6
         # Choose gcd or individual cd timer, whichever will finish later
         if self.char.gcd - self.char.gcd_timer >= self.power.cooldown - self.power.timer:
-            self.scale_x = 1 - self.char.gcd_timer / self.char.gcd
+            if self.char.gcd == 0:
+                ratio = 0
+            else:
+                ratio = self.char.gcd_timer / self.char.gcd
+            new_scale_x = 1 - ratio
         else:
-            self.scale_x = 1 - self.power.timer / self.power.cooldown
-        if self.scale_x <= 0:
+            new_scale_x = 1 - self.power.timer / self.power.cooldown
+        # Check if new scale would be 0, Ursina doesn't let scale go too small
+        if new_scale_x <= 0:
             destroy(self)
-            self.parent.cd_overlay = None
+            del self.parent.cd_overlay
+            # self.parent.cd_overlay = None
+        else:
+            self.scale_x = new_scale_x

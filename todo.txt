@@ -3,9 +3,6 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Refactor Controllers to not carry pretty much all of the game logic.
 High-level Checklist:
-Server:
-- Powers
-- Deaths
 Client:
 - Powers
 - Physics
@@ -15,6 +12,20 @@ Client:
 
 
 Notes:
+Currently on Powers
+Current solution works well for un-queued powers, visually looks fine for
+queued powers but this is just because the animation timers aren't getting cleaned
+up. Maybe it's just better to keep the timers, and not delete? Seems like unnecessary
+overhead.
+Once timers are cleaned up, need to figure out how to make queued powers tell the
+UI to do the CD animation. I guess push it into the input handler?
+
+
+
+Extra cleanup, after everything is transferred over:
+- Move power queueing up the stack into input handler.
+- Move character-based logic such as gcd handling into PowerSystem. 
+- Lerp timer updates
 
 
 
@@ -207,3 +218,14 @@ writing the code.
 - Music
 - Icons
 - UI Art
+
+
+Considering move to C/C++ once prototype is finished.
+Would need to consider replacements for everything.
+- Rendering: Raylib
+- Scene graph: Optional, seems fairly simple to implement if desired
+- Networking: Enet or Yojimbo
+- Animation: Raylib, but would need to build things from the ground up, probably from custom
+shaders
+- Physics: Raylib raycasting
+- Entity Component System: Self built

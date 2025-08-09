@@ -45,7 +45,11 @@ class InputHandler(Entity):
             if isinstance(tgt, ClickBox):
                 ctrl.set_target(tgt.parent)
         elif key in power_key_to_slot:
-            ui.actionbar.powerbar.handle_power_input(key)
+            slot = power_key_to_slot[key]
+            power = world.pc.powers[slot]
+            used_power = world.power_system.handle_power_input(power)
+            if used_power:
+                ui.actionbar.start_cd_animation()
 
     def update(self):
         ctrl = world.pc_ctrl

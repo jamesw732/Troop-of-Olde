@@ -18,7 +18,7 @@ class PowerSystem(Entity):
     def tick_gcd(self):
         for char in self.chars:
             if char.get_on_gcd():
-                char.tick_gcd(time.dt)
+                char.tick_gcd(dt)
 
     def char_use_power(self, char, power):
         tgt = power.get_target(char)

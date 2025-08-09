@@ -1,7 +1,3 @@
-"""Controllers objects attached to Characters which serve as the bridge between inputs
-and the game engine/logic API. Functionality is split between client-side player characters,
-client-side NPCs, and server-side Characters.
-"""
 from ursina import *
 
 from .animator import Anim
@@ -83,33 +79,33 @@ class PlayerController(Entity):
             camera.z = -1 * min(self.camdistance, dist)
         else:
             camera.z = -1 * self.camdistance
-        if char.get_on_gcd():
-            char.tick_gcd(time.dt)
-        elif char.next_power is not None and not char.next_power.on_cooldown:
-            self.use_power(char.next_power)
+        # if char.get_on_gcd():
+        #     char.tick_gcd(time.dt)
+        # elif char.next_power is not None and not char.next_power.on_cooldown:
+        #     self.use_power(char.next_power)
 
-    def handle_power_input(self, power):
-        """Performs the operations caused by entering a power input.
+    # def handle_power_input(self, power):
+    #     """Performs the operations caused by entering a power input.
 
-        If not on cooldown, use the power. If on cooldown, queue the power"""
-        if self.character.get_on_gcd() or power.on_cooldown:
-            if self.character.next_power is power:
-                # Attempted to queue an already queued power, just remove it
-                self.character.next_power = None
-            else:
-                # Queued power will be used once off cooldown
-                power.queue(self.character)
-        else:
-            self.use_power(power)
+    #     If not on cooldown, use the power. If on cooldown, queue the power"""
+    #     if self.character.get_on_gcd() or power.on_cooldown:
+    #         if self.character.next_power is power:
+    #             # Attempted to queue an already queued power, just remove it
+    #             self.character.next_power = None
+    #         else:
+    #             # Queued power will be used once off cooldown
+    #             power.queue(self.character)
+    #     else:
+    #         self.use_power(power)
 
-    def use_power(self, power):
-        tgt = power.get_target(self.character)
-        if tgt is None:
-            return
-        if self.character.energy < power.cost:
-            return
-        power.use(self.character, tgt)
-        network.peer.request_use_power(network.server_connection, power.inst_id)
+    # def use_power(self, power):
+    #     tgt = power.get_target(self.character)
+    #     if tgt is None:
+    #         return
+    #     if self.character.energy < power.cost:
+    #         return
+    #     power.use(self.character, tgt)
+    #     network.peer.request_use_power(network.server_connection, power.inst_id)
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):

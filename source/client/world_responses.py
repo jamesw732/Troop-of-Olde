@@ -29,7 +29,8 @@ def spawn_pc(connection, time_received, spawn_state: PCSpawnState):
     init_dict = world.make_pc_init_dict(spawn_state)
     world.make_pc(init_dict)
     world.make_pc_ctrl()
-    ui.make_all_ui(world.pc, world.pc_ctrl)
+    world.make_power_system()
+    ui.make_all_ui(world)
 
 @rpc(network.peer)
 def spawn_npc(connection, time_received, spawn_state: NPCSpawnState):

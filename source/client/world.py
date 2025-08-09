@@ -6,6 +6,7 @@ import glob
 
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
+from .power_system import PowerSystem
 from .ui import ui
 from .. import *
 
@@ -24,6 +25,8 @@ class World:
         self.inst_id_to_item = dict()
         self.inst_id_to_power = dict()
         self.inst_id_to_container = dict()
+
+        self.power_system = None
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
@@ -150,6 +153,11 @@ class World:
         char = self.uuid_to_char[uuid]
         self.pc_ctrl = PlayerController(character=char, on_destroy=on_destroy)
         self.uuid_to_ctrl[uuid] = self.pc_ctrl
+
+    def make_power_system(self):
+        if self.pc is None:
+            return
+        self.power_system = PowerSystem(self.pc)
         
     def make_npc(self, init_dict):
         """Create an NPC from the server's inputs.
@@ -183,10 +191,7 @@ class World:
         return item
 
     def make_power(self, power_mnem, inst_id):
-        def on_use():
-            ui.actionbar.start_cd_animation()
-            ui.bars.update_display()
-        power = Power(power_mnem, inst_id, on_use=on_use)
+        power = Power(power_mnem, inst_id)
         self.inst_id_to_power[inst_id] = power
         return power
 
