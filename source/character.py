@@ -71,6 +71,11 @@ class Character(Entity):
                 return False
         return True
 
+    def start_gcd(self, gcd):
+        self.gcd = gcd
+        self.gcd_timer = 0
+        self.next_power = None
+
     def tick_gcd(self, dt):
         """Ticks up the global cooldown for powers"""
         self.gcd_timer = min(self.gcd_timer + dt, self.gcd)

@@ -4,14 +4,12 @@ from .base import *
 from .items import ItemFrame
 from ... import *
 
-"""Explanation of terminology used in this file:
-ItemsWindow is the PlayerWindow subframe, the highest ancestor in this file
-ItemFrame represents a grid of items, and handles most of the items UI inputs
-"""
-
 
 class ItemsWindow(Entity):
     def __init__(self, char, items_manager, *args, **kwargs):
+        """Creates the window containing character's inventory and equipment.
+
+        Relies on ItemsManager to handle visual item movements."""
         super().__init__(*args, **kwargs)
         # This is used to normalize lengths relative to the width/height of the ItemsWindow
         # Given a width/length, multiply the length by window_wh_ratio to get the correct

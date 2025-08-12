@@ -9,6 +9,7 @@ class ActionBar(UIWindow):
     def __init__(self, char, power_system):
         self.char = char
         self.power_system = power_system
+        self.power_system.ui_callback = self.start_cd_animation
         self.num_slots = default_num_powers
         self.total_slot_width = 0.5
         self.slot_height = self.total_slot_width / self.num_slots
@@ -37,7 +38,6 @@ class ActionBar(UIWindow):
         grid(self.powerbar, 1, 10, color=color.black)
 
     def start_cd_animation(self):
-        print("Starting CD animation")
         for i, icon in enumerate(self.powerbar.power_icons):
             if icon is None or icon.cd_overlay is not None:
                 continue
@@ -82,9 +82,7 @@ class PowerBar(Entity):
         power = self.char.powers[slot]
         if power is None:
             return
-        used_power = self.power_system.handle_power_input(power)
-        if used_power:
-            self.parent.start_cd_animation()
+        self.power_system.handle_power_input(power)
 
 
 class Timer(Entity):
@@ -108,7 +106,6 @@ class Timer(Entity):
         # Check if new scale would be 0, Ursina doesn't let scale go too small
         if new_scale_x <= 0:
             destroy(self)
-            del self.parent.cd_overlay
-            # self.parent.cd_overlay = None
+            self.parent.cd_overlay = None
         else:
             self.scale_x = new_scale_x

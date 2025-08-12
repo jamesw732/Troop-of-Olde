@@ -8,7 +8,7 @@ from .combat_system import CombatSystem
 from .controllers import MobController
 from .death_system import DeathSystem
 from .effect_system import EffectSystem
-from .power import ServerPower
+from ..power import Power
 from .power_system import PowerSystem
 from .. import *
 
@@ -150,7 +150,7 @@ class World:
     def make_power(self, power_mnem):
         inst_id = self.power_inst_id_ct
         self.power_inst_id_ct += 1
-        power = ServerPower(power_mnem, inst_id)
+        power = Power(power_mnem, inst_id)
         self.inst_id_to_power[inst_id] = power
         return power
 

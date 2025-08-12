@@ -36,16 +36,9 @@ class Power:
             if self.timer >= self.cooldown:
                 self.on_cooldown = False
 
-    def use(self, src, tgt):
+    def start_cooldown(self):
         self.timer = 0
         self.on_cooldown = True
-        src.gcd = self.gcd_duration
-        self.start_cooldowns(src)
-        src.energy -= self.cost
-
-    def start_cooldowns(self, src):
-        src.gcd_timer = 0
-        src.next_power = None
 
     def get_target(self, src):
         """Returns the correct target based on the type of power and character's target

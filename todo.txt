@@ -13,28 +13,31 @@ Client:
 
 Notes:
 Currently on Powers
-Current solution works well for un-queued powers, visually looks fine for
-queued powers but this is just because the animation timers aren't getting cleaned
-up. Maybe it's just better to keep the timers, and not delete? Seems like unnecessary
-overhead.
-Once timers are cleaned up, need to figure out how to make queued powers tell the
-UI to do the CD animation. I guess push it into the input handler?
-
-
-
-Extra cleanup, after everything is transferred over:
-- Move power queueing up the stack into input handler.
-- Move character-based logic such as gcd handling into PowerSystem. 
-- Lerp timer updates
+- Move character-based logic into PowerSystem. Powers should probably be
+completely agnostic of Characters.
+This will include:
+    - queueing
+    - target finding
+    - using (done)
+- Make visual timers update every frame
 
 
 
 
+Once the funtionality is split up, I want to consider converting the controllers to
+not be attached to just one single character. This would force some data to be pushed
+down into the Character classes, which would force a split of ClientCharacter at
+the very least.
+New class would be MovementSystem for both client and server.
+For server version, would have an interface to the network allowing character to
+send movement inputs.
+For client version, would have an interface to both the input handler to allow for
+instant client-side movement updates, and the network to accept authoritative movement
+updates that are integrated with client-side prediction.
 
+This change should be delayed until the controllers are sufficiently single-responsibility.
 
-
-
-
+===================================NEXT================================================
 Finish adding animations.
 Animation checklist:
 Immediate Must Haves:
@@ -65,7 +68,8 @@ animator, at least for now.
 
 
 
-===================================NEXT================================================
+
+
 Once animations are done, I want to continue to make some bigger moves.
 
 - Clean up networking code and game logic. Basically, for every functionality implemented,

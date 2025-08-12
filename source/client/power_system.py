@@ -9,12 +9,14 @@ dt = 1/5
 
 class PowerSystem(Entity):
     """Ticks the player character's GCD and responds to server's power updates."""
-    def __init__(self, char):
+    def __init__(self, char, ui_callback = lambda: None):
         super().__init__()
         self.char = char
+        self.ui_callback = ui_callback
 
     @every(dt)
     def tick_cooldowns(self):
+        """Increment all cooldowns by dt. If ready, performs queued power."""
         for power in self.char.powers:
             if power is not None:
                 power.tick_cd(dt)
@@ -35,10 +37,8 @@ class PowerSystem(Entity):
             else:
                 # Queued power will be used once off cooldown
                 power.queue(self.char)
-            return False
         else:
             self.use_power(power)
-            return True
 
     def use_power(self, power):
         tgt = power.get_target(self.char)
@@ -46,6 +46,9 @@ class PowerSystem(Entity):
             return
         if self.char.energy < power.cost:
             return
-        power.use(self.char, tgt)
+        self.char.energy -= power.cost
+        power.start_cooldown()
+        self.char.start_gcd(power.gcd_duration)
+        self.ui_callback()
         network.peer.request_use_power(network.server_connection, power.inst_id)
 

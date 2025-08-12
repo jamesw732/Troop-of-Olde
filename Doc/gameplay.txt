@@ -70,44 +70,49 @@ Balance constraints:
 - Minimize number of meaningless durations (like buffs in Everquest)
 
 Power ideas:
-Melee:
+Melee Damage:
 - Stances; offensive and defensive.
-Ranged:
+- Hurricane; damages nearby enemies in a circle
+Ranged Damage:
 - Fire arrows that do fast DoT's
 - Poison arrows that do slow DoT's
 - Lightning arrows that stun the target
 - Cold arrows that slow the target
 - Arrow rain (works with elemental arrows)
 - Headshot (low accuracy but high damage attack)
-Magic:
+Magic Damage:
 - DoT's that spread to other enemies
 - DoT's that end in an explosion
 - Fire spells that do fast DoT's
 - Poison spells that do slow DoT's
 - Lightning spells that stun the target
 - Cold spells that slow the target
+- Spells that scale over the same combat session
+- High-damage thorns that only last a few seconds.
+- Debuff that makes target take damage whenever they use a power
+Pets:
+- Pets with special attacks
+- Utility pets, like pets that can heal the player or take aggro
 Healing:
 - Heals over time.
 - Instant, small heals
 - Short time to cast, small heals
 - Medium time to cast, medium heals
 - Long time to cast, long heals
-Support:
-- High-damage thorns that only last a few seconds.
-- Curses that cause the target's next spell to misfire. This will need a long cooldown.
-- Curse that puts some of the target's powers on cooldown.
+Support (things that help player/allies):
 - Charm - turn an enemy friendly temporarily
 - Generic debuffs to increase damage or weaken enemy
 - Sacrifice health to restore energy to allies
-- Animal forms
 - Purification spells that remove debuffs
+Utility (things that affect the enemy in ways besides damage):
+- Curses that cause the target's next spell to misfire and either
+- Curse that puts some of the target's powers on cooldown.
+- Short duration bind spells (long duration is bad)
 - Interrupt next spell/ability used
 - Prevent target from healing
 - Damage/steal target's energy
 - Remove or temporarily disable beneficial effects from target
-- Pets with special attacks
-- Utility pets, like pets that can heal the player or take aggro
-- Short duration bind spells (long duration is bad)
+- Transformation spells that completely change character
 
 Elemental system:
 Speculating how to implement an elemental system (in the future), if at all.

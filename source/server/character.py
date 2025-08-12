@@ -11,7 +11,6 @@ from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
 from panda3d.core import NodePath
 
-from .power import ServerPower
 from .. import *
 
 class ServerCharacter(Character):
