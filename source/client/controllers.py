@@ -44,7 +44,7 @@ class PlayerController(Entity):
         self.mouse_y_rotation = 0
         # Previous positions/rotations to lerp from
         self.prev_pos = self.character.position
-        self.prev_rot = self.character.rotation
+        self.prev_rot = self.character.rotation_y
         # Remember the position/rotation when we sent sequence numbers
         self.sn_to_pos = {}
         self.sn_to_rot = {}
@@ -101,6 +101,7 @@ class PlayerController(Entity):
         char.displacement_components["server_offset"] = Vec3(0, 0, 0)
         self.rot_offset = 0
         self.mouse_y_rotation = 0
+        self.sn_to_rot[self.sequence_number] = self.target_rot
         self.sequence_number += 1
 
     def update_movement_inputs(self, fwdback, strafe, rightleft_rot):
@@ -119,7 +120,6 @@ class PlayerController(Entity):
         rotation = rightleft_rot * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
         self.prev_rot = self.target_rot
         self.target_rot = char.rotation_y + rotation + self.rot_offset
-        self.sn_to_rot[self.sequence_number] = self.target_rot
         # Server update
         conn = network.server_connection
         keyboard_direction = Vec2(strafe, fwdback)
