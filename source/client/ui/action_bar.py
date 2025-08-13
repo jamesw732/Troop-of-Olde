@@ -38,9 +38,17 @@ class ActionBar(UIWindow):
 
     def start_cd_animation(self):
         for i, icon in enumerate(self.powerbar.power_icons):
-            if icon is None or icon.cd_overlay is not None:
+            if icon is None:
                 continue
-            icon.cd_overlay = Timer(self.char, self.char.powers[i], icon)
+            power = self.char.powers[i]
+            times = [(self.char.gcd_timer, self.char.gcd)]
+            if power.on_cooldown:
+                times.append((power.timer, power.cooldown))
+            start_time, duration = max(times, key=lambda tup: tup[1] - tup[0])
+            if icon.cd_overlay is not None:
+                destroy(icon.cd_overlay)
+                icon.cd_overlay = None
+            icon.cd_overlay = Timer(start_time, duration, icon)
 
 
 class PowerBar(Entity):
@@ -85,26 +93,18 @@ class PowerBar(Entity):
 
 
 class Timer(Entity):
-    def __init__(self, char, power, parent):
-        self.char = char
-        self.power = power
+    def __init__(self, start_time, duration, parent):
+        self.time = start_time
+        self.duration = duration
         super().__init__(origin=(-.5, .5), position=(0, 0, -5), model='quad',
-                         color=color.gray, alpha=0.6, scale_x = 1, parent=parent)
-        self.ignore_focus = True
+                         color=color.gray, alpha=0.6, scale_x=1, parent=parent)
 
     def update(self):
-        # Choose gcd or individual cd timer, whichever will finish later
-        if self.char.gcd - self.char.gcd_timer >= self.power.cooldown - self.power.timer:
-            if self.char.gcd == 0:
-                ratio = 0
-            else:
-                ratio = self.char.gcd_timer / self.char.gcd
-            new_scale_x = 1 - ratio
-        else:
-            new_scale_x = 1 - self.power.timer / self.power.cooldown
-        # Check if new scale would be 0, Ursina doesn't let scale go too small
-        if new_scale_x <= 0:
+        if self.duration == 0:
+            self.scale_x = 0
+            return
+        self.scale_x = 1 - self.time / self.duration
+        self.time += time.dt
+        if self.scale_x <= 0.001:
             destroy(self)
             self.parent.cd_overlay = None
-        else:
-            self.scale_x = new_scale_x
