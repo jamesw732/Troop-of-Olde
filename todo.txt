@@ -4,7 +4,6 @@ Implementation todo list.
 Refactor Controllers to not carry pretty much all of the game logic.
 High-level Checklist:
 Server:
-- Move combat code into CombatSystem
 - Rename MobController to MovementSystem, don't bind it to a single character
 - Consider moving physics code into controller
 Client:

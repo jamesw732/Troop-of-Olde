@@ -11,7 +11,6 @@ from ursina.mesh_importer import imported_meshes
 from panda3d.core import NodePath
 
 from .base import *
-from .combat import get_wpn_range
 from .states import *
 
 class Character(Entity):
