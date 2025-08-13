@@ -3,6 +3,10 @@ Implementation todo list.
 ===========================ACTIVE===============================
 Refactor Controllers to not carry pretty much all of the game logic.
 High-level Checklist:
+Server:
+- Move combat code into CombatSystem
+- Rename MobController to MovementSystem, don't bind it to a single character
+- Consider moving physics code into controller
 Client:
 - Powers
 - Physics
@@ -13,18 +17,12 @@ Client:
 
 Notes:
 Currently on Powers
-- Move character-based logic into PowerSystem. Powers should probably be
-completely agnostic of Characters.
-This will include:
-    - queueing
-    - target finding
-    - using (done)
 - Make visual timers update every frame
 
 
 
 
-Once the funtionality is split up, I want to consider converting the controllers to
+Once the functionality is split up, I want to consider converting the controllers to
 not be attached to just one single character. This would force some data to be pushed
 down into the Character classes, which would force a split of ClientCharacter at
 the very least.

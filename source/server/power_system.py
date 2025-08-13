@@ -5,14 +5,14 @@ from ..base import *
 from ..network import network
 
 
-dt = 1/5
+dt = POWER_UPDATE_RATE
 
 
 class PowerSystem(Entity):
     """Ticks the GCD of each character and responds to client's power inputs.
 
     This class does not have ownership over powers. Instead, powers are created
-    by World, this class is merely for managing the per-frame Power operations,
+    by World, this class is merely for managing the per-tick Power operations,
     and are accessed through Characters."""
     def __init__(self, chars):
         super().__init__()
@@ -29,7 +29,7 @@ class PowerSystem(Entity):
                 char.tick_gcd(dt)
 
     def char_use_power(self, src, power):
-        tgt = power.get_target(src)
+        tgt = src.target
         if tgt is None:
             return
         if src.energy < power.cost:

@@ -39,12 +39,3 @@ class Power:
     def start_cooldown(self):
         self.timer = 0
         self.on_cooldown = True
-
-    def get_target(self, src):
-        """Returns the correct target based on the type of power and character's target
-
-        Currently just returns the character's target, will be more complicated eventually"""
-        return src.target
-
-    def queue(self, src):
-        src.next_power = self

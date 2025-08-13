@@ -9,7 +9,6 @@ class ActionBar(UIWindow):
     def __init__(self, char, power_system):
         self.char = char
         self.power_system = power_system
-        self.power_system.ui_callback = self.start_cd_animation
         self.num_slots = default_num_powers
         self.total_slot_width = 0.5
         self.slot_height = self.total_slot_width / self.num_slots

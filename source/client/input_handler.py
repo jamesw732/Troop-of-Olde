@@ -6,7 +6,7 @@ import ursina.input_handler
 from .character import ClickBox
 from .ui import ui
 from .world import world
-from .. import PHYSICS_UPDATE_RATE, network, power_key_to_slot
+from .. import PHYSICS_UPDATE_RATE, POWER_UPDATE_RATE, network, power_key_to_slot
 
 class InputHandler(Entity):
     def __init__(self):
@@ -48,8 +48,14 @@ class InputHandler(Entity):
             slot = power_key_to_slot[key]
             power = world.pc.powers[slot]
             used_power = world.power_system.handle_power_input(power)
+            if used_power:
+                ui.actionbar.start_cd_animation()
+                ui.bars.update_display()
 
     def update(self):
+        """Performs per-frame input handling
+
+        Includes keyboard/mouse rotation."""
         ctrl = world.pc_ctrl
         if ctrl is None:
             return
@@ -61,6 +67,7 @@ class InputHandler(Entity):
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_movement_inputs(self):
+        """Performs fixed-timestep movement input handling"""
         ctrl = world.pc_ctrl
         if ctrl is None:
             return
@@ -71,3 +78,19 @@ class InputHandler(Entity):
         # Keyboard Rotation
         rightleft_rot = held_keys['rotate_right'] - held_keys['rotate_left']
         ctrl.update_movement_inputs(fwdback, strafe, rightleft_rot)
+
+    @every(POWER_UPDATE_RATE)
+    def tick_queued_power(self):
+        if world.power_system is None:
+            return
+        queued_power = world.power_system.queued_power
+        if queued_power is None:
+            return
+        char = world.pc
+        if char is None:
+            return
+        if queued_power.on_cooldown or char.get_on_gcd():
+            return
+        world.power_system.use_power(queued_power)
+        ui.actionbar.start_cd_animation()
+        ui.bars.update_display()

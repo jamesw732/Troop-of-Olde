@@ -9,9 +9,10 @@ data_path = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 assets_path = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets")))
 models_path = Path(os.path.join(assets_path, "models"))
 
+PHYSICS_UPDATE_RATE = 1 / 20
+POWER_UPDATE_RATE = 1 / 5
 
 fists_base_dmg = 2
-PHYSICS_UPDATE_RATE = 1 / 20
 
 all_skills = [
     "1h melee",
@@ -73,7 +74,6 @@ init_char_attrs = {
     "attackrange": 3,
     "gcd": 0,
     "gcd_timer": 0,
-    "next_power": None,
     "jumping": False,
     "grounded": False,
     "grav": 0,
