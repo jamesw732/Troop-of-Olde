@@ -20,6 +20,7 @@ class EffectSystem(Entity):
 
     @every(dt)
     def tick_effects(self):
+        """Increments effect timers and applies changes to character as needed"""
         for char in self.chars:
             updated_stats = False
             for effect in char.effects:

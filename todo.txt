@@ -1,22 +1,31 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Refactor Controllers to not carry pretty much all of the game logic.
+Refactor Character/Controllers to not carry pretty much all of the game logic.
 High-level Checklist:
 Server:
 - Rename MobController to MovementSystem, don't bind it to a single character
 - Consider moving physics code into controller
+- Items
+- Should PowerSystem be responsible for assigning PowerIds? In other words,
+should PowerSystem own Powers?
 Client:
-- Powers
-- Physics
-- Camera movement
-- Inventory/equipment overwriting
+- Items
+- Deaths
 - Animation
 
 
-Notes:
-Currently on Powers
-- Make visual timers update every frame
+Power Notes:
+- Make PowerSystem responsible for creating Powers, so add inst_id_to_power to PowerSystem.
+Effect Notes:
+- EffectSystem should be responsible for creating Effects, and store a set of effects to loop
+over (eventually a dict?). This will make the loop better than "loop over all characters and all
+their effects" Will need to make PowerSystem take an EffectSystem argument.
+- It's okay that Effect relies on Character because it doesn't complicate Effect creation,
+in contrast to Powers. In fact, not attaching Characters to Effects might make everything more
+complicated.
+- Move functionality from Effect into EffectSystem. Will probably want to keep anything that's common
+betweeen future client-side Effects and server-side Effects. This seems to just be __init__ and __eq__.
 
 
 

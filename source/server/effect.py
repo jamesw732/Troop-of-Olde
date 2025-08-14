@@ -17,7 +17,7 @@ class Effect:
     Effects are temporary objects which are the result of powers etc.
     This class does not actually drive the Effect logic, instead it
     provides an API for creating effects and attaching them to
-    characters. The driving logic is delegated to MobController.
+    characters. The driving logic is delegated to EffectSystem.
     """
     def __init__(self, effect_mnem, src, tgt):
         self.effect_mnem = effect_mnem

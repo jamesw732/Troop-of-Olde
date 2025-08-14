@@ -18,6 +18,10 @@ class DeathSystem(Entity):
 
     @every(dt)
     def check_deaths(self):
+        """Loop over all characters and check if they need to die
+
+        Could be optimized by storing characters that need to die
+        upon updating their stats, and only looping over those."""
         for char in list(self.chars):
             if char.health <= 0:
                 char.alive = False
