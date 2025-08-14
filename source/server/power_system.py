@@ -15,11 +15,13 @@ class PowerSystem(Entity):
     This class does not have ownership over powers. Instead, powers are created
     by World, this class is merely for managing the per-tick Power operations,
     and are accessed through Characters."""
-    def __init__(self, chars):
+    def __init__(self):
         super().__init__()
-        self.chars = chars
         self.inst_id_to_power = dict()
         self.power_inst_id_ct = 0
+
+        self.cooldown_powers = dict()
+        self.gcd_chars = dict()
 
     def make_power(self, power_mnem):
         inst_id = self.power_inst_id_ct
@@ -30,12 +32,21 @@ class PowerSystem(Entity):
 
     @every(dt)
     def tick_cooldowns(self):
-        """Increment all cooldowns by dt."""
-        for char in self.chars:
-            if char.get_on_gcd():
-                char.tick_gcd(dt)
-        for power in self.inst_id_to_power.values():
+        """Increment all cooldowns by dt.
+
+        Could optimize this by only looking at powers that are on cooldown
+        in the first place, and only looking at characters that are on GCD.
+        """
+        for uuid, char in list(self.gcd_chars.items()):
+            # print(f"Incrementing {char.cname} gcd: {char.gcd_timer}")
+            char.tick_gcd(dt)
+            if not char.get_on_gcd():
+                del self.gcd_chars[uuid]
+        for inst_id, power in list(self.cooldown_powers.items()):
+            # print(f"Incrementing {power.power_mnem} cooldown: {power.timer}")
             power.tick_cd(dt)
+            if not power.on_cooldown:
+                del self.cooldown_powers[inst_id]
 
     def char_use_power(self, src, power):
         tgt = src.target
@@ -43,8 +54,11 @@ class PowerSystem(Entity):
             return
         if src.energy < power.cost:
             return
+        src.start_gcd(power.gcd_duration)
+        self.gcd_chars[src.uuid] = src
         power.start_cooldown()
+        self.cooldown_powers[power.inst_id] = power
         effect = Effect(power.effect_mnem, src, tgt)
         effect.attempt_apply()
-        # Upon using a power, need to update energy to clients
+        # Upon using a power, need to update stats (mainly energy) to clients
         network.broadcast_cbstate_update(tgt)

@@ -31,6 +31,7 @@ class Power:
         self.timer = self.cooldown
 
     def tick_cd(self, dt):
+        """Increments timer."""
         if self.on_cooldown:
             self.timer = min(self.cooldown, self.timer + dt)
             if self.timer >= self.cooldown:

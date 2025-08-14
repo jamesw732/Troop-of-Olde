@@ -113,6 +113,7 @@ Utility (things that affect the enemy in ways besides damage):
 - Damage/steal target's energy
 - Remove or temporarily disable beneficial effects from target
 - Transformation spells that completely change character
+- Spell that transfers a debuff to your target
 
 Elemental system:
 Speculating how to implement an elemental system (in the future), if at all.

@@ -33,7 +33,7 @@ class World:
         self.combat_system = CombatSystem(self.uuid_to_char.values())
         self.death_system = DeathSystem(self.uuid_to_char.values())
         self.effect_system = EffectSystem(self.uuid_to_char.values())
-        self.power_system = PowerSystem(self.uuid_to_char.values())
+        self.power_system = PowerSystem()
 
     def load_zone(self, file):
         """Load the world by parsing a json

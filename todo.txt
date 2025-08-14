@@ -7,16 +7,11 @@ Server:
 - Rename MobController to MovementSystem, don't bind it to a single character
 - Consider moving physics code into controller
 - Items
-- Should PowerSystem be responsible for assigning PowerIds? In other words,
-should PowerSystem own Powers?
 Client:
 - Items
 - Deaths
 - Animation
 
-
-Power Notes:
-- Make PowerSystem responsible for creating Powers, so add inst_id_to_power to PowerSystem.
 Effect Notes:
 - EffectSystem should be responsible for creating Effects, and store a set of effects to loop
 over (eventually a dict?). This will make the loop better than "loop over all characters and all

@@ -15,6 +15,8 @@ class PowerSystem(Entity):
         self.char = None
         self.inst_id_to_power = dict()
         self.queued_power = None
+        # Powers on cooldown keyed by inst id
+        self.cooldown_powers = dict()
 
     def make_power(self, power_mnem, inst_id):
         power = Power(power_mnem, inst_id)
@@ -23,10 +25,15 @@ class PowerSystem(Entity):
 
     @every(dt)
     def tick_cooldowns(self):
-        """Increment all cooldowns by dt."""
-        for power in self.inst_id_to_power.values():
-            if power is not None:
-                power.tick_cd(dt)
+        """Increment all cooldowns by dt.
+
+        Could optimize this by only looking at powers that are on cooldown
+        in the first place, and only looking at characters that are on GCD."""
+        for power in list(self.cooldown_powers.values()):
+            # If incrementing timer resulted in cooldown finishing, remove from cooldown_powers
+            power.tick_cd(dt)
+            if not power.on_cooldown:
+                del self.cooldown_powers[power.inst_id]
         if self.char is not None and self.char.get_on_gcd():
             self.char.tick_gcd(dt)
 
@@ -46,7 +53,6 @@ class PowerSystem(Entity):
         self.use_power(power)
         return True
 
-
     def use_power(self, power):
         """Does the client-side operations involved with using a power.
 
@@ -60,8 +66,8 @@ class PowerSystem(Entity):
         self.char.energy -= power.cost
         power.start_cooldown()
         self.char.start_gcd(power.gcd_duration)
-        # self.ui_callback()
         self.queued_power = None
+        self.cooldown_powers[power.inst_id] = power
         network.peer.request_use_power(network.server_connection, power.inst_id)
 
     def queue_power(self, power):

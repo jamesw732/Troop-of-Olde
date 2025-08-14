@@ -96,6 +96,8 @@ class Timer(Entity):
     def __init__(self, start_time, duration, parent):
         self.time = start_time
         self.duration = duration
+        # Hovering over action bar shouldn't affect timer opacity
+        self.ignore_focus = True
         super().__init__(origin=(-.5, .5), position=(0, 0, -5), model='quad',
                          color=color.gray, alpha=0.6, scale_x=1, parent=parent)
 
