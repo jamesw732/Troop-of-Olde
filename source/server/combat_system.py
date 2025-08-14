@@ -1,7 +1,6 @@
 from ursina import *
 
 from ..base import *
-from ..combat import *
 from ..network import network
 
 

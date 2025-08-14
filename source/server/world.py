@@ -27,8 +27,6 @@ class World:
 
         self.inst_id_to_item = dict()
         self.item_inst_id_ct = 0
-        self.inst_id_to_power = dict()
-        self.power_inst_id_ct = 0
         self.inst_id_to_container = dict()
         self.container_inst_id_ct = 0
 
@@ -87,7 +85,7 @@ class World:
         self.inst_id_to_container[inventory_id] = inventory
         init_dict["inventory"] = inventory
         # Make powers
-        powers = [self.make_power(power_mnem) if power_mnem != "" else None
+        powers = [self.power_system.make_power(power_mnem) if power_mnem != "" else None
                   for power_mnem in login_state["powers"]]
         powers += [None] * (len(powers) - default_num_powers)
         init_dict["powers"] = powers
@@ -147,12 +145,6 @@ class World:
         self.inst_id_to_item[inst_id] = item
         return item
     
-    def make_power(self, power_mnem):
-        inst_id = self.power_inst_id_ct
-        self.power_inst_id_ct += 1
-        power = Power(power_mnem, inst_id)
-        self.inst_id_to_power[inst_id] = power
-        return power
 
 
 world = World()
