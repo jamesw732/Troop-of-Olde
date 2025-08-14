@@ -23,10 +23,9 @@ class World:
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
         self.inst_id_to_item = dict()
-        self.inst_id_to_power = dict()
         self.inst_id_to_container = dict()
 
-        self.power_system = None
+        self.power_system = PowerSystem()
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
@@ -91,7 +90,7 @@ class World:
         init_dict["inventory"] = inventory
         # Make powers
         powers_inst_ids = spawn_state["powers_inst_ids"]
-        powers = [self.make_power(power_mnem, inst_id) if power_mnem != "" and inst_id >= 0
+        powers = [self.power_system.make_power(power_mnem, inst_id) if power_mnem != "" and inst_id >= 0
                     else None
                  for power_mnem, inst_id in zip(self.init_data["powers"], powers_inst_ids)]
         init_dict["powers"] = powers
@@ -140,6 +139,7 @@ class World:
         self.pc = ClientCharacter(**init_dict)
         self.uuid_to_char[self.pc.uuid] = self.pc
         self.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
+        self.power_system.char = self.pc
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
@@ -154,11 +154,6 @@ class World:
         self.pc_ctrl = PlayerController(character=char, on_destroy=on_destroy)
         self.uuid_to_ctrl[uuid] = self.pc_ctrl
 
-    def make_power_system(self):
-        if self.pc is None:
-            return
-        self.power_system = PowerSystem(self.pc)
-        
     def make_npc(self, init_dict):
         """Create an NPC from the server's inputs.
 
@@ -189,11 +184,6 @@ class World:
         item = Item(item_mnem, inst_id, on_destroy=on_destroy)
         self.inst_id_to_item[inst_id] = item
         return item
-
-    def make_power(self, power_mnem, inst_id):
-        power = Power(power_mnem, inst_id)
-        self.inst_id_to_power[inst_id] = power
-        return power
 
 
 world = World()

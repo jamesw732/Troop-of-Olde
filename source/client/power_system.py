@@ -2,6 +2,7 @@ from ursina import *
 
 from ..base import *
 from ..network import network
+from ..power import Power
 
 
 dt = POWER_UPDATE_RATE
@@ -9,18 +10,24 @@ dt = POWER_UPDATE_RATE
 
 class PowerSystem(Entity):
     """Handles the per-tick Power operations."""
-    def __init__(self, char):
+    def __init__(self):
         super().__init__()
-        self.char = char
+        self.char = None
+        self.inst_id_to_power = dict()
         self.queued_power = None
+
+    def make_power(self, power_mnem, inst_id):
+        power = Power(power_mnem, inst_id)
+        self.inst_id_to_power[inst_id] = power
+        return power
 
     @every(dt)
     def tick_cooldowns(self):
         """Increment all cooldowns by dt."""
-        for power in self.char.powers:
+        for power in self.inst_id_to_power.values():
             if power is not None:
                 power.tick_cd(dt)
-        if self.char.get_on_gcd():
+        if self.char is not None and self.char.get_on_gcd():
             self.char.tick_gcd(dt)
 
     def handle_power_input(self, power):
