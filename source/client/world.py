@@ -23,7 +23,6 @@ class World:
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
         self.inst_id_to_item = dict()
-        self.inst_id_to_container = dict()
 
         self.power_system = PowerSystem()
 
@@ -71,22 +70,18 @@ class World:
             if key in spawn_state.statedef:
                 init_dict[key] = spawn_state[key]
         # Make equipment
-        equipment_id = spawn_state["equipment_id"]
         equipment_inst_ids = spawn_state["equipment_inst_ids"]
         items = [self.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
                     else None
                  for item_mnem, inst_id in zip(self.init_data["equipment"], equipment_inst_ids)]
-        equipment = Container(equipment_id, "equipment", items)
-        self.inst_id_to_container[equipment_id] = equipment
+        equipment = Container("equipment", items)
         init_dict["equipment"] = equipment
         # Make inventory
-        inventory_id = spawn_state["inventory_id"]
         inventory_inst_ids = spawn_state["inventory_inst_ids"]
         items = [self.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
                     else None
                  for item_mnem, inst_id in zip(self.init_data["inventory"], inventory_inst_ids)]
-        inventory = Container(inventory_id, "inventory", items)
-        self.inst_id_to_container[inventory_id] = inventory
+        inventory = Container("inventory", items)
         init_dict["inventory"] = inventory
         # Make powers
         powers_inst_ids = spawn_state["powers_inst_ids"]

@@ -3,7 +3,6 @@ and the game engine/logic API. Functionality is split between client-side player
 client-side NPCs, and server-side Characters.
 """
 from ursina import *
-import json
 
 from .. import *
 

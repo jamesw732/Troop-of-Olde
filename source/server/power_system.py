@@ -15,7 +15,8 @@ class PowerSystem(Entity):
     This class does not have ownership over powers. Instead, powers are created
     by World, this class is merely for managing the per-tick Power operations,
     and are accessed through Characters."""
-    def __init__(self):
+    def __init__(self, effect_system):
+        self.effect_system = effect_system
         super().__init__()
         self.inst_id_to_power = dict()
         self.power_inst_id_ct = 0
@@ -58,7 +59,7 @@ class PowerSystem(Entity):
         self.gcd_chars[src.uuid] = src
         power.start_cooldown()
         self.cooldown_powers[power.inst_id] = power
-        effect = Effect(power.effect_mnem, src, tgt)
+        effect = self.effect_system.make_effect(power.effect_mnem, src, tgt)
         effect.attempt_apply()
         # Upon using a power, need to update stats (mainly energy) to clients
         network.broadcast_cbstate_update(tgt)

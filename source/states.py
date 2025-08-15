@@ -147,9 +147,7 @@ class PCSpawnState(State):
     src should be a ServerCharacter"""
     custom_defaults = {
         "cname": "Demo Player",
-        "equipment_id": -1,
         "equipment_inst_ids": [-1] * num_equipment_slots,
-        "inventory_id": -1,
         "inventory_inst_ids": [-1] * num_inventory_slots,
         "powers_inst_ids": [-1] * default_num_powers,
     }
@@ -174,9 +172,7 @@ class PCSpawnState(State):
         "ref": int,
         "haste": int,
         "speed": int,
-        "equipment_id": int,
         "equipment_inst_ids": list[int],
-        "inventory_id": int,
         "inventory_inst_ids": list[int],
         "powers_inst_ids": list[int],
         "skills": list[int],

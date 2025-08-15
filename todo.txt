@@ -2,41 +2,89 @@ Implementation todo list.
 
 ===========================ACTIVE===============================
 Refactor Character/Controllers to not carry pretty much all of the game logic.
-High-level Checklist:
+High-level todo list:
 Server:
-- Rename MobController to MovementSystem, don't bind it to a single character
-- Consider moving physics code into controller
-- Items
+Refactor MobController into MovementSystem:
+- MovementSystem
+Make Character single-responsibility:
+- EffectSystem
+- ItemsManager
+- StatSystem
+Refactor Character creation/destruction:
+- CharacterManager
+
 Client:
-- Items
-- Deaths
-- Animation
+Make Controllers single-responsibility:
+- AnimationSystem
+    - CharacterAnimator (store a map uuid to CharacterAnimator)
+- ItemsManager (anemic for now, just move overwrite functions, maybe creation code)
+- CombatSystem
+Refactor controllers
+- MovementSystem
+    - CharacterLerper (store a map uuid to CharacterLerper)
+Make Characters single-responsibility:
+- ItemsManager (move item functionality from Character)
+- StatSystem
+- CharacterManager
 
-Effect Notes:
-- EffectSystem should be responsible for creating Effects, and store a set of effects to loop
-over (eventually a dict?). This will make the loop better than "loop over all characters and all
-their effects" Will need to make PowerSystem take an EffectSystem argument.
-- It's okay that Effect relies on Character because it doesn't complicate Effect creation,
-in contrast to Powers. In fact, not attaching Characters to Effects might make everything more
-complicated.
-- Move functionality from Effect into EffectSystem. Will probably want to keep anything that's common
-betweeen future client-side Effects and server-side Effects. This seems to just be __init__ and __eq__.
+EffectSystem Notes:
+- Need to make sure that deleting Effects removes them from inst_id_to_effect.
+Move Effect deletion into EffectSystem
+- Want to make the tick_effects loop more efficient.
+    - Can probably just loop over inst_id_to_effect.values(), at least for now.
+    But will need to check if the Effect has actually been applied
+    - Would prefer to send fewer individual network calls. Send all messages and cbstate updates
+    as homogeneous lists... probably time to give up on separating player/npc combat states.
+    Would it be good to somehow merge CombatSystem and EffectSystem network updates?
 
 
+CombatSystem Notes:
+- Could probably stand to re-organize the interface
+- Don't need to loop over all characters, only the ones that are actually in combat.
 
 
-Once the functionality is split up, I want to consider converting the controllers to
-not be attached to just one single character. This would force some data to be pushed
-down into the Character classes, which would force a split of ClientCharacter at
-the very least.
-New class would be MovementSystem for both client and server.
-For server version, would have an interface to the network allowing character to
-send movement inputs.
-For client version, would have an interface to both the input handler to allow for
-instant client-side movement updates, and the network to accept authoritative movement
-updates that are integrated with client-side prediction.
+AnimationSystem notes:
+- Should probably rename Anim class to CharacterAnimator
+- I think it's okay to attach a CharacterAnimator to a single Character, it's just that a
+CharacterAnimator shouldn't have an update function if this is the case. Instead, split current
+update logic out into a separate function and loop over CharacterAnimators in an AnimationSystem
+class, calling that function.
+- Will be a bit complicated with Controllers, I think just pass AnimationSystem into controllers
+for now.
 
-This change should be delayed until the controllers are sufficiently single-responsibility.
+
+Controllers notes:
+Once controllers are single-responsibility, refactor them into MovementSystem, don't attach to
+single Character instances and instead operate on all Characters.
+
+
+ItemsManager notes:
+- This will encompass the external interface into item movement and take ownership of
+inst_id_to_item.
+
+
+StatManager Notes:
+- This will provide an interface for modifying Character stats, which currently is split between
+Character and StatsState.
+- If shared interface is heavy, could move it into a new stats.py file. But it shouldn't stay in
+Character, because that's the exact problem we're trying to solve here... make classes more
+single-responsibility.
+
+
+CharacterManager notes:
+- I think I want to rename DeathSystem to CharacterManager, and make its purpose providing an interface
+for managing the lifespan of Characters.
+- Will remove the update function, as death will now be initiated by Statmanager (but handled here).
+- This will be a comparatively low level object, probably the lowest among Systems.
+- The difficulty will be making other Systems respond to deaths correctly. May be possible to just
+flag characters (Character.alive?) and check that the flag is set before acting on that Character.
+If it's set, remove it from all containers that System is using.
+- This class will own uuid_to_char (rename to inst_id_to_char?)
+- To not get confused with controllers, this should be created after controllers are refactored to
+not exist anymore, and after stats have been refactored. Can do client and server as entirely separate
+tasks.
+
+
 
 ===================================NEXT================================================
 Finish adding animations.

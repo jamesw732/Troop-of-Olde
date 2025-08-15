@@ -27,13 +27,11 @@ class World:
 
         self.inst_id_to_item = dict()
         self.item_inst_id_ct = 0
-        self.inst_id_to_container = dict()
-        self.container_inst_id_ct = 0
 
         self.combat_system = CombatSystem(self.uuid_to_char.values())
         self.death_system = DeathSystem(self.uuid_to_char.values())
         self.effect_system = EffectSystem(self.uuid_to_char.values())
-        self.power_system = PowerSystem()
+        self.power_system = PowerSystem(self.effect_system)
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -67,22 +65,16 @@ class World:
             if key in login_state.statedef:
                 init_dict[key] = login_state[key]
         # Make equipment
-        equipment_id = self.container_inst_id_ct
-        self.container_inst_id_ct += 1
         items = [self.make_item(item_mnem) if item_mnem != ""  else None
                  for item_mnem in login_state["equipment"]]
         items += [None] * (len(items) - num_equipment_slots)
-        equipment = Container(equipment_id, "equipment", items)
-        self.inst_id_to_container[equipment_id] = equipment
+        equipment = Container("equipment", items)
         init_dict["equipment"] = equipment
         # Make inventory
-        inventory_id = self.container_inst_id_ct
-        self.container_inst_id_ct += 1
         items = [self.make_item(item_mnem) if item_mnem != "" else None
                  for item_mnem in login_state["inventory"]]
         items += [None] * (len(items) - num_inventory_slots)
-        inventory = Container(inventory_id, "inventory", items)
-        self.inst_id_to_container[inventory_id] = inventory
+        inventory = Container("inventory", items)
         init_dict["inventory"] = inventory
         # Make powers
         powers = [self.power_system.make_power(power_mnem) if power_mnem != "" else None

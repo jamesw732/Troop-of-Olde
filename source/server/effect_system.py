@@ -17,6 +17,14 @@ class EffectSystem(Entity):
     def __init__(self, chars):
         super().__init__()
         self.chars = chars
+        self.effect_inst_id_counter = 0
+        self.inst_id_to_effect = dict()
+
+    def make_effect(self, effect_mnem, src, tgt):
+        effect = Effect(effect_mnem, src, tgt)
+        self.inst_id_to_effect[self.effect_inst_id_counter] = effect
+        self.effect_inst_id_counter += 1
+        return Effect(effect_mnem, src, tgt)
 
     @every(dt)
     def tick_effects(self):
