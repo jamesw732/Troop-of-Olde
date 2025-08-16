@@ -4,18 +4,23 @@ Implementation todo list.
 Refactor Character/Controllers to not carry pretty much all of the game logic.
 High-level todo list:
 Server:
+Make Controllers single-responsibility:
+- CleanupManager
 Refactor MobController into MovementSystem
 Make Character single-responsibility:
-- EffectSystem
 - ItemsManager
 - StatManager
 Move System/Manager-level logic away from World
 - Character creation?
-- CleanupManager
+Optimize systems/managers
+- EffectSystem networking and loop
+- CombatSystem networking and loop
+
 
 Client:
 Make Controllers single-responsibility:
-- CombatSystem
+- CombatManager
+- CleanupManager
 Refactor controllers
 - MovementSystem
     - CharacterLerper (store a map uuid to CharacterLerper)
@@ -24,14 +29,13 @@ Make Characters single-responsibility:
 - StatSystem
 Move System/Manager-level functionality away from World:
 - Character creation?
-- CleanupManager
+Optimize systems/managers
+- CombatManager probably needs to do more, currently being bypassed in some places
 
 
 As part of making Characters single-responsibility, I should plan to separate all attrs that
 are isolatable to a single System, but nothing more. This should keep the Character's scope pretty
 small while not obfuscating any behavior.
-
-
 
 
 EffectSystem Notes:
@@ -45,29 +49,16 @@ Move Effect deletion into EffectSystem
     Would it be good to somehow merge CombatSystem and EffectSystem network updates?
 
 
-CombatSystem Notes:
+CombatSystem/Manager Notes:
 - Could probably stand to re-organize the interface
 - Don't need to loop over all characters, only the ones that are actually in combat.
-
-
-AnimationSystem notes:
-- Should probably rename Anim class to CharacterAnimator
-- I think it's okay to attach a CharacterAnimator to a single Character, it's just that a
-CharacterAnimator shouldn't have an update function if this is the case. Instead, split current
-update logic out into a separate function and loop over CharacterAnimators in an AnimationSystem
-class, calling that function.
-- Will be a bit complicated with Controllers, I think just pass AnimationSystem into controllers
-for now.
+- Would be nice to reduce number of network requests sent. One per attack attempt per client
+seems reasonable. This is a somewhat lower priority (for now) optimization.
 
 
 Controllers notes:
 Once controllers are single-responsibility, refactor them into MovementSystem, don't attach to
 single Character instances and instead operate on all Characters.
-
-
-ItemsManager notes:
-- This will encompass the external interface of item movement and take ownership of
-inst_id_to_item.
 
 
 StatManager Notes:

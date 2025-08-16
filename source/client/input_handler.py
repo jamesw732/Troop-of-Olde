@@ -40,10 +40,10 @@ class InputHandler(Entity):
         elif key == "right mouse down":
             ctrl.start_mouse_rotation()
         elif key == "toggle_combat":
-            ctrl.toggle_combat()
+            world.combat_manager.input_toggle_combat()
         elif key == "left mouse down":
             if isinstance(tgt, ClickBox):
-                ctrl.set_target(tgt.parent)
+                world.combat_manager.input_set_target(tgt.parent)
         elif key in power_key_to_slot:
             slot = power_key_to_slot[key]
             power = world.pc.powers[slot]

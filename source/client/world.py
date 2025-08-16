@@ -6,6 +6,7 @@ import glob
 
 from .animation_system import AnimationSystem
 from .character import ClientCharacter
+from .combat_manager import CombatManager
 from .controllers import PlayerController, NPCController
 from .global_containers import GlobalContainers
 from .items_manager import ItemsManager
@@ -29,6 +30,7 @@ class World:
 
         self.power_system = PowerSystem(self.global_containers)
         self.animation_system = AnimationSystem(self.global_containers)
+        self.combat_manager = CombatManager(self.animation_system)
         self.items_manager = ItemsManager(self.global_containers, self.animation_system)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
@@ -140,6 +142,7 @@ class World:
         self.uuid_to_char[self.pc.uuid] = self.pc
         self.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
         self.power_system.char = self.pc
+        self.combat_manager.pc = self.pc
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.

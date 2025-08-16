@@ -25,18 +25,19 @@ class CombatSystem(Entity):
                 char.mh_combat_timer = 0
                 char.oh_combat_timer = 0
             elif char.in_combat:
-                hit_mh = self.handle_combat(char, "mh")
+                hit_mh = self.attempt_hit(char, "mh")
                 # See if we should progress offhand timer too
                 # (if has skill dw):
                 mh = char.equipment[slot_to_ind["mh"]]
                 mh_is_1h = mh is None or mh.info.get("style", "")[:2] != "2h"
                 hit_oh = False
                 if mh_is_1h:
-                    hit_oh = self.handle_combat(char, "oh")
+                    hit_oh = self.attempt_hit(char, "oh")
                 if hit_mh or hit_mh:
                     network.broadcast_cbstate_update(char.target)
 
-    def handle_combat(self, src, slot):
+    def attempt_hit(self, src, slot):
+        """Attempts to hit with one weapon"""
         tgt = src.target
         src_conn = network.uuid_to_connection.get(src.uuid, None)
         tgt_conn = network.uuid_to_connection.get(tgt.uuid, None)
@@ -56,7 +57,7 @@ class CombatSystem(Entity):
             if tgt_conn is not None and tgt_conn is not src_conn:
                 network.peer.remote_print(tgt_conn, msg)
             return False
-        # Check whether thit goes through
+        # Check whether hit goes through
         if random.random() < sigmoid((src.dex - tgt.ref) / 10):
             msg = f"{src.cname} attempts to hit {tgt.cname}, but misses!"
             if src_conn is not None:

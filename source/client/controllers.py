@@ -166,16 +166,6 @@ class PlayerController(Entity):
     def zoom_out(self):
         self.camdistance = min(self.camdistance + 1, 75)
 
-    def set_target(self, target):
-        """Set character's target.
-
-        target: Character"""
-        self.character.set_target(target)
-        network.peer.request_set_target(network.server_connection, target.uuid)
-
-    def toggle_combat(self):
-        network.peer.request_toggle_combat(network.server_connection)
-
     def kill(self):
         """Clean up character upon death"""
         # also need to clear enemy targets

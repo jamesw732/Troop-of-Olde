@@ -40,16 +40,20 @@ def spawn_npc(connection, time_received, spawn_state: NPCSpawnState):
 
 # Combat
 @rpc(network.peer)
-def toggle_combat(connection, time_received, uuid: int, toggle: bool):
+def remote_toggle_pc_combat(connection, time_received, uuid: int, toggle: bool):
     char = world.uuid_to_char[uuid]
-    ctrl = world.uuid_to_ctrl[uuid]
-    char.in_combat = toggle
-    if toggle:
-        ctrl.animator.enter_combat()
-    else:
-        ctrl.animator.exit_combat()
+    world.combat_manager.char_set_in_combat(char, toggle)
     if ui.gamewindow:
         msg = "Now entering combat" if toggle else "Now leaving combat"
+        ui.gamewindow.add_message(msg)
+
+@rpc(network.peer)
+def remote_set_pc_target(connection, time_received, uuid: int):
+    """Update player character's target"""
+    tgt = world.uuid_to_char[uuid]
+    world.combat_manager.char_set_target(world.pc, tgt)
+    if ui.gamewindow:
+        msg = f"Now targeting: {tgt.cname}"
         ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
@@ -62,15 +66,6 @@ def remote_kill(connection, time_received, uuid: int):
         msg = f"{char.cname} perishes"
         ui.gamewindow.add_message(msg)
     ctrl.kill()
-
-@rpc(network.peer)
-def remote_set_target(connection, time_received, uuid: int):
-    """Update player character's target"""
-    tgt = world.uuid_to_char[uuid]
-    world.pc.target = tgt
-    if ui.gamewindow:
-        msg = f"Now targeting: {tgt.cname}"
-        ui.gamewindow.add_message(msg)
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, cbstate: PlayerCombatState):

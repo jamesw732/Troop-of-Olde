@@ -28,11 +28,11 @@ class AnimationSystem(Entity):
         anim = self.uuid_to_anim[char.uuid]
         anim.end_run_cycle()
 
-    def enter_combat(self, char):
+    def char_enter_combat(self, char):
         anim = self.uuid_to_anim[char.uuid]
         anim.enter_combat()
 
-    def exit_combat(self, char):
+    def char_exit_combat(self, char):
         anim = self.uuid_to_anim[char.uuid]
         anim.exit_combat()
 

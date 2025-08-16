@@ -62,7 +62,7 @@ def request_toggle_combat(connection, time_received):
     uuid = network.connection_to_uuid[connection]
     char = world.uuid_to_char[uuid]
     char.in_combat = not char.in_combat
-    network.peer.toggle_combat(connection, char.uuid, char.in_combat)
+    network.peer.remote_toggle_pc_combat(connection, char.uuid, char.in_combat)
     # Could respond, or could just wait for next continuous update
 
 @rpc(network.peer)
@@ -71,7 +71,7 @@ def request_set_target(connection, time_received, uuid: int):
     src = world.uuid_to_char[src_uuid]
     tgt = world.uuid_to_char[uuid]
     src.set_target(tgt)
-    network.peer.remote_set_target(connection, uuid)
+    network.peer.remote_set_pc_target(connection, uuid)
 
 # POWERS
 @rpc(network.peer)
