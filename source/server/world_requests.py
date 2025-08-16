@@ -7,7 +7,6 @@ needs something done by the server, they call a function from here."""
 from ursina.networking import rpc
 
 from .character import ServerCharacter
-from .controllers import MobController
 from .world import world
 from .. import *
 
@@ -19,7 +18,7 @@ def request_enter_world(connection, time_received, login_state: LoginState):
     Expected inputs are the outputs of get_pc_data_from_json"""
     init_dict = world.make_char_init_dict(login_state)
     new_pc = world.make_char(init_dict)
-    new_ctrl = world.make_ctrl(new_pc.uuid)
+    world.movement_system.add_char(new_pc)
     network.uuid_to_connection[new_pc.uuid] = connection
     network.connection_to_uuid[connection] = new_pc.uuid
     network.peer.remote_load_world(connection, "demo.json")
@@ -47,8 +46,14 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
                  kb_y_rotation: int, mouse_y_rotation: float):
     """Request server to process keyboard inputs for movement and rotation"""
     uuid = network.connection_to_uuid[connection]
-    controller = world.uuid_to_ctrl[uuid]
-    controller.handle_movement_inputs(sequence_number, kb_direction, kb_y_rotation, mouse_y_rotation)
+    char = world.uuid_to_char[uuid]
+    world.movement_system.handle_movement_inputs(
+        char,
+        sequence_number,
+        kb_direction,
+        kb_y_rotation,
+        mouse_y_rotation
+    )
 
 @rpc(network.peer)
 def request_jump(connection, time_received):

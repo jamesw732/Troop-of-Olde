@@ -11,3 +11,4 @@ class GlobalContainers:
         self.inst_id_to_power = dict()
         self.cooldown_powers = dict()
         self.gcd_chars = dict()
+        self.movement_states = dict()

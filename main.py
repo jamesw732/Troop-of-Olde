@@ -13,7 +13,7 @@ try:
     parent_dir = os.path.dirname(os.path.abspath(__file__))
     server = subprocess.Popen(["python", "server.py"], cwd=parent_dir)
     time.sleep(1)
-    app = Ursina(borderless=False)
+    app = Ursina(borderless=False, vsync=False)
     input_handler = InputHandler()
     network.peer.start("localhost", 8080, is_host=False)
 

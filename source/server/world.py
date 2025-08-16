@@ -5,10 +5,10 @@ import os
 
 from .character import ServerCharacter
 from .combat_system import CombatSystem
-from .controllers import MobController
 from .death_system import DeathSystem
 from .effect_system import EffectSystem
 from .global_containers import GlobalContainers
+from .movement_system import MovementSystem
 from .power_system import PowerSystem
 from ..power import Power
 from .. import *
@@ -32,6 +32,7 @@ class World:
         self.death_system = DeathSystem(self.global_containers)
         self.effect_system = EffectSystem(self.global_containers)
         self.power_system = PowerSystem(self.global_containers, self.effect_system)
+        self.movement_system = MovementSystem(self.global_containers)
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -48,7 +49,8 @@ class World:
             data["cname"] = name
             init_dict = self.make_npc_init_dict(data)
             npc = self.make_char(init_dict)
-            self.make_ctrl(npc.uuid)
+            self.movement_system.add_char(npc)
+            # self.make_ctrl(npc.uuid)
 
     def make_npc_init_dict(self, npc_data):
         login_state = LoginState(npc_data)
@@ -114,19 +116,6 @@ class World:
         new_char = ServerCharacter(**init_dict)
         self.uuid_to_char[new_char.uuid] = new_char
         return new_char
-
-    def make_ctrl(self, uuid):
-        """Makes the player character controller while updating uuid map.
-        Relies on make_pc being called"""
-        def on_destroy():
-            ctrl = self.uuid_to_ctrl[uuid]
-            del self.uuid_to_ctrl[uuid]
-            del ctrl.character
-            del ctrl
-        char = self.uuid_to_char[uuid]
-        new_ctrl = MobController(character=char, on_destroy=on_destroy)
-        self.uuid_to_ctrl[uuid] = new_ctrl
-        return new_ctrl
 
     def make_item(self, item_mnem):
         inst_id = self.item_inst_id_ct
