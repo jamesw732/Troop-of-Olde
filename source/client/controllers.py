@@ -1,6 +1,6 @@
 from ursina import *
 
-from .animator import Anim
+from .animator import CharacterAnimator
 from .. import *
 
 
@@ -9,7 +9,7 @@ class PlayerController(Entity):
 
     Handles client-side movement physics and interpolation, network updates.
     """
-    def __init__(self, character, on_destroy=lambda: None):
+    def __init__(self, character, animation_system, on_destroy=lambda: None):
         super().__init__()
         self.character = character
         self.focus = Entity(
@@ -21,7 +21,7 @@ class PlayerController(Entity):
         self.namelabel = NameLabel(character)
         self.namelabel.parent = self.focus
         self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
-        self.animator = Anim(self.character.model_child, equipment=character.equipment)
+        self.animator = animation_system.make_animator(self.character)
         # Uncomment this and shadow handling in world_responses to see network synchronization
         # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
         #                      color=color.yellow, rotation=self.character.rotation,
@@ -234,10 +234,10 @@ class NPCController(Entity):
     To the client, anything besides the player character is an NPC. Even other players.
     Handles client-side updates and linearly interpolates for smoothness.
     Future: Handles animations."""
-    def __init__(self, character, on_destroy=lambda: None):
+    def __init__(self, character, animation_system, on_destroy=lambda: None):
         super().__init__()
         self.character = character
-        self.animator = Anim(self.character.model_child)
+        self.animator = animation_system.make_animator(self.character)
         self.namelabel = NameLabel(character)
         self._init_lerp_attrs()
         self.on_destroy = on_destroy

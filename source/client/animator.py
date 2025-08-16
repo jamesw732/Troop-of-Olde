@@ -8,7 +8,7 @@ run_anim = "RunCycle"
 combat_stance = "CombatStance"
 
 
-class Anim(Entity):
+class CharacterAnimator(Entity):
     """Wrapper for Actor animation methods that encapsulates all runtime model adjustments,
     including animation and physical item equipping."""
     def __init__(self, actor, equipment=None):
@@ -54,7 +54,13 @@ class Anim(Entity):
                 self.set_equipment_slot(i, item)
 
     def update(self):
-        """Loop over fade in/fade out animations and update weights"""
+        """Update animation weights"""
+        self.update_animation_weights()
+
+    def update_animation_weights(self):
+        """Loops over fade in/ fade out animations and updates weights
+
+        Meant to be called every frame."""
         for part, anim_to_w in self.anim_blends.items():
             for anim, w in anim_to_w.items():
                 if anim in self.fade_in_anims:
@@ -69,6 +75,8 @@ class Anim(Entity):
                     self.set_anim_blend(anim, w, part=part)
                     if w == 0:
                         del self.fade_out_anims[anim]
+
+
     # Animation methods
     def start_run_cycle(self):
         if not self.idle:

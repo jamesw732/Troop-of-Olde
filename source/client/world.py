@@ -4,6 +4,7 @@ import json
 import os
 import glob
 
+from .animation_system import AnimationSystem
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
 from .global_containers import GlobalContainers
@@ -27,6 +28,7 @@ class World:
         self.inst_id_to_item = self.global_containers.inst_id_to_item
 
         self.power_system = PowerSystem(self.global_containers)
+        self.animation_system = AnimationSystem(self.global_containers)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
@@ -148,7 +150,7 @@ class World:
             del self.uuid_to_ctrl[uuid]
             self.pc_ctrl = None
         char = self.uuid_to_char[uuid]
-        self.pc_ctrl = PlayerController(character=char, on_destroy=on_destroy)
+        self.pc_ctrl = PlayerController(char, self.animation_system, on_destroy=on_destroy)
         self.uuid_to_ctrl[uuid] = self.pc_ctrl
 
     def make_npc(self, init_dict):
@@ -173,7 +175,7 @@ class World:
             del ctrl.namelabel
             del ctrl
         char = self.uuid_to_char[uuid]
-        self.uuid_to_ctrl[uuid] = NPCController(character=char, on_destroy=on_destroy)
+        self.uuid_to_ctrl[uuid] = NPCController(char, self.animation_system, on_destroy=on_destroy)
 
     def make_item(self, item_mnem, inst_id):
         def on_destroy():
