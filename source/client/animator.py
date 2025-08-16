@@ -1,6 +1,4 @@
 from ursina import *
-import numpy as np
-import quaternion
 
 
 idle_anim = "Idle"
