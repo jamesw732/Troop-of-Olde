@@ -113,7 +113,7 @@ def remote_update_equipment_inventory(connection, time_received, equipment_ids: 
     world.items_manager.overwrite_char_equipment(world.pc, equipment)
     inventory = [world.items_manager.inst_id_to_item.get(item_id) for item_id in inventory_ids]
     world.items_manager.overwrite_char_inventory(world.pc, inventory)
-    ui.items_manager.update_item_icons()
+    ui.items_system.update_item_icons()
 
 # UI Updates
 @rpc(network.peer)

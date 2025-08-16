@@ -4,8 +4,8 @@ from .items import *
 from ... import *
 
 
-class ItemsManager(Entity):
-    """Class with dedicated access to all ItemFrames and ItemIcons"""
+class ItemsSystem(Entity):
+    """Owns all ItemFrames and ItemIcons, and handles visual item movement."""
     def __init__(self, char):
         super().__init__()
         self.char = char
