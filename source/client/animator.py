@@ -76,7 +76,6 @@ class CharacterAnimator(Entity):
                     if w == 0:
                         del self.fade_out_anims[anim]
 
-
     # Animation methods
     def start_run_cycle(self):
         if not self.idle:
@@ -144,6 +143,7 @@ class CharacterAnimator(Entity):
     def set_anim_blend(self, name, w, part="modelRoot"):
         self.anim_blends[part][name] = w
         self.actor.setControlEffect(name, w, partName=part)
+
     # Equip methods
     def set_equipment_slot(self, slot, item):
         cur_model = self.equipment_models[slot]

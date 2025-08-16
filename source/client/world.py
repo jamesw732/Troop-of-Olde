@@ -8,6 +8,7 @@ from .animation_system import AnimationSystem
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
 from .global_containers import GlobalContainers
+from .items_manager import ItemsManager
 from .power_system import PowerSystem
 from .ui import ui
 from .. import *
@@ -25,10 +26,10 @@ class World:
         self.global_containers = GlobalContainers()
         self.uuid_to_char = self.global_containers.uuid_to_char
         self.uuid_to_ctrl = self.global_containers.uuid_to_ctrl
-        self.inst_id_to_item = self.global_containers.inst_id_to_item
 
         self.power_system = PowerSystem(self.global_containers)
         self.animation_system = AnimationSystem(self.global_containers)
+        self.items_manager = ItemsManager(self.global_containers, self.animation_system)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
@@ -75,14 +76,14 @@ class World:
                 init_dict[key] = spawn_state[key]
         # Make equipment
         equipment_inst_ids = spawn_state["equipment_inst_ids"]
-        items = [self.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
+        items = [self.items_manager.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
                     else None
                  for item_mnem, inst_id in zip(self.init_data["equipment"], equipment_inst_ids)]
         equipment = Container("equipment", items)
         init_dict["equipment"] = equipment
         # Make inventory
         inventory_inst_ids = spawn_state["inventory_inst_ids"]
-        items = [self.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
+        items = [self.items_manager.make_item(item_mnem, inst_id) if item_mnem != "" and inst_id >= 0
                     else None
                  for item_mnem, inst_id in zip(self.init_data["inventory"], inventory_inst_ids)]
         inventory = Container("inventory", items)
@@ -176,13 +177,6 @@ class World:
             del ctrl
         char = self.uuid_to_char[uuid]
         self.uuid_to_ctrl[uuid] = NPCController(char, self.animation_system, on_destroy=on_destroy)
-
-    def make_item(self, item_mnem, inst_id):
-        def on_destroy():
-            del self.inst_id_to_item[inst_id]
-        item = Item(item_mnem, inst_id, on_destroy=on_destroy)
-        self.inst_id_to_item[inst_id] = item
-        return item
 
 
 world = World()

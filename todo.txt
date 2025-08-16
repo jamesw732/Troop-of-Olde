@@ -15,9 +15,6 @@ Move System/Manager-level logic away from World
 
 Client:
 Make Controllers single-responsibility:
-- AnimationSystem
-    - CharacterAnimator (store a map uuid to CharacterAnimator)
-- ItemsManager (anemic for now, just move overwrite functions, maybe creation code)
 - CombatSystem
 Refactor controllers
 - MovementSystem

@@ -131,25 +131,6 @@ class PlayerController(Entity):
         else:
             self.animator.end_run_cycle()
 
-    def overwrite_equipment(self, items):
-        char = self.character
-        if len(char.equipment) != len(items):
-            return
-        for slot, item in enumerate(items):
-            char.equipment[slot] = item
-            if item is not None:
-                item.leftclick = "unequip"
-            self.animator.set_equipment_slot(slot, item)
-
-    def overwrite_inventory(self, items):
-        char = self.character
-        if len(char.inventory) != len(items):
-            return
-        for slot, item in enumerate(items):
-            char.inventory[slot] = item
-            if item is not None:
-                item.leftclick = "equip"
-
     def handle_updown_keyboard_rotation(self, updown):
         """Handles up/down arrow key rotation.
 

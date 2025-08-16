@@ -109,10 +109,10 @@ def remote_update_skills(connection, time_received, skills: list[int]):
 @rpc(network.peer)
 def remote_update_equipment_inventory(connection, time_received, equipment_ids: list[int],
                                       inventory_ids: list[int]):
-    equipment = [world.inst_id_to_item.get(item_id) for item_id in equipment_ids]
-    world.pc_ctrl.overwrite_equipment(equipment)
-    inventory = [world.inst_id_to_item.get(item_id) for item_id in inventory_ids]
-    world.pc_ctrl.overwrite_inventory(inventory)
+    equipment = [world.items_manager.inst_id_to_item.get(item_id) for item_id in equipment_ids]
+    world.items_manager.overwrite_char_equipment(world.pc, equipment)
+    inventory = [world.items_manager.inst_id_to_item.get(item_id) for item_id in inventory_ids]
+    world.items_manager.overwrite_char_inventory(world.pc, inventory)
     ui.items_manager.update_item_icons()
 
 # UI Updates
