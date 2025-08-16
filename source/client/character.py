@@ -3,7 +3,7 @@ import os
 from ursina import *
 from ursina.mesh_importer import imported_meshes
 from direct.actor.Actor import Actor
-from panda3d.core import NodePath, TransparencyAttrib
+from panda3d.core import NodePath, TransparencyAttrib, Filename
 
 from .. import *
 
@@ -44,6 +44,7 @@ class ClientCharacter(Character):
         new_model: name of model file (no other path information)"""
         self.model_child.detachNode()
         path = os.path.join(models_path, new_model)
+        path = Filename.fromOsSpecific(path)
         self.model_child = Actor(path)
         self.model_child.reparent_to(self)
         # Rotate 180 degrees
