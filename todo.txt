@@ -4,14 +4,14 @@ Implementation todo list.
 Refactor Character/Controllers to not carry pretty much all of the game logic.
 High-level todo list:
 Server:
-Refactor MobController into MovementSystem:
-- MovementSystem
+Refactor MobController into MovementSystem
 Make Character single-responsibility:
 - EffectSystem
 - ItemsManager
-- StatSystem
-Refactor Character creation/destruction:
-- CharacterManager
+- StatManager
+Move System/Manager-level logic away from World
+- Character creation?
+- CleanupManager
 
 Client:
 Make Controllers single-responsibility:
@@ -25,7 +25,17 @@ Refactor controllers
 Make Characters single-responsibility:
 - ItemsManager (move item functionality from Character)
 - StatSystem
-- CharacterManager
+Move System/Manager-level functionality away from World:
+- Character creation?
+- CleanupManager
+
+
+As part of making Characters single-responsibility, I should plan to separate all attrs that
+are isolatable to a single System, but nothing more. This should keep the Character's scope pretty
+small while not obfuscating any behavior.
+
+
+
 
 EffectSystem Notes:
 - Need to make sure that deleting Effects removes them from inst_id_to_effect.
@@ -59,7 +69,7 @@ single Character instances and instead operate on all Characters.
 
 
 ItemsManager notes:
-- This will encompass the external interface into item movement and take ownership of
+- This will encompass the external interface of item movement and take ownership of
 inst_id_to_item.
 
 
@@ -71,18 +81,9 @@ Character, because that's the exact problem we're trying to solve here... make c
 single-responsibility.
 
 
-CharacterManager notes:
-- I think I want to rename DeathSystem to CharacterManager, and make its purpose providing an interface
-for managing the lifespan of Characters.
-- Will remove the update function, as death will now be initiated by Statmanager (but handled here).
-- This will be a comparatively low level object, probably the lowest among Systems.
-- The difficulty will be making other Systems respond to deaths correctly. May be possible to just
-flag characters (Character.alive?) and check that the flag is set before acting on that Character.
-If it's set, remove it from all containers that System is using.
-- This class will own uuid_to_char (rename to inst_id_to_char?)
-- To not get confused with controllers, this should be created after controllers are refactored to
-not exist anymore, and after stats have been refactored. Can do client and server as entirely separate
-tasks.
+
+
+
 
 
 

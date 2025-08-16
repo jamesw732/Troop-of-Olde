@@ -12,9 +12,9 @@ class DeathSystem(Entity):
     """Handles deaths for all characters.
 
     If a character's health is 0, kill it."""
-    def __init__(self, chars):
+    def __init__(self, global_containers):
         super().__init__()
-        self.chars = chars
+        self.chars = global_containers.uuid_to_char.values()
 
     @every(dt)
     def check_deaths(self):

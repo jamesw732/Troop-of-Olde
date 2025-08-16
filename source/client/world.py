@@ -6,6 +6,7 @@ import glob
 
 from .character import ClientCharacter
 from .controllers import PlayerController, NPCController
+from .global_containers import GlobalContainers
 from .power_system import PowerSystem
 from .ui import ui
 from .. import *
@@ -20,11 +21,12 @@ class World:
         self.pc_ctrl = None
         self.init_data = {}
 
-        self.uuid_to_char = dict()
-        self.uuid_to_ctrl = dict()
-        self.inst_id_to_item = dict()
+        self.global_containers = GlobalContainers()
+        self.uuid_to_char = self.global_containers.uuid_to_char
+        self.uuid_to_ctrl = self.global_containers.uuid_to_ctrl
+        self.inst_id_to_item = self.global_containers.inst_id_to_item
 
-        self.power_system = PowerSystem()
+        self.power_system = PowerSystem(self.global_containers)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:

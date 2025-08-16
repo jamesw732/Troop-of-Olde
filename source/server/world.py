@@ -8,8 +8,9 @@ from .combat_system import CombatSystem
 from .controllers import MobController
 from .death_system import DeathSystem
 from .effect_system import EffectSystem
-from ..power import Power
+from .global_containers import GlobalContainers
 from .power_system import PowerSystem
+from ..power import Power
 from .. import *
 
 
@@ -19,19 +20,18 @@ class World:
 
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
-        self.entities = []
 
-        self.uuid_to_char = dict()
-        self.uuid_to_ctrl = dict()
+        self.global_containers = GlobalContainers()
         self.uuid_counter = 0
-
-        self.inst_id_to_item = dict()
         self.item_inst_id_ct = 0
+        self.uuid_to_char = self.global_containers.uuid_to_char
+        self.uuid_to_ctrl = self.global_containers.uuid_to_ctrl
+        self.inst_id_to_item = self.global_containers.inst_id_to_item
 
-        self.combat_system = CombatSystem(self.uuid_to_char.values())
-        self.death_system = DeathSystem(self.uuid_to_char.values())
-        self.effect_system = EffectSystem(self.uuid_to_char.values())
-        self.power_system = PowerSystem(self.effect_system)
+        self.combat_system = CombatSystem(self.global_containers)
+        self.death_system = DeathSystem(self.global_containers)
+        self.effect_system = EffectSystem(self.global_containers)
+        self.power_system = PowerSystem(self.global_containers, self.effect_system)
 
     def load_zone(self, file):
         """Load the world by parsing a json

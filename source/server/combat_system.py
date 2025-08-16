@@ -13,9 +13,9 @@ class CombatSystem(Entity):
     Increments combat timers for all characters that are in combat.
     If timer progresses past weapon's delay, performs an attack.
     """
-    def __init__(self, chars):
+    def __init__(self, global_containers):
         super().__init__()
-        self.chars = chars
+        self.chars = global_containers.uuid_to_char.values()
 
     @every(dt)
     def tick_combat(self):
