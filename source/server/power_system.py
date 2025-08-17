@@ -15,13 +15,13 @@ class PowerSystem(Entity):
     This class does not have ownership over powers. Instead, powers are created
     by World, this class is merely for managing the per-tick Power operations,
     and are accessed through Characters."""
-    def __init__(self, global_containers, effect_system):
+    def __init__(self, gamestate, effect_system):
         self.effect_system = effect_system
         super().__init__()
         self.power_inst_id_ct = 0
-        self.inst_id_to_power = global_containers.inst_id_to_power
-        self.cooldown_powers = global_containers.cooldown_powers
-        self.gcd_chars = global_containers.gcd_chars
+        self.inst_id_to_power = gamestate.inst_id_to_power
+        self.cooldown_powers = gamestate.cooldown_powers
+        self.gcd_chars = gamestate.gcd_chars
 
     def make_power(self, power_mnem):
         inst_id = self.power_inst_id_ct

@@ -1,4 +1,4 @@
-class GlobalContainers:
+class GameState:
     """Stores global containers for all Systems and Managers to access and write to
 
     Objects may be added to these by any System or Manager, but only CleanupManager

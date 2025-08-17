@@ -8,7 +8,7 @@ from .animation_system import AnimationSystem
 from .character import ClientCharacter
 from .combat_manager import CombatManager
 from .controllers import PlayerController, NPCController
-from .global_containers import GlobalContainers
+from .gamestate import GameState
 from .items_manager import ItemsManager
 from .namelabel_system import NameLabelSystem
 from .power_system import PowerSystem
@@ -25,15 +25,15 @@ class World:
         self.pc_ctrl = None
         self.init_data = {}
 
-        self.global_containers = GlobalContainers()
-        self.uuid_to_char = self.global_containers.uuid_to_char
-        self.uuid_to_ctrl = self.global_containers.uuid_to_ctrl
+        self.gamestate = GameState()
+        self.uuid_to_char = self.gamestate.uuid_to_char
+        self.uuid_to_ctrl = self.gamestate.uuid_to_ctrl
 
-        self.power_system = PowerSystem(self.global_containers)
-        self.animation_system = AnimationSystem(self.global_containers)
+        self.power_system = PowerSystem(self.gamestate)
+        self.animation_system = AnimationSystem(self.gamestate)
         self.combat_manager = CombatManager(self.animation_system)
-        self.items_manager = ItemsManager(self.global_containers, self.animation_system)
-        self.namelabel_system = NameLabelSystem(self.global_containers)
+        self.items_manager = ItemsManager(self.gamestate, self.animation_system)
+        self.namelabel_system = NameLabelSystem(self.gamestate)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:

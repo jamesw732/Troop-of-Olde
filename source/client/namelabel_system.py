@@ -2,9 +2,9 @@ from ursina import *
 
 
 class NameLabelSystem(Entity):
-    def __init__(self, global_containers):
+    def __init__(self, gamestate):
         super().__init__()
-        self.uuid_to_labl = global_containers.uuid_to_labl
+        self.uuid_to_labl = gamestate.uuid_to_labl
 
     def create_namelabel(self, char):
         self.uuid_to_labl[char.uuid] = NameLabel(char)

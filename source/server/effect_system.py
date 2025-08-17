@@ -14,11 +14,11 @@ class EffectSystem(Entity):
     Increments timers for all effects across all characters.
     Applies start effects, tick effects, and end effects.
     """
-    def __init__(self, global_containers):
+    def __init__(self, gamestate):
         super().__init__()
-        self.chars = global_containers.uuid_to_char.values()
+        self.chars = gamestate.uuid_to_char.values()
         self.effect_inst_id_counter = 0
-        self.inst_id_to_effect = global_containers.inst_id_to_effect
+        self.inst_id_to_effect = gamestate.inst_id_to_effect
 
     def make_effect(self, effect_mnem, src, tgt):
         effect = Effect(effect_mnem, src, tgt)

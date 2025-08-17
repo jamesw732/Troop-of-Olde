@@ -17,7 +17,8 @@ Optimize systems/managers
 
 Client:
 Make Controllers single-responsibility:
-- Remove kill
+- Remove kill... add CleanupManager? DeathManager will exist on a layer above this, but
+for now deaths are just cleanups. Seems pretty good.
 - Organize parts of Controllers so that PlayerController and NPCController can be merged.
 Is it even correct to merge PlayerController and NPCController?
 I think yes, at least on the level of "LERP between previous and target position" since that
@@ -36,7 +37,7 @@ identical, just that this one layer of functionality should be shared between th
     - MovementInput, singleton class that InputHandler interfaces to for movement input logic,
     simply writes velocity components and rotation stuff.
 
-Refactor controllers
+Refactor controllers into a System
 - Make MovementSystem class
 Make Characters single-responsibility:
 - ItemsManager (move item functionality from Character)

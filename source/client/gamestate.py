@@ -1,9 +1,11 @@
-class GlobalContainers:
-    """Stores global containers for all Systems and Managers to access and write to
+class GameState:
+    """Stores bottom-level containers for all Systems and Managers to access and update
 
     Objects may be added to these by any System or Manager, but only CleanupManager
     should remove objects from them."""
     def __init__(self):
+        self.pc = None
+        self.pc_ctrl = None
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
         self.uuid_to_labl = dict()

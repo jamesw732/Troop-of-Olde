@@ -7,9 +7,9 @@ class AnimationSystem(Entity):
     """Handles by-frame animation updates and CharacterAnimator creation
 
     Provides a wrapper interface into CharacterAnimator"""
-    def __init__(self, global_containers):
+    def __init__(self, gamestate):
         super().__init__()
-        self.uuid_to_anim = global_containers.uuid_to_anim
+        self.uuid_to_anim = gamestate.uuid_to_anim
 
     def make_animator(self, character):
         animator = CharacterAnimator(character.model_child, equipment=character.equipment)

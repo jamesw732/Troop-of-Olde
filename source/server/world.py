@@ -7,7 +7,7 @@ from .character import ServerCharacter
 from .combat_system import CombatSystem
 from .death_system import DeathSystem
 from .effect_system import EffectSystem
-from .global_containers import GlobalContainers
+from .gamestate import GameState
 from .movement_system import MovementSystem
 from .power_system import PowerSystem
 from ..power import Power
@@ -21,18 +21,18 @@ class World:
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
 
-        self.global_containers = GlobalContainers()
+        self.gamestate = GameState()
         self.uuid_counter = 0
         self.item_inst_id_ct = 0
-        self.uuid_to_char = self.global_containers.uuid_to_char
-        self.uuid_to_ctrl = self.global_containers.uuid_to_ctrl
-        self.inst_id_to_item = self.global_containers.inst_id_to_item
+        self.uuid_to_char = self.gamestate.uuid_to_char
+        self.uuid_to_ctrl = self.gamestate.uuid_to_ctrl
+        self.inst_id_to_item = self.gamestate.inst_id_to_item
 
-        self.combat_system = CombatSystem(self.global_containers)
-        self.death_system = DeathSystem(self.global_containers)
-        self.effect_system = EffectSystem(self.global_containers)
-        self.power_system = PowerSystem(self.global_containers, self.effect_system)
-        self.movement_system = MovementSystem(self.global_containers)
+        self.combat_system = CombatSystem(self.gamestate)
+        self.death_system = DeathSystem(self.gamestate)
+        self.effect_system = EffectSystem(self.gamestate)
+        self.power_system = PowerSystem(self.gamestate, self.effect_system)
+        self.movement_system = MovementSystem(self.gamestate)
 
     def load_zone(self, file):
         """Load the world by parsing a json

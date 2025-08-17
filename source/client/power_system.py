@@ -10,13 +10,13 @@ dt = POWER_UPDATE_RATE
 
 class PowerSystem(Entity):
     """Handles the per-tick Power operations."""
-    def __init__(self, global_containers):
+    def __init__(self, gamestate):
         super().__init__()
         self.char = None
-        self.inst_id_to_power = global_containers.inst_id_to_power
+        self.inst_id_to_power = gamestate.inst_id_to_power
         self.queued_power = None
         # Powers on cooldown keyed by inst id
-        self.cooldown_powers = global_containers.cooldown_powers
+        self.cooldown_powers = gamestate.cooldown_powers
 
     def make_power(self, power_mnem, inst_id):
         power = Power(power_mnem, inst_id)
