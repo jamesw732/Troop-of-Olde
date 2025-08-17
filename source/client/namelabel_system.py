@@ -13,12 +13,6 @@ class NameLabelSystem(Entity):
         for namelabel in self.uuid_to_labl.values():
             namelabel.fix_rotation()
 
-    def destroy_labl(self, uuid):
-        namelabel = self.uuid_to_labl[uuid]
-        destroy(namelabel)
-        del namelabel.char
-        del self.uuid_to_labl[uuid]
-
 
 class NameLabel(Text):
     def __init__(self, char):

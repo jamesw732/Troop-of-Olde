@@ -60,12 +60,14 @@ def remote_set_pc_target(connection, time_received, uuid: int):
 def remote_kill(connection, time_received, uuid: int):
     if uuid not in world.uuid_to_ctrl:
         return
-    ctrl = world.uuid_to_ctrl[uuid]
-    char = ctrl.character
+    char = world.uuid_to_char[uuid]
     if ui.gamewindow:
         msg = f"{char.cname} perishes"
         ui.gamewindow.add_message(msg)
-    ctrl.kill()
+    if uuid != world.gamestate.pc.uuid:
+        world.cleanup_manager.cleanup_npc(uuid)
+    else:
+        world.cleanup_manager.cleanup_pc()
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, cbstate: PlayerCombatState):

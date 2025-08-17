@@ -163,13 +163,6 @@ class PlayerController(Entity):
     def zoom_out(self):
         self.camdistance = min(self.camdistance + 1, 75)
 
-    def kill(self):
-        """Clean up character upon death"""
-        # also need to clear enemy targets
-        self.character.alive = False
-        destroy(self.character)
-        destroy(self)
-
     def update_lerp_attrs(self, sequence_number, pos, rot):
         """Updates target pos/rot to resynchronize after client-side prediction"""
         if sequence_number > self.recv_sequence_number:
@@ -247,10 +240,4 @@ class NPCController(Entity):
             self.lerp_timer = 0
             self.character.position = pos
             self.character.rotation_y = rot
-
-    def kill(self):
-        """Clean up character upon death"""
-        self.character.alive = False
-        destroy(self.character)
-        destroy(self)
 

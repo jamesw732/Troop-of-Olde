@@ -6,6 +6,7 @@ import glob
 
 from .animation_system import AnimationSystem
 from .character import ClientCharacter
+from .cleanup_manager import CleanupManager
 from .combat_manager import CombatManager
 from .controllers import PlayerController, NPCController
 from .gamestate import GameState
@@ -27,6 +28,7 @@ class World:
         self.uuid_to_char = self.gamestate.uuid_to_char
         self.uuid_to_ctrl = self.gamestate.uuid_to_ctrl
 
+        self.cleanup_manager = CleanupManager(self.gamestate)
         self.power_system = PowerSystem(self.gamestate)
         self.animation_system = AnimationSystem(self.gamestate)
         self.combat_manager = CombatManager(self.animation_system)
@@ -96,42 +98,12 @@ class World:
                     else None
                  for power_mnem, inst_id in zip(self.init_data["powers"], powers_inst_ids)]
         init_dict["powers"] = powers
-        on_destroy = self.make_pc_on_destroy(init_dict["uuid"])
-        init_dict["on_destroy"] = on_destroy
         return init_dict
 
     def make_npc_init_dict(self, spawn_state):
         """Converts data from a PCSpawnState to a dict that can be input into ServerCharacter"""
         init_dict = dict(spawn_state)
-        on_destroy = self.make_npc_on_destroy(init_dict["uuid"])
-        init_dict["on_destroy"] = on_destroy
         return init_dict
-
-    def make_pc_on_destroy(self, uuid):
-        def on_destroy():
-            self.gamestate.pc = None
-            char = self.uuid_to_char[uuid]
-            del self.uuid_to_char[uuid]
-            char.model_child.detachNode()
-            del char.model_child
-            for src in char.targeted_by:
-                src.target = None
-            char.targeted_by = []
-            char.ignore_traverse = []
-            del char
-        return on_destroy
-
-    def make_npc_on_destroy(self, uuid):
-        def on_destroy():
-            char = self.uuid_to_char[uuid]
-            del self.uuid_to_char[uuid]
-            char.model_child.detachNode()
-            del char.model_child
-            for src in char.targeted_by:
-                src.target = None
-            self.gamestate.pc.ignore_traverse.remove(char.clickbox)
-            del char
-        return on_destroy
 
     def make_pc(self, init_dict):
         """Create the Player Character from the server's inputs.
@@ -151,12 +123,8 @@ class World:
         if self.gamestate.pc is None:
             return
         uuid = self.gamestate.pc.uuid
-        def on_destroy():
-            del self.uuid_to_ctrl[uuid]
-            self.gamestate.pc_ctrl = None
-            self.namelabel_system.destroy_labl(uuid)
         char = self.uuid_to_char[uuid]
-        self.gamestate.pc_ctrl = PlayerController(char, self.animation_system, on_destroy=on_destroy)
+        self.gamestate.pc_ctrl = PlayerController(char, self.animation_system)
         self.uuid_to_ctrl[uuid] = self.gamestate.pc_ctrl
 
     def make_npc(self, init_dict):
@@ -173,14 +141,8 @@ class World:
     def make_npc_ctrl(self, uuid):
         """Makes an npc controller while updating uuid map.
         Relies on make_npc being called"""
-        def on_destroy():
-            ctrl = self.uuid_to_ctrl[uuid]
-            del self.uuid_to_ctrl[uuid]
-            del ctrl.character
-            self.namelabel_system.destroy_labl(uuid)
-            del ctrl
         char = self.uuid_to_char[uuid]
-        self.uuid_to_ctrl[uuid] = NPCController(char, self.animation_system, on_destroy=on_destroy)
+        self.uuid_to_ctrl[uuid] = NPCController(char, self.animation_system)
 
 
 world = World()
