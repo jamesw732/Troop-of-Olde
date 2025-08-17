@@ -25,7 +25,7 @@ class InputHandler(Entity):
                 print("Attempting to connect")
                 network.peer.start("localhost", 8080, is_host=False)
                 return
-        ctrl = world.pc_ctrl
+        ctrl = world.gamestate.pc_ctrl
         if ctrl is None:
             return
         tgt = mouse.hovered_entity
@@ -46,7 +46,7 @@ class InputHandler(Entity):
                 world.combat_manager.input_set_target(tgt.parent)
         elif key in power_key_to_slot:
             slot = power_key_to_slot[key]
-            power = world.pc.powers[slot]
+            power = world.gamestate.pc.powers[slot]
             used_power = world.power_system.handle_power_input(power)
             if used_power:
                 ui.actionbar.start_cd_animation()
@@ -56,7 +56,7 @@ class InputHandler(Entity):
         """Performs per-frame input handling
 
         Includes keyboard/mouse rotation."""
-        ctrl = world.pc_ctrl
+        ctrl = world.gamestate.pc_ctrl
         if ctrl is None:
             return
         # Client-side movement/rotation updates
@@ -68,7 +68,7 @@ class InputHandler(Entity):
     @every(PHYSICS_UPDATE_RATE)
     def tick_movement_inputs(self):
         """Performs fixed-timestep movement input handling"""
-        ctrl = world.pc_ctrl
+        ctrl = world.gamestate.pc_ctrl
         if ctrl is None:
             return
         # Send movement/rotation inputs to server
@@ -86,7 +86,7 @@ class InputHandler(Entity):
         queued_power = world.power_system.queued_power
         if queued_power is None:
             return
-        char = world.pc
+        char = world.gamestate.pc
         if char is None:
             return
         if queued_power.on_cooldown or char.get_on_gcd():

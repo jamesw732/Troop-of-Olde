@@ -51,7 +51,7 @@ def remote_toggle_pc_combat(connection, time_received, uuid: int, toggle: bool):
 def remote_set_pc_target(connection, time_received, uuid: int):
     """Update player character's target"""
     tgt = world.uuid_to_char[uuid]
-    world.combat_manager.char_set_target(world.pc, tgt)
+    world.combat_manager.char_set_target(world.gamestate.pc, tgt)
     if ui.gamewindow:
         msg = f"Now targeting: {tgt.cname}"
         ui.gamewindow.add_message(msg)
@@ -69,9 +69,9 @@ def remote_kill(connection, time_received, uuid: int):
 
 @rpc(network.peer)
 def update_pc_cbstate(connection, time_received, cbstate: PlayerCombatState):
-    if world.pc is None:
+    if world.gamestate.pc is None:
         return
-    cbstate.apply(world.pc)
+    cbstate.apply(world.gamestate.pc)
     if ui.bars:
         ui.bars.update_display()
     if ui.playerwindow:
@@ -87,14 +87,14 @@ def update_npc_cbstate(connection, time_received, uuid: int, cbstate: NPCCombatS
 # Skills
 @rpc(network.peer)
 def remote_update_skill(connection, time_received, skill: str, val: int):
-    char = world.pc
+    char = world.gamestate.pc
     char.skills[skill] = val
     if ui.playerwindow:
         ui.playerwindow.skills.set_label_text(skill)
 
 @rpc(network.peer)
 def remote_update_skills(connection, time_received, skills: list[int]):
-    char = world.pc
+    char = world.gamestate.pc
     for i, skill in enumerate(all_skills):
         char.skills[i] = skills[i]
         if ui.playerwindow:
@@ -105,9 +105,9 @@ def remote_update_skills(connection, time_received, skills: list[int]):
 def remote_update_equipment_inventory(connection, time_received, equipment_ids: list[int],
                                       inventory_ids: list[int]):
     equipment = [world.items_manager.inst_id_to_item.get(item_id) for item_id in equipment_ids]
-    world.items_manager.overwrite_char_equipment(world.pc, equipment)
+    world.items_manager.overwrite_char_equipment(world.gamestate.pc, equipment)
     inventory = [world.items_manager.inst_id_to_item.get(item_id) for item_id in inventory_ids]
-    world.items_manager.overwrite_char_inventory(world.pc, inventory)
+    world.items_manager.overwrite_char_inventory(world.gamestate.pc, inventory)
     ui.items_system.update_item_icons()
 
 # UI Updates
@@ -129,14 +129,14 @@ def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: 
 @rpc(network.peer)
 def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: Vec3, rot: float):
     """Called by server to update physical state for a player character"""
-    if world.pc is None:
+    if world.gamestate.pc is None:
         return
     # To check synchronization, uncomment these:
     # print(rot % 360)
-    # print(world.pc.rotation_y)
+    # print(world.gamestate.pc.rotation_y)
     # print(pos)
-    # print(world.pc.position)
-    controller = world.pc_ctrl
+    # print(world.gamestate.pc.position)
+    controller = world.gamestate.pc_ctrl
     controller.update_lerp_attrs(sequence_number, pos, rot)
 
 @rpc(network.peer)

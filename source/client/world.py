@@ -21,8 +21,6 @@ class World:
 
         file: str, name of file to load in data/zones. Not full path."""
         self.zones_path = os.path.join(data_path, "zones")
-        self.pc = None
-        self.pc_ctrl = None
         self.init_data = {}
 
         self.gamestate = GameState()
@@ -111,7 +109,7 @@ class World:
 
     def make_pc_on_destroy(self, uuid):
         def on_destroy():
-            self.pc = None
+            self.gamestate.pc = None
             char = self.uuid_to_char[uuid]
             del self.uuid_to_char[uuid]
             char.model_child.detachNode()
@@ -131,7 +129,7 @@ class World:
             del char.model_child
             for src in char.targeted_by:
                 src.target = None
-            self.pc.ignore_traverse.remove(char.clickbox)
+            self.gamestate.pc.ignore_traverse.remove(char.clickbox)
             del char
         return on_destroy
 
@@ -140,26 +138,26 @@ class World:
 
         init_dict is a dict obtained from World.make_pc_init_dict
         """
-        self.pc = ClientCharacter(**init_dict)
-        self.uuid_to_char[self.pc.uuid] = self.pc
-        self.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
-        self.power_system.char = self.pc
-        self.combat_manager.pc = self.pc
-        self.namelabel_system.create_namelabel(self.pc)
+        self.gamestate.pc = ClientCharacter(**init_dict)
+        self.uuid_to_char[self.gamestate.pc.uuid] = self.gamestate.pc
+        self.gamestate.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
+        self.power_system.char = self.gamestate.pc
+        self.combat_manager.pc = self.gamestate.pc
+        self.namelabel_system.create_namelabel(self.gamestate.pc)
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
         Relies on make_pc being called"""
-        if self.pc is None:
+        if self.gamestate.pc is None:
             return
-        uuid = self.pc.uuid
+        uuid = self.gamestate.pc.uuid
         def on_destroy():
             del self.uuid_to_ctrl[uuid]
-            self.pc_ctrl = None
+            self.gamestate.pc_ctrl = None
             self.namelabel_system.destroy_labl(uuid)
         char = self.uuid_to_char[uuid]
-        self.pc_ctrl = PlayerController(char, self.animation_system, on_destroy=on_destroy)
-        self.uuid_to_ctrl[uuid] = self.pc_ctrl
+        self.gamestate.pc_ctrl = PlayerController(char, self.animation_system, on_destroy=on_destroy)
+        self.uuid_to_ctrl[uuid] = self.gamestate.pc_ctrl
 
     def make_npc(self, init_dict):
         """Create an NPC from the server's inputs.
@@ -168,8 +166,8 @@ class World:
         new_char = ClientCharacter(**init_dict)
         self.uuid_to_char[new_char.uuid] = new_char
         self.namelabel_system.create_namelabel(new_char)
-        if self.pc:
-            self.pc.ignore_traverse.append(new_char.clickbox)
+        if self.gamestate.pc:
+            self.gamestate.pc.ignore_traverse.append(new_char.clickbox)
         return new_char
 
     def make_npc_ctrl(self, uuid):

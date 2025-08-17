@@ -14,7 +14,7 @@ class UI:
         self.items_system = None
 
     def make_all_ui(self, world):
-        char = world.pc
+        char = world.gamestate.pc
         power_system = world.power_system
 
         self.items_system = ItemsSystem(char)
