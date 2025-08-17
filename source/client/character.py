@@ -35,7 +35,6 @@ class ClientCharacter(Character):
                 item.leftclick = "equip"
 
         self.clickbox = ClickBox(self)
-        self.namelabel = None
 
     @Character.model_name.setter
     def model_name(self, new_model):

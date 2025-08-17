@@ -70,7 +70,7 @@ def apply_physics(char, displacement, ignore=[]):
     if displacement[1] < 0:
         return displacement
     # Cast ray from top of model, rather than bottom like in handle_collision
-    pos = char.position + Vec3(0, char.height, 0)
+    pos = char.position + Vec3(0, char.scale_y, 0)
     ceiling = raycast(pos, direction=(0, 1, 0), distance=displacement[1],
                       ignore=ignore)
     if ceiling.hit:

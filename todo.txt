@@ -4,14 +4,12 @@ Implementation todo list.
 Refactor Character/Controllers to not carry pretty much all of the game logic.
 High-level todo list:
 Server:
-Make Controllers single-responsibility:
-- CleanupManager
-Refactor MobController into MovementSystem
 Make Character single-responsibility:
 - ItemsManager
 - StatManager
 Move System/Manager-level logic away from World
 - Character creation?
+- CleanupManager
 Optimize systems/managers
 - EffectSystem networking and loop
 - CombatSystem networking and loop
@@ -19,18 +17,38 @@ Optimize systems/managers
 
 Client:
 Make Controllers single-responsibility:
-- CombatManager
-- CleanupManager
+- Remove kill
+- Organize parts of Controllers so that PlayerController and NPCController can be merged.
+Is it even correct to merge PlayerController and NPCController?
+I think yes, at least on the level of "LERP between previous and target position" since that
+functionality is shared. They're not being merged in the sense that their behavior will be
+identical, just that this one layer of functionality should be shared between them.
+    - Client's inputs which update velocity_components["keyboard"] and rotation stuff
+    - Server's inputs which update displacement_components["server_offset"] and rot_offset
+    - Physics engine which computes the predicted target position/rotation
+    - Lerp engine which just interpolates character position between physics update ticks
+    - The camera's controller which basically just handles collision
+  - Potential solution:
+    - CharacterController, per-Character class that processes physics on "globally" accessible
+    velocity components to obtain a target position/rotation, and lerps every frame.
+    - CameraController, singleton class that handles camera collision. Inputhandler would interface
+    to this for inputs.
+    - MovementInput, singleton class that InputHandler interfaces to for movement input logic,
+    simply writes velocity components and rotation stuff.
+
 Refactor controllers
-- MovementSystem
-    - CharacterLerper (store a map uuid to CharacterLerper)
+- Make MovementSystem class
 Make Characters single-responsibility:
 - ItemsManager (move item functionality from Character)
 - StatSystem
 Move System/Manager-level functionality away from World:
 - Character creation?
+- CleanupManager
 Optimize systems/managers
 - CombatManager probably needs to do more, currently being bypassed in some places
+- Should AnimationSystem just be a wrapper for CharacterAnimator (like it currently is)?
+Seems unnecessary, could just bake the logic into AnimationSystem. Maybe rename CharacterAnimator
+to AnimationState?
 
 
 As part of making Characters single-responsibility, I should plan to separate all attrs that

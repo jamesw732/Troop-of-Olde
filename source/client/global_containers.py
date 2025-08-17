@@ -6,6 +6,7 @@ class GlobalContainers:
     def __init__(self):
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
+        self.uuid_to_labl = dict()
         self.uuid_to_anim = dict()
         self.inst_id_to_item = dict()
         self.inst_id_to_power = dict()

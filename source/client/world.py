@@ -10,6 +10,7 @@ from .combat_manager import CombatManager
 from .controllers import PlayerController, NPCController
 from .global_containers import GlobalContainers
 from .items_manager import ItemsManager
+from .namelabel_system import NameLabelSystem
 from .power_system import PowerSystem
 from .ui import ui
 from .. import *
@@ -32,6 +33,7 @@ class World:
         self.animation_system = AnimationSystem(self.global_containers)
         self.combat_manager = CombatManager(self.animation_system)
         self.items_manager = ItemsManager(self.global_containers, self.animation_system)
+        self.namelabel_system = NameLabelSystem(self.global_containers)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
@@ -143,6 +145,7 @@ class World:
         self.pc.ignore_traverse = [char.clickbox for char in self.uuid_to_char.values()]
         self.power_system.char = self.pc
         self.combat_manager.pc = self.pc
+        self.namelabel_system.create_namelabel(self.pc)
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
@@ -153,6 +156,7 @@ class World:
         def on_destroy():
             del self.uuid_to_ctrl[uuid]
             self.pc_ctrl = None
+            self.namelabel_system.destroy_labl(uuid)
         char = self.uuid_to_char[uuid]
         self.pc_ctrl = PlayerController(char, self.animation_system, on_destroy=on_destroy)
         self.uuid_to_ctrl[uuid] = self.pc_ctrl
@@ -163,6 +167,7 @@ class World:
         init_dict is a dict obtained from World.make_npc_init_dict"""
         new_char = ClientCharacter(**init_dict)
         self.uuid_to_char[new_char.uuid] = new_char
+        self.namelabel_system.create_namelabel(new_char)
         if self.pc:
             self.pc.ignore_traverse.append(new_char.clickbox)
         return new_char
@@ -174,9 +179,7 @@ class World:
             ctrl = self.uuid_to_ctrl[uuid]
             del self.uuid_to_ctrl[uuid]
             del ctrl.character
-            destroy(ctrl.namelabel)
-            del ctrl.namelabel.char
-            del ctrl.namelabel
+            self.namelabel_system.destroy_labl(uuid)
             del ctrl
         char = self.uuid_to_char[uuid]
         self.uuid_to_ctrl[uuid] = NPCController(char, self.animation_system, on_destroy=on_destroy)

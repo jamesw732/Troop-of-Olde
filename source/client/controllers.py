@@ -18,9 +18,6 @@ class PlayerController(Entity):
             world_scale = (1, 1, 1),
             position = Vec3(0, 0.75, 0)
         )
-        self.namelabel = NameLabel(character)
-        self.namelabel.parent = self.focus
-        self.namelabel.world_position = self.character.position + Vec3(0, self.character.height * 1.3, 0)
         self.animator = animation_system.make_animator(self.character)
         # Uncomment this and shadow handling in world_responses to see network synchronization
         # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
@@ -209,13 +206,10 @@ class NPCController(Entity):
         super().__init__()
         self.character = character
         self.animator = animation_system.make_animator(self.character)
-        self.namelabel = NameLabel(character)
         self._init_lerp_attrs()
         self.on_destroy = on_destroy
 
     def update(self):
-        self.namelabel.adjust_position()
-        self.namelabel.adjust_rotation()
         # Lerp attrs updated by network.peer.update_npc_lerp_attrs
         if self.lerping:
             self.lerp_timer += time.dt
@@ -260,23 +254,3 @@ class NPCController(Entity):
         destroy(self.character)
         destroy(self)
 
-
-class NameLabel(Text):
-    def __init__(self, char):
-        """Creates a namelabel above a character
-        
-        Todo: Change parent to character"""
-        super().__init__(char.cname, parent=scene, scale=10, origin=(0, 0, 0),
-                         position=char.position + Vec3(0, char.height + 1, 0))
-        self.char = char
-
-    def adjust_rotation(self):
-        """Aim the namelabel at the player with the right direction"""
-        if self.char.position:
-            direction = self.char.position - camera.world_position
-            self.look_at(direction + self.world_position)
-            self.rotation_z = 0
-
-    def adjust_position(self):
-        """Position the namelabel above the character"""
-        self.position = self.char.position + Vec3(0, self.char.height + 1, 0)

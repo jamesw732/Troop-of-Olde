@@ -79,7 +79,6 @@ init_char_attrs = {
     "grav": 0,
     "velocity_components": {},
     "displacement_components": {},
-    "height": 2,
     "max_jump_height": 3,
     "rem_jump_height": 3,
     "max_jump_time": 0.3,
