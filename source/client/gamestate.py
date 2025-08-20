@@ -6,6 +6,7 @@ class GameState:
     def __init__(self):
         self.pc = None
         self.pc_ctrl = None
+        self.cam_ctrl = None
         self.uuid_to_char = dict()
         self.uuid_to_ctrl = dict()
         self.uuid_to_labl = dict()

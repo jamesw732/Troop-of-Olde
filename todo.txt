@@ -17,8 +17,6 @@ Optimize systems/managers
 
 Client:
 Make Controllers single-responsibility:
-- Remove kill... add CleanupManager? DeathManager will exist on a layer above this, but
-for now deaths are just cleanups. Seems pretty good.
 - Organize parts of Controllers so that PlayerController and NPCController can be merged.
 Is it even correct to merge PlayerController and NPCController?
 I think yes, at least on the level of "LERP between previous and target position" since that
@@ -30,12 +28,15 @@ identical, just that this one layer of functionality should be shared between th
     - Lerp engine which just interpolates character position between physics update ticks
     - The camera's controller which basically just handles collision
   - Potential solution:
-    - CharacterController, per-Character class that processes physics on "globally" accessible
-    velocity components to obtain a target position/rotation, and lerps every frame.
+    - PlayerController, singleton class (assigned to player character) that InputHandler
+    interfaces to for movement input logic, simply writes velocity components and
+    rotation stuff.
+    - CharacterController, singleton class that loops over active characters and processes
+    physics on "globally" accessible velocity components to obtain a target
+    position/rotation, and lerps every frame.
     - CameraController, singleton class that handles camera collision. Inputhandler would interface
     to this for inputs.
-    - MovementInput, singleton class that InputHandler interfaces to for movement input logic,
-    simply writes velocity components and rotation stuff.
+
 
 Refactor controllers into a System
 - Make MovementSystem class
@@ -73,11 +74,6 @@ CombatSystem/Manager Notes:
 - Don't need to loop over all characters, only the ones that are actually in combat.
 - Would be nice to reduce number of network requests sent. One per attack attempt per client
 seems reasonable. This is a somewhat lower priority (for now) optimization.
-
-
-Controllers notes:
-Once controllers are single-responsibility, refactor them into MovementSystem, don't attach to
-single Character instances and instead operate on all Characters.
 
 
 StatManager Notes:

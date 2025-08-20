@@ -1,6 +1,6 @@
 import json
 
-from ursina import Entity, held_keys, every, Vec2, mouse, camera
+from ursina import Entity, held_keys, every, Vec2, Vec3, mouse, camera, math, time
 import ursina.input_handler
 
 from .character import ClickBox
@@ -11,11 +11,12 @@ from .. import PHYSICS_UPDATE_RATE, POWER_UPDATE_RATE, network, power_key_to_slo
 class InputHandler(Entity):
     def __init__(self):
         super().__init__()
-
         with open("data/key_mappings.json") as keymap:
             keymap_json = json.load(keymap)
             for k, v in keymap_json.items():
                 ursina.input_handler.bind(k, v)
+        # Used for mouse rotation
+        self.prev_mouse_position = mouse.position
 
     def input(self, key):
         # This is temporary handling of logins when launching client from
@@ -28,17 +29,20 @@ class InputHandler(Entity):
         ctrl = world.gamestate.pc_ctrl
         if ctrl is None:
             return
+        cam_ctrl = world.gamestate.cam_ctrl
+        if cam_ctrl is None:
+            return
         tgt = mouse.hovered_entity
         if key == "jump":
             ctrl.do_jump()
         elif key == "scroll up":
             if tgt is None or not tgt.has_ancestor(camera.ui):
-                ctrl.zoom_in()
+                cam_ctrl.zoom_in()
         elif key == "scroll down":
             if tgt is None or not tgt.has_ancestor(camera.ui):
-                ctrl.zoom_out()
+                cam_ctrl.zoom_out()
         elif key == "right mouse down":
-            ctrl.start_mouse_rotation()
+            self.start_mouse_rotation()
         elif key == "toggle_combat":
             world.combat_manager.input_toggle_combat()
         elif key == "left mouse down":
@@ -56,14 +60,14 @@ class InputHandler(Entity):
         """Performs per-frame input handling
 
         Includes keyboard/mouse rotation."""
-        ctrl = world.gamestate.pc_ctrl
-        if ctrl is None:
+        cam_ctrl = world.gamestate.cam_ctrl
+        if cam_ctrl is None:
             return
         # Client-side movement/rotation updates
         updown_rot = held_keys['rotate_up'] - held_keys['rotate_down']
-        ctrl.handle_updown_keyboard_rotation(updown_rot)
+        cam_ctrl.handle_updown_keyboard_rotation(updown_rot, time.dt)
         if held_keys["right mouse"]:
-            ctrl.handle_mouse_rotation()
+            self.handle_mouse_rotation()
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_movement_inputs(self):
@@ -94,3 +98,16 @@ class InputHandler(Entity):
         world.power_system.use_power(queued_power)
         ui.actionbar.start_cd_animation()
         ui.bars.update_display()
+
+    def start_mouse_rotation(self):
+        self.prev_mouse_position = mouse.position
+
+    def handle_mouse_rotation(self):
+        offset = mouse.position - self.prev_mouse_position
+        self.prev_mouse_position = mouse.position
+        ctrl = world.gamestate.pc_ctrl
+        cam_ctrl = world.gamestate.cam_ctrl
+        vel = Vec3(-1 * offset[1], offset[0] * math.cos(math.radians(cam_ctrl.focus.rotation_x)), 0)
+        mouse_rotation = vel * 200
+        cam_ctrl.update_mouse_x_rotation(mouse_rotation[0])
+        ctrl.update_mouse_y_rotation(mouse_rotation[1])

@@ -5,6 +5,7 @@ import os
 import glob
 
 from .animation_system import AnimationSystem
+from .camera_controller import CameraController
 from .character import ClientCharacter
 from .cleanup_manager import CleanupManager
 from .combat_manager import CombatManager
@@ -126,6 +127,7 @@ class World:
         char = self.uuid_to_char[uuid]
         self.gamestate.pc_ctrl = PlayerController(char, self.animation_system)
         self.uuid_to_ctrl[uuid] = self.gamestate.pc_ctrl
+        self.gamestate.cam_ctrl = CameraController(char)
 
     def make_npc(self, init_dict):
         """Create an NPC from the server's inputs.

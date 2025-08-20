@@ -12,25 +12,12 @@ class PlayerController(Entity):
     def __init__(self, character, animation_system, on_destroy=lambda: None):
         super().__init__()
         self.character = character
-        self.focus = Entity(
-            parent=self.character,
-            world_rotation_y=0,
-            world_scale = (1, 1, 1),
-            position = Vec3(0, 0.75, 0)
-        )
         self.animator = animation_system.make_animator(self.character)
         # Uncomment this and shadow handling in world_responses to see network synchronization
         # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
         #                      color=color.yellow, rotation=self.character.rotation,
         #                      position=self.character.position)
         self.on_destroy=on_destroy
-        # Bind camera
-        self.camdistance = 20
-        camera.parent = self.focus
-        camera.position = (0, 0, -1 * self.camdistance)
-
-        self.prev_mouse_position = mouse.position
-
         # The sequence number of movement inputs
         self.sequence_number = 0
         # The most recent relayed sequence number
@@ -64,18 +51,6 @@ class PlayerController(Entity):
         # Fix character rotation
         self.character.rotation_x = 0
         self.character.rotation_z = 0
-        self.focus.rotation_z = 0
-        max_vert_rotation = 80
-        self.focus.rotation_x = clamp(self.focus.rotation_x, -max_vert_rotation, max_vert_rotation)
-        # Adjust camera zoom
-        direction = camera.world_position - self.focus.world_position
-        ray = raycast(self.focus.world_position, direction=direction, distance=self.camdistance,
-                      ignore=self.character.ignore_traverse)
-        if ray.hit:
-            dist = math.dist(ray.world_point, self.focus.world_position)
-            camera.z = -1 * min(self.camdistance, dist)
-        else:
-            camera.z = -1 * self.camdistance
 
     @every(PHYSICS_UPDATE_RATE)
     def tick_physics(self):
@@ -128,40 +103,19 @@ class PlayerController(Entity):
         else:
             self.animator.end_run_cycle()
 
-    def handle_updown_keyboard_rotation(self, updown):
-        """Handles up/down arrow key rotation.
-
-        Only affects up-down rotation, which is irrelevant to server,
-        so nothing sent to server."""
-        self.focus.rotate(Vec3(updown * 100 * time.dt, 0, 0))
-
-    def start_mouse_rotation(self):
-        self.prev_mouse_position = mouse.position
-
-    def handle_mouse_rotation(self):
-        """Updates self.mouse_y_rotation according to mouse rotation.
+    def update_mouse_y_rotation(self, amt):
+        """Updates self.mouse_y_rotation with rotation obtained from mouse movement
 
         Does not update the character's rotation directly, instead this
         quantity is stored cumulatively over one physics tick period, then
         used to determine the next target_rot."""
-        offset = mouse.position - self.prev_mouse_position
-        self.prev_mouse_position = mouse.position
-        vel = Vec3(-1 * offset[1], offset[0] * math.cos(math.radians(self.focus.rotation_x)), 0)
-        mouse_rotation = vel * 200
-        self.focus.rotation_x += mouse_rotation[0]
-        self.mouse_y_rotation += mouse_rotation[1]
+        self.mouse_y_rotation += amt
 
     def do_jump(self):
         if self.character is None:
             return
         self.character.start_jump()
         network.peer.request_jump(network.server_connection)
-
-    def zoom_in(self):
-        self.camdistance = max(self.camdistance - 1, 0)
-
-    def zoom_out(self):
-        self.camdistance = min(self.camdistance + 1, 75)
 
     def update_lerp_attrs(self, sequence_number, pos, rot):
         """Updates target pos/rot to resynchronize after client-side prediction"""
