@@ -7,28 +7,15 @@ dt = PHYSICS_UPDATE_RATE
 
 # PUBLIC
 def set_gravity_vel(char):
-    """If not grounded and not jumping, subtract y (linear in time) from velocity vector"""
+    """If not grounded and not jumping, subtract y from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
-    if not char.grounded and not char.jumping:
-        grav -= Vec3(0, 5, 0)
+    if not char.grounded:
+        grav -= Vec3(0, 100, 0) * dt
+        # Don't use fixed value because dt might change
+        # grav -= Vec3(0, 5, 0)
     else:
         grav = Vec3(0, 0, 0)
     char.velocity_components["gravity"] = grav
-
-def set_jump_vel(char):
-    """If jumping add, some y to jump velocity vector"""
-    # Meant to simulate the actual act of jumping, ie feet still touching ground
-    if char.jumping:
-        disp_y = char.max_jump_height / char.max_jump_time * dt
-        if char.rem_jump_height - disp_y <= 0:
-            disp_y = char.rem_jump_height - disp_y
-            char.cancel_jump()
-        else:
-            char.rem_jump_height -= disp_y
-        jump_disp = Vec3(0, disp_y, 0)
-    else:
-        jump_disp = Vec3(0, 0, 0)
-    char.displacement_components["jump"] = jump_disp
 
 def get_displacement(char):
     """Takes the sum of all character's velocity components, multiplies by dt, and applies physics"""
@@ -51,9 +38,11 @@ def apply_physics(char, displacement, ignore=[]):
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
             displacement = direction * dot(direction, displacement.normalized()) * disp_norm
             char.grounded = True
+            char.cancel_jump()
         else:
             if not char.grounded:
                 char.grounded = True
+                char.cancel_jump()
                 displacement = ray.world_point - char.world_position + Vec3(0, 1e-3, 0)
                 return displacement
             # Intersection of the plane ax + by + cz = 0 with the plane defined by (0, 0, 0),

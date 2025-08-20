@@ -25,7 +25,6 @@ class MovementSystem(Entity):
         movement_state = self.movement_states[char.uuid]
         # Assumed that keyboard component gets set by a client
         set_gravity_vel(char)
-        set_jump_vel(char)
         displacement = get_displacement(char)
         char.position += displacement
         char.velocity_components["keyboard"] = Vec3(0, 0, 0)

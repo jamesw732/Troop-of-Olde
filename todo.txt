@@ -34,8 +34,6 @@ identical, just that this one layer of functionality should be shared between th
     - CharacterController, singleton class that loops over active characters and processes
     physics on "globally" accessible velocity components to obtain a target
     position/rotation, and lerps every frame.
-    - CameraController, singleton class that handles camera collision. Inputhandler would interface
-    to this for inputs.
 
 
 Refactor controllers into a System

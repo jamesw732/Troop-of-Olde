@@ -61,7 +61,6 @@ class PlayerController(Entity):
             return
         # Client-side prediction for movement/rotation
         set_gravity_vel(char)
-        set_jump_vel(char)
         displacement = get_displacement(char)
         # Store the previous/next target position for LERPING
         # Technically lagged behind by one step of PHYSICS_UPDATE_RATE
@@ -118,7 +117,9 @@ class PlayerController(Entity):
         network.peer.request_jump(network.server_connection)
 
     def update_lerp_attrs(self, sequence_number, pos, rot):
-        """Updates target pos/rot to resynchronize after client-side prediction"""
+        """Updates target pos/rot to resynchronize after client-side prediction
+
+        Rename to: update_server_offset"""
         if sequence_number > self.recv_sequence_number:
             self.recv_sequence_number = sequence_number
             for num in self.sn_to_pos.copy():

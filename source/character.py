@@ -41,15 +41,14 @@ class Character(Entity):
         self.health -= amt
 
     def start_jump(self):
-        """Do the things required to make the character jump"""
+        """Set jumping velocity and grounded flag"""
         if self.grounded:
-            self.jumping = True
             self.grounded = False
+            self.velocity_components["jump"] = Vec3(0, 25, 0)
 
     def cancel_jump(self):
-        """Reset self.jumping, remaining jump height"""
-        self.jumping = False
-        self.rem_jump_height = self.max_jump_height
+        """Set jumping velocity to zero"""
+        self.velocity_components["jump"] = Vec3(0, 0, 0)
 
     def set_target(self, target):
         if self.target is not target:
