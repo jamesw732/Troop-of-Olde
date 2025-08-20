@@ -117,6 +117,7 @@ class World:
         self.power_system.char = self.gamestate.pc
         self.combat_manager.pc = self.gamestate.pc
         self.namelabel_system.create_namelabel(self.gamestate.pc)
+        self.animation_system.make_animator(self.gamestate.pc)
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
@@ -125,7 +126,7 @@ class World:
             return
         uuid = self.gamestate.pc.uuid
         char = self.uuid_to_char[uuid]
-        self.gamestate.pc_ctrl = PlayerController(char, self.animation_system)
+        self.gamestate.pc_ctrl = PlayerController(char)
         self.uuid_to_ctrl[uuid] = self.gamestate.pc_ctrl
         self.gamestate.cam_ctrl = CameraController(char)
 
@@ -136,6 +137,7 @@ class World:
         new_char = ClientCharacter(**init_dict)
         self.uuid_to_char[new_char.uuid] = new_char
         self.namelabel_system.create_namelabel(new_char)
+        self.animation_system.make_animator(new_char)
         if self.gamestate.pc:
             self.gamestate.pc.ignore_traverse.append(new_char.clickbox)
         return new_char
@@ -144,7 +146,7 @@ class World:
         """Makes an npc controller while updating uuid map.
         Relies on make_npc being called"""
         char = self.uuid_to_char[uuid]
-        self.uuid_to_ctrl[uuid] = NPCController(char, self.animation_system)
+        self.uuid_to_ctrl[uuid] = NPCController(char)
 
 
 world = World()

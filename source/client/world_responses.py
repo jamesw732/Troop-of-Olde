@@ -159,21 +159,21 @@ def update_rotation(connection, time_received, uuid: int, rot: Vec3):
 # Animation
 @rpc(network.peer)
 def remote_start_run_anim(connection, time_received, uuid: int):
-    ctrl = world.uuid_to_ctrl.get(uuid)
-    if ctrl is None:
+    if uuid not in world.gamestate.uuid_to_anim:
         return
-    ctrl.animator.start_run_cycle()
+    anim = world.gamestate.uuid_to_anim[uuid]
+    anim.start_run_cycle()
 
 @rpc(network.peer)
 def remote_end_run_anim(connection, time_received, uuid: int):
-    ctrl = world.uuid_to_ctrl.get(uuid)
-    if ctrl is None:
+    if uuid not in world.gamestate.uuid_to_anim:
         return
-    ctrl.animator.end_run_cycle()
+    anim = world.gamestate.uuid_to_anim[uuid]
+    anim.end_run_cycle()
 
 @rpc(network.peer)
 def remote_do_attack_anim(connection, time_received, uuid: int, slot: str):
-    ctrl = world.uuid_to_ctrl.get(uuid)
-    if ctrl is None:
+    if uuid not in world.gamestate.uuid_to_anim:
         return
-    ctrl.animator.do_attack(slot)
+    anim = world.gamestate.uuid_to_anim[uuid]
+    anim.do_attack(slot)

@@ -1,6 +1,5 @@
 from ursina import *
 
-from .animator import CharacterAnimator
 from .. import *
 
 
@@ -9,15 +8,13 @@ class PlayerController(Entity):
 
     Handles client-side movement physics and interpolation, network updates.
     """
-    def __init__(self, character, animation_system, on_destroy=lambda: None):
+    def __init__(self, character):
         super().__init__()
         self.character = character
-        self.animator = animation_system.make_animator(self.character)
         # Uncomment this and shadow handling in world_responses to see network synchronization
         # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
         #                      color=color.yellow, rotation=self.character.rotation,
         #                      position=self.character.position)
-        self.on_destroy=on_destroy
         # The sequence number of movement inputs
         self.sequence_number = 0
         # The most recent relayed sequence number
@@ -96,11 +93,6 @@ class PlayerController(Entity):
         keyboard_direction = Vec2(strafe, fwdback)
         network.peer.request_move(conn, self.sequence_number, keyboard_direction,
                                      rightleft_rot, self.mouse_y_rotation)
-        # Start run animation
-        if fwdback != 0 or strafe != 0:
-            self.animator.start_run_cycle()
-        else:
-            self.animator.end_run_cycle()
 
     def update_mouse_y_rotation(self, amt):
         """Updates self.mouse_y_rotation with rotation obtained from mouse movement
@@ -150,12 +142,10 @@ class NPCController(Entity):
     To the client, anything besides the player character is an NPC. Even other players.
     Handles client-side updates and linearly interpolates for smoothness.
     Future: Handles animations."""
-    def __init__(self, character, animation_system, on_destroy=lambda: None):
+    def __init__(self, character):
         super().__init__()
         self.character = character
-        self.animator = animation_system.make_animator(self.character)
         self._init_lerp_attrs()
-        self.on_destroy = on_destroy
 
     def update(self):
         # Lerp attrs updated by network.peer.update_npc_lerp_attrs

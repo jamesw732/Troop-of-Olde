@@ -82,6 +82,12 @@ class InputHandler(Entity):
         # Keyboard Rotation
         rightleft_rot = held_keys['rotate_right'] - held_keys['rotate_left']
         ctrl.update_movement_inputs(fwdback, strafe, rightleft_rot)
+        animator = world.gamestate.uuid_to_anim[ctrl.character.uuid]
+        # Start run animation
+        if fwdback != 0 or strafe != 0:
+            animator.start_run_cycle()
+        else:
+            animator.end_run_cycle()
 
     @every(POWER_UPDATE_RATE)
     def tick_queued_power(self):
