@@ -25,26 +25,6 @@ class PlayerController(Entity):
         self.mouse_y_rotation = 0
         self.rot_offset = 0 # Predicted difference from server's rotation
 
-    def update_keyboard_inputs(self, fwdback, strafe, rightleft_rot):
-        """Update local keyboard velocity and target rotation, send
-        request for server to do the same
-
-        Performed at the end of the frame, and relies on handle_mouse_rotation
-        to correctly update target_rot according to mouse rotation."""
-        # Local updates
-        char = self.character
-        # Keyboard velocity
-        char_speed = get_speed_modifier(char.speed)
-        kb_vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
-        char.velocity_components["keyboard"] = kb_vel
-        # Keyboard rotation
-        self.keyboard_y_rotation = rightleft_rot
-        # Server update
-        conn = network.server_connection
-        keyboard_direction = Vec2(strafe, fwdback)
-        network.peer.request_move(conn, self.sequence_number, keyboard_direction,
-                                     rightleft_rot, self.mouse_y_rotation)
-
     @every(PHYSICS_UPDATE_RATE)
     def tick_movement(self):
         """Update target position/rotation on a fixed interval"""
@@ -65,6 +45,21 @@ class PlayerController(Entity):
         self.mouse_y_rotation = 0
         self.sequence_number += 1
 
+    def update_keyboard_inputs(self, fwdback, strafe, rightleft_rot):
+        """Updates keyboard velocity and y rotation, and sends request to server to move."""
+        char = self.character
+        # Keyboard velocity
+        char_speed = get_speed_modifier(char.speed)
+        kb_vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
+        char.velocity_components["keyboard"] = kb_vel
+        # Keyboard rotation
+        self.keyboard_y_rotation = rightleft_rot
+        # Server update
+        conn = network.server_connection
+        keyboard_direction = Vec2(strafe, fwdback)
+        network.peer.request_move(conn, self.sequence_number, keyboard_direction,
+                                     rightleft_rot, self.mouse_y_rotation)
+
     def update_mouse_y_rotation(self, amt):
         """Updates self.mouse_y_rotation with rotation obtained from mouse movement
 
@@ -72,12 +67,6 @@ class PlayerController(Entity):
         quantity is stored cumulatively over one physics tick period, then
         used to determine the next target_rot."""
         self.mouse_y_rotation += amt
-
-    def do_jump(self):
-        if self.character is None:
-            return
-        char_start_jump(self.character)
-        network.peer.request_jump(network.server_connection)
 
     def update_server_offsets(self, sequence_number, pos, rot):
         """Updates diff between server's pos/rot and client's pos/rot"""
@@ -101,6 +90,12 @@ class PlayerController(Entity):
         predicted_rot = self.sn_to_rot.get(sequence_number, rot)
         rot_offset = rot - predicted_rot
         self.rot_offset = rot_offset
+
+    def do_jump(self):
+        if self.character is None:
+            return
+        char_start_jump(self.character)
+        network.peer.request_jump(network.server_connection)
 
 
 class NPCController:
