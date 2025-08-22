@@ -11,31 +11,25 @@ class PlayerController(Entity):
     def __init__(self, character):
         super().__init__()
         self.character = character
-        # Uncomment this and shadow handling in world_responses to see network synchronization
-        # self.shadow = Entity(origin=(0, 0, 0), scale=self.character.scale, model='humanoid.glb',
-        #                      color=color.yellow, rotation=self.character.rotation,
-        #                      position=self.character.position)
         # The sequence number of movement inputs
         self.sequence_number = 0
         # The most recent relayed sequence number
         self.recv_sequence_number = 0
-        # Current targets to lerp to
-        self.target_pos = self.character.position
-        self.target_rot = self.character.rotation_y
-        self.mouse_y_rotation = 0
-        # Previous positions/rotations to lerp from
-        self.prev_pos = self.character.position
-        self.prev_rot = self.character.rotation_y
         # Remember the position/rotation when we sent sequence numbers
         self.sn_to_pos = {}
         self.sn_to_rot = {}
-        # Differences between what the server calculated and what we calculated at the most recently received
-        # sequence number. Replaced with zeros for offsets smaller than some epsilon.
-        self.rot_offset = 0
-        # Timer used for interpolating between physics ticks
+        # Previous positions/rotations to lerp from
+        self.prev_pos = self.character.position
+        self.prev_rot = self.character.rotation_y
+        # Current targets to lerp to
+        self.target_pos = self.character.position
+        self.target_rot = self.character.rotation_y
+        # Components to build target rotation
+        self.keyboard_y_rotation = 0
+        self.mouse_y_rotation = 0
+        self.rot_offset = 0 # Predicted difference from server's rotation
+        # Timer used for interpolating position/rotation, counts up to PHYSICS_UPDATE_RATE
         self.predict_timer = 0
-        # Amount of time it should take client to match server given no inputs
-        self.offset_duration = 0.5
 
     def update(self):
         char = self.character
@@ -49,30 +43,7 @@ class PlayerController(Entity):
         self.character.rotation_x = 0
         self.character.rotation_z = 0
 
-    @every(PHYSICS_UPDATE_RATE)
-    def tick_physics(self):
-        """Process movement inputs and send request to move to server.
-        Update predicted physical state and reset lerp timer."""
-        char = self.character
-        if char is None:
-            return
-        # Client-side prediction for movement/rotation
-        set_gravity_vel(char)
-        displacement = get_displacement(char)
-        # Store the previous/next target position for LERPING
-        # Technically lagged behind by one step of PHYSICS_UPDATE_RATE
-        self.prev_pos = char.position
-        self.target_pos = char.position + displacement
-        self.sn_to_pos[self.sequence_number] = self.target_pos
-        # Just some necessary bookkeeping things
-        self.predict_timer = 0
-        char.displacement_components["server_offset"] = Vec3(0, 0, 0)
-        self.rot_offset = 0
-        self.mouse_y_rotation = 0
-        self.sn_to_rot[self.sequence_number] = self.target_rot
-        self.sequence_number += 1
-
-    def update_movement_inputs(self, fwdback, strafe, rightleft_rot):
+    def update_keyboard_inputs(self, fwdback, strafe, rightleft_rot):
         """Update local keyboard velocity and target rotation, send
         request for server to do the same
 
@@ -84,15 +55,38 @@ class PlayerController(Entity):
         char_speed = get_speed_modifier(char.speed)
         kb_vel = (char.right * strafe + char.forward * fwdback).normalized() * 10 * char_speed
         char.velocity_components["keyboard"] = kb_vel
-        # Target rotation
-        rotation = rightleft_rot * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
-        self.prev_rot = self.target_rot
-        self.target_rot = char.rotation_y + rotation + self.rot_offset
+        # Keyboard rotation
+        self.keyboard_y_rotation = rightleft_rot
         # Server update
         conn = network.server_connection
         keyboard_direction = Vec2(strafe, fwdback)
         network.peer.request_move(conn, self.sequence_number, keyboard_direction,
                                      rightleft_rot, self.mouse_y_rotation)
+
+    @every(PHYSICS_UPDATE_RATE)
+    def tick_movement(self):
+        """Update target position/rotation on a fixed interval"""
+        char = self.character
+        if char is None:
+            return
+        # Client-side prediction for movement/rotation
+        set_gravity_vel(char)
+        displacement = get_displacement(char)
+        # Update target position, lag behind by one timestep
+        self.prev_pos = char.position
+        self.target_pos = char.position + displacement
+        self.sn_to_pos[self.sequence_number] = self.target_pos
+        # Target rotation
+        rotation = self.keyboard_y_rotation * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
+        self.prev_rot = self.target_rot
+        self.target_rot = char.rotation_y + rotation + self.rot_offset
+        self.sn_to_rot[self.sequence_number] = self.target_rot
+        # Just some necessary bookkeeping things
+        self.predict_timer = 0
+        char.displacement_components["server_offset"] = Vec3(0, 0, 0)
+        self.rot_offset = 0
+        self.mouse_y_rotation = 0
+        self.sequence_number += 1
 
     def update_mouse_y_rotation(self, amt):
         """Updates self.mouse_y_rotation with rotation obtained from mouse movement
@@ -122,8 +116,6 @@ class PlayerController(Entity):
             # Always take the most recent sequence number
             # Alternatively, reject completely if it's old
             sequence_number = self.recv_sequence_number
-        # self.shadow.position = pos
-        # self.shadow.rotation_y = rot
         # Compute the offset amt for position
         # sn_to_pos is missing sequence_number on startup
         predicted_pos = self.sn_to_pos.get(sequence_number, pos)

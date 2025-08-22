@@ -81,7 +81,7 @@ class InputHandler(Entity):
         strafe = held_keys['strafe_right'] - held_keys['strafe_left']
         # Keyboard Rotation
         rightleft_rot = held_keys['rotate_right'] - held_keys['rotate_left']
-        ctrl.update_movement_inputs(fwdback, strafe, rightleft_rot)
+        ctrl.update_keyboard_inputs(fwdback, strafe, rightleft_rot)
         animator = world.gamestate.uuid_to_anim[ctrl.character.uuid]
         # Start run animation
         if fwdback != 0 or strafe != 0:
