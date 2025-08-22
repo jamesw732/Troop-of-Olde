@@ -13,35 +13,20 @@ class PlayerController(Entity):
         self.character = character
         # The sequence number of movement inputs
         self.sequence_number = 0
-        # The most recent relayed sequence number
+        # The most recent received sequence number
         self.recv_sequence_number = 0
         # Remember the position/rotation when we sent sequence numbers
         self.sn_to_pos = {}
         self.sn_to_rot = {}
-        # Previous positions/rotations to lerp from
-        self.prev_pos = self.character.position
-        self.prev_rot = self.character.rotation_y
-        # Current targets to lerp to
-        self.target_pos = self.character.position
-        self.target_rot = self.character.rotation_y
         # Components to build target rotation
         self.keyboard_y_rotation = 0
         self.mouse_y_rotation = 0
         self.rot_offset = 0 # Predicted difference from server's rotation
         # Timer used for interpolating position/rotation, counts up to PHYSICS_UPDATE_RATE
-        self.predict_timer = 0
+        self.lerp_state = LerpState(character)
 
     def update(self):
-        char = self.character
-        # Predict position by interpolating between physics ticks
-        self.predict_timer += time.dt
-        pct = min(self.predict_timer / PHYSICS_UPDATE_RATE, 1)
-        char.position = lerp(self.prev_pos, self.target_pos, pct)
-        # Predict character y rotation, enforce camera x rotation
-        char.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
-        # Fix character rotation
-        self.character.rotation_x = 0
-        self.character.rotation_z = 0
+        self.lerp_state.lerp(time.dt)
 
     def update_keyboard_inputs(self, fwdback, strafe, rightleft_rot):
         """Update local keyboard velocity and target rotation, send
@@ -73,16 +58,11 @@ class PlayerController(Entity):
         set_gravity_vel(char)
         displacement = get_displacement(char)
         # Update target position, lag behind by one timestep
-        self.prev_pos = char.position
-        self.target_pos = char.position + displacement
-        self.sn_to_pos[self.sequence_number] = self.target_pos
-        # Target rotation
-        rotation = self.keyboard_y_rotation * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
-        self.prev_rot = self.target_rot
-        self.target_rot = char.rotation_y + rotation + self.rot_offset
-        self.sn_to_rot[self.sequence_number] = self.target_rot
+        target_pos = char.position + displacement
+        input_rot = self.keyboard_y_rotation * 100 * PHYSICS_UPDATE_RATE + self.mouse_y_rotation
+        target_rot = char.rotation_y + input_rot + self.rot_offset
+        self.lerp_state.update_targets(target_pos, target_rot)
         # Just some necessary bookkeeping things
-        self.predict_timer = 0
         char.displacement_components["server_offset"] = Vec3(0, 0, 0)
         self.rot_offset = 0
         self.mouse_y_rotation = 0
@@ -102,10 +82,8 @@ class PlayerController(Entity):
         self.character.start_jump()
         network.peer.request_jump(network.server_connection)
 
-    def update_lerp_attrs(self, sequence_number, pos, rot):
-        """Updates target pos/rot to resynchronize after client-side prediction
-
-        Rename to: update_server_offset"""
+    def update_server_offsets(self, sequence_number, pos, rot):
+        """Updates diff between server's pos/rot and client's pos/rot"""
         if sequence_number > self.recv_sequence_number:
             self.recv_sequence_number = sequence_number
             for num in self.sn_to_pos.copy():
@@ -137,7 +115,14 @@ class NPCController(Entity):
     def __init__(self, character):
         super().__init__()
         self.character = character
-        self._init_lerp_attrs()
+        self.prev_pos = Vec3(0, 0, 0)
+        self.prev_rot = 0
+        self.target_pos = Vec3(0, 0, 0)
+        self.target_rot = 0
+        self.prev_lerp_recv = 0
+        self.lerping = False
+        self.lerp_rate = 0
+        self.lerp_timer = 0.2
 
     def update(self):
         # Lerp attrs updated by network.peer.update_npc_lerp_attrs
@@ -154,17 +139,6 @@ class NPCController(Entity):
                 self.character.position = lerp(self.prev_pos, self.target_pos, pct)
                 self.character.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
     
-    def _init_lerp_attrs(self):
-        """Initialize lerp logic"""
-        self.prev_pos = Vec3(0, 0, 0)
-        self.prev_rot = 0
-        self.target_pos = Vec3(0, 0, 0)
-        self.target_rot = 0
-        self.prev_lerp_recv = 0
-        self.lerping = False
-        self.lerp_rate = 0
-        self.lerp_timer = 0.2
-
     def update_lerp_attrs(self, time_received, pos, rot):
         self.prev_pos = self.target_pos
         self.target_pos = pos
@@ -178,3 +152,35 @@ class NPCController(Entity):
             self.character.position = pos
             self.character.rotation_y = rot
 
+
+class LerpState:
+    def __init__(self, character):
+        self.character = character
+        # Previous positions/rotations to lerp from
+        self.prev_pos = self.character.position
+        self.prev_rot = self.character.rotation_y
+        # Current targets to lerp to
+        self.target_pos = self.character.position
+        self.target_rot = self.character.rotation_y
+        self.lerp_timer = 0
+        self.lerp_time = PHYSICS_UPDATE_RATE
+
+    def lerp(self, dt):
+        self.lerp_timer += dt
+        pct = min(1, self.lerp_timer / self.lerp_time)
+        self.character.position = lerp(self.prev_pos, self.target_pos, pct)
+        self.character.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
+        # Fix character rotation
+        self.character.rotation_x = 0
+        self.character.rotation_z = 0
+
+    def update_targets(self, pos, rot, time=PHYSICS_UPDATE_RATE):
+        """Updates target position/rotation and resets lerp timer"""
+        self.character.position = self.prev_pos
+        self.character.rotation_y = self.prev_rot
+        self.prev_pos = self.target_pos
+        self.target_pos = pos
+        self.prev_rot = self.target_rot
+        self.target_rot = rot
+        self.lerp_timer = 0
+        self.lerp_time = time

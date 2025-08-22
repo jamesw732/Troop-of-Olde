@@ -139,7 +139,7 @@ def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: V
     # print(pos)
     # print(world.gamestate.pc.position)
     controller = world.gamestate.pc_ctrl
-    controller.update_lerp_attrs(sequence_number, pos, rot)
+    controller.update_server_offsets(sequence_number, pos, rot)
 
 @rpc(network.peer)
 def update_pos_rot(connection, time_received, uuid: int, pos: Vec3, rot: Vec3):
