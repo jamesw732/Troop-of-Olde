@@ -40,16 +40,6 @@ class Character(Entity):
         """Function to be used whenever decreasing character's health"""
         self.health -= amt
 
-    def start_jump(self):
-        """Set jumping velocity and grounded flag"""
-        if self.grounded:
-            self.grounded = False
-            self.velocity_components["jump"] = Vec3(0, 25, 0)
-
-    def cancel_jump(self):
-        """Set jumping velocity to zero"""
-        self.velocity_components["jump"] = Vec3(0, 0, 0)
-
     def set_target(self, target):
         if self.target is not target:
             target.targeted_by.append(self)

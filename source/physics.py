@@ -6,6 +6,15 @@ from .base import PHYSICS_UPDATE_RATE, sqnorm, dot
 dt = PHYSICS_UPDATE_RATE
 
 # PUBLIC
+def char_start_jump(char):
+    if char.grounded:
+        char.grounded = False
+        char.velocity_components["jump"] = Vec3(0, 25, 0)
+
+def char_end_jump(char):
+    """Set jumping velocity to zero"""
+    char.velocity_components["jump"] = Vec3(0, 0, 0)
+
 def set_gravity_vel(char):
     """If not grounded and not jumping, subtract y from velocity vector"""
     grav = char.velocity_components.get("gravity", Vec3(0, 0, 0))
@@ -38,11 +47,11 @@ def apply_physics(char, displacement, ignore=[]):
             direction = Vec3(normal[2], 0, -normal[0]).normalized()
             displacement = direction * dot(direction, displacement.normalized()) * disp_norm
             char.grounded = True
-            char.cancel_jump()
+            char_end_jump(char)
         else:
             if not char.grounded:
                 char.grounded = True
-                char.cancel_jump()
+                char_end_jump(char)
                 displacement = ray.world_point - char.world_position + Vec3(0, 1e-3, 0)
                 return displacement
             # Intersection of the plane ax + by + cz = 0 with the plane defined by (0, 0, 0),

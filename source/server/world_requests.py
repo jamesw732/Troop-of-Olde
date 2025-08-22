@@ -59,7 +59,7 @@ def request_move(connection, time_received, sequence_number: int, kb_direction: 
 def request_jump(connection, time_received):
     uuid = network.connection_to_uuid[connection]
     char = world.uuid_to_char[uuid]
-    char.start_jump()
+    char_start_jump(char)
 
 # COMBAT
 @rpc(network.peer)

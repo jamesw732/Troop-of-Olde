@@ -76,7 +76,7 @@ class PlayerController(Entity):
     def do_jump(self):
         if self.character is None:
             return
-        self.character.start_jump()
+        char_start_jump(self.character)
         network.peer.request_jump(network.server_connection)
 
     def update_server_offsets(self, sequence_number, pos, rot):
