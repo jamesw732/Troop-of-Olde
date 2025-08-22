@@ -39,6 +39,10 @@ class CleanupManager(Entity):
         animator = self.gamestate.uuid_to_anim[uuid]
         del animator.actor
         del self.gamestate.uuid_to_anim[uuid]
+        # Clean up the lerp state
+        lerp_state = self.gamestate.uuid_to_lerp[uuid]
+        del lerp_state.character
+        del self.gamestate.uuid_to_lerp[uuid]
 
     def cleanup_npc(self, uuid):
         char = self.gamestate.uuid_to_char[uuid]
@@ -65,5 +69,9 @@ class CleanupManager(Entity):
         animator = self.gamestate.uuid_to_anim[uuid]
         del animator.actor
         del self.gamestate.uuid_to_anim[uuid]
+        # Clean up the lerp state
+        lerp_state = self.gamestate.uuid_to_lerp[uuid]
+        del lerp_state.character
+        del self.gamestate.uuid_to_lerp[uuid]
 
 

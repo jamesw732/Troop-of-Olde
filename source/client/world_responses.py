@@ -126,7 +126,7 @@ def update_npc_lerp_attrs(connection, time_received, uuid: int, pos: Vec3, rot: 
     controller = world.uuid_to_ctrl.get(uuid)
     if controller is None:
         return
-    controller.update_lerp_attrs(time_received, pos, rot)
+    controller.update_lerp_targets(time_received, pos, rot)
 
 @rpc(network.peer)
 def update_pc_lerp_attrs(connection, time_received, sequence_number: int, pos: Vec3, rot: float):

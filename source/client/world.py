@@ -12,6 +12,7 @@ from .combat_manager import CombatManager
 from .controllers import PlayerController, NPCController
 from .gamestate import GameState
 from .items_manager import ItemsManager
+from .lerp_system import LerpSystem
 from .namelabel_system import NameLabelSystem
 from .power_system import PowerSystem
 from .ui import ui
@@ -35,6 +36,7 @@ class World:
         self.combat_manager = CombatManager(self.animation_system)
         self.items_manager = ItemsManager(self.gamestate, self.animation_system)
         self.namelabel_system = NameLabelSystem(self.gamestate)
+        self.lerp_system = LerpSystem(self.gamestate)
 
         glb_models = glob.glob("*.glb", root_dir=models_path)
         for path in glb_models:
@@ -118,6 +120,7 @@ class World:
         self.combat_manager.pc = self.gamestate.pc
         self.namelabel_system.create_namelabel(self.gamestate.pc)
         self.animation_system.make_animator(self.gamestate.pc)
+        self.lerp_system.make_lerp_state(self.gamestate.pc)
 
     def make_pc_ctrl(self):
         """Makes the player character controller while updating uuid map.
@@ -126,7 +129,8 @@ class World:
             return
         uuid = self.gamestate.pc.uuid
         char = self.uuid_to_char[uuid]
-        self.gamestate.pc_ctrl = PlayerController(char)
+        lerp_state = self.gamestate.uuid_to_lerp[uuid]
+        self.gamestate.pc_ctrl = PlayerController(char, lerp_state)
         self.uuid_to_ctrl[uuid] = self.gamestate.pc_ctrl
         self.gamestate.cam_ctrl = CameraController(char)
 
@@ -138,7 +142,9 @@ class World:
         self.uuid_to_char[new_char.uuid] = new_char
         self.namelabel_system.create_namelabel(new_char)
         self.animation_system.make_animator(new_char)
+        self.lerp_system.make_lerp_state(new_char)
         if self.gamestate.pc:
+            # Hmm... figure out a better way to do this
             self.gamestate.pc.ignore_traverse.append(new_char.clickbox)
         return new_char
 
@@ -146,7 +152,8 @@ class World:
         """Makes an npc controller while updating uuid map.
         Relies on make_npc being called"""
         char = self.uuid_to_char[uuid]
-        self.uuid_to_ctrl[uuid] = NPCController(char)
+        lerp_state = self.gamestate.uuid_to_lerp[uuid]
+        self.uuid_to_ctrl[uuid] = NPCController(char, lerp_state)
 
 
 world = World()

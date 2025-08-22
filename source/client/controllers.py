@@ -4,13 +4,15 @@ from .. import *
 
 
 class PlayerController(Entity):
-    """Controller for the player character.
+    """Singleton class that processes movement inputs to update character position/rotation.
 
-    Handles client-side movement physics and interpolation, network updates.
-    """
-    def __init__(self, character):
+    Does not update these attributes directly, instead interfaces to lerp_system.LerpState
+    to update target attributes and smoothly interpolate each frame. Movement uses client-side
+    prediction with correction for server updates."""
+    def __init__(self, character, lerp_state):
         super().__init__()
         self.character = character
+        self.lerp_state = lerp_state
         # The sequence number of movement inputs
         self.sequence_number = 0
         # The most recent received sequence number
@@ -22,11 +24,6 @@ class PlayerController(Entity):
         self.keyboard_y_rotation = 0
         self.mouse_y_rotation = 0
         self.rot_offset = 0 # Predicted difference from server's rotation
-        # Timer used for interpolating position/rotation, counts up to PHYSICS_UPDATE_RATE
-        self.lerp_state = LerpState(character)
-
-    def update(self):
-        self.lerp_state.lerp(time.dt)
 
     def update_keyboard_inputs(self, fwdback, strafe, rightleft_rot):
         """Update local keyboard velocity and target rotation, send
@@ -106,81 +103,22 @@ class PlayerController(Entity):
         self.rot_offset = rot_offset
 
 
-class NPCController(Entity):
-    """Controller for all client-side Characters besides the player character.
+class NPCController:
+    """Provides an interface for updating NPC position and rotation.
 
-    To the client, anything besides the player character is an NPC. Even other players.
-    Handles client-side updates and linearly interpolates for smoothness.
-    Future: Handles animations."""
-    def __init__(self, character):
-        super().__init__()
+    Does not update these attributes directly, instead interfaces to lerp_system.LerpState
+    to update "target" attributes and interpolate smoothly between frames."""
+    def __init__(self, character, lerp_state):
         self.character = character
-        self.prev_pos = Vec3(0, 0, 0)
-        self.prev_rot = 0
-        self.target_pos = Vec3(0, 0, 0)
-        self.target_rot = 0
-        self.prev_lerp_recv = 0
-        self.lerping = False
-        self.lerp_rate = 0
-        self.lerp_timer = 0.2
+        self.lerp_state = lerp_state
+        self.prev_recv_t = 0
 
-    def update(self):
-        # Lerp attrs updated by network.peer.update_npc_lerp_attrs
-        if self.lerping:
-            self.lerp_timer += time.dt
-            # If timer finished, just apply the new attrs
-            if self.lerp_timer >= self.lerp_rate:
-                self.lerping = False
-                self.character.position = self.target_pos
-                self.character.rotation_y = self.target_rot
-            # Otherwise, LERP normally
-            else:
-                pct = self.lerp_timer / self.lerp_rate
-                self.character.position = lerp(self.prev_pos, self.target_pos, pct)
-                self.character.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
-    
-    def update_lerp_attrs(self, time_received, pos, rot):
-        self.prev_pos = self.target_pos
-        self.target_pos = pos
-        self.prev_rot = self.target_rot
-        self.target_rot = rot
-        if pos - self.prev_pos != Vec3(0, 0, 0) or rot - self.prev_rot != 0:
-            self.lerping = True
-            self.lerp_rate = time_received - self.prev_lerp_recv
-            self.prev_lerp_recv = time_received
-            self.lerp_timer = 0
-            self.character.position = pos
-            self.character.rotation_y = rot
+    def update_lerp_targets(self, time_received, pos, rot):
+        """Updates targets for self.lerp_state
 
-
-class LerpState:
-    def __init__(self, character):
-        self.character = character
-        # Previous positions/rotations to lerp from
-        self.prev_pos = self.character.position
-        self.prev_rot = self.character.rotation_y
-        # Current targets to lerp to
-        self.target_pos = self.character.position
-        self.target_rot = self.character.rotation_y
-        self.lerp_timer = 0
-        self.lerp_time = PHYSICS_UPDATE_RATE
-
-    def lerp(self, dt):
-        self.lerp_timer += dt
-        pct = min(1, self.lerp_timer / self.lerp_time)
-        self.character.position = lerp(self.prev_pos, self.target_pos, pct)
-        self.character.rotation_y = lerp_angle(self.prev_rot, self.target_rot, pct)
-        # Fix character rotation
-        self.character.rotation_x = 0
-        self.character.rotation_z = 0
-
-    def update_targets(self, pos, rot, time=PHYSICS_UPDATE_RATE):
-        """Updates target position/rotation and resets lerp timer"""
-        self.character.position = self.prev_pos
-        self.character.rotation_y = self.prev_rot
-        self.prev_pos = self.target_pos
-        self.target_pos = pos
-        self.prev_rot = self.target_rot
-        self.target_rot = rot
-        self.lerp_timer = 0
-        self.lerp_time = time
+        We don't have control over when we receive server updates,
+        so make lerp interval time-dependent.
+        """
+        lerp_time = time_received - self.prev_recv_t
+        self.prev_recv_t = time_received
+        self.lerp_state.update_targets(pos, rot, lerp_time)
