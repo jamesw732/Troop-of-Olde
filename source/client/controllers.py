@@ -69,7 +69,8 @@ class PlayerController(Entity):
         self.mouse_y_rotation += amt
 
     def update_server_offsets(self, sequence_number, pos, rot):
-        """Updates diff between server's pos/rot and client's pos/rot"""
+        """Updates diff between server's pos/rot and client's pos/rot from a past moment
+        in time"""
         if sequence_number > self.recv_sequence_number:
             self.recv_sequence_number = sequence_number
             for num in self.sn_to_pos.copy():
@@ -92,6 +93,7 @@ class PlayerController(Entity):
         self.rot_offset = rot_offset
 
     def do_jump(self):
+        """Update character's velocity components from a jump input, tell server"""
         if self.character is None:
             return
         char_start_jump(self.character)
@@ -99,10 +101,7 @@ class PlayerController(Entity):
 
 
 class NPCController:
-    """Provides an interface for updating NPC position and rotation.
-
-    Does not update these attributes directly, instead interfaces to lerp_system.LerpState
-    to update "target" attributes and interpolate smoothly between frames."""
+    """Provides a network-facing interface for updating NPC movement/rotation targets"""
     def __init__(self, character, lerp_state):
         self.character = character
         self.lerp_state = lerp_state
@@ -111,8 +110,11 @@ class NPCController:
     def update_lerp_targets(self, time_received, pos, rot):
         """Updates targets for self.lerp_state
 
-        We don't have control over when we receive server updates,
-        so make lerp interval time-dependent.
+        Deduces a time interval for LERPing by subtracting previous packet time by
+        this packet's timestamp. This is likely to be wrong when latency is irregular.
+        time_received: timestamp of this packet
+        pos: target position
+        rot: target rotation
         """
         lerp_time = time_received - self.prev_recv_t
         self.prev_recv_t = time_received

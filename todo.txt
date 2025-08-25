@@ -16,31 +16,10 @@ Optimize systems/managers
 
 
 Client:
-Make Controllers single-responsibility:
-- Organize parts of Controllers so that PlayerController and NPCController can be merged.
-Is it even correct to merge PlayerController and NPCController?
-I think yes, at least on the level of "LERP between previous and target position" since that
-functionality is shared. They're not being merged in the sense that their behavior will be
-identical, just that this one layer of functionality should be shared between them.
-    - Client's inputs which update velocity_components["keyboard"] and rotation stuff
-    - Server's inputs which update displacement_components["server_offset"] and rot_offset
-    - Physics engine which computes the predicted target position/rotation
-    - Lerp engine which just interpolates character position between physics update ticks
-    - The camera's controller which basically just handles collision
-  - Potential solution:
-    - PlayerController, singleton class (assigned to player character) that InputHandler
-    interfaces to for movement input logic, simply writes velocity components and
-    rotation stuff.
-    - CharacterController, singleton class that loops over active characters and processes
-    physics on "globally" accessible velocity components to obtain a target
-    position/rotation, and lerps every frame.
-
-
-Refactor controllers into a System
-- Make MovementSystem class
 Make Characters single-responsibility:
 - ItemsManager (move item functionality from Character)
 - StatSystem
+- Consider moving things out of init_char_attrs and into small per-character classes
 Move System/Manager-level functionality away from World:
 - Character creation?
 - CleanupManager
@@ -51,9 +30,7 @@ Seems unnecessary, could just bake the logic into AnimationSystem. Maybe rename 
 to AnimationState?
 
 
-As part of making Characters single-responsibility, I should plan to separate all attrs that
-are isolatable to a single System, but nothing more. This should keep the Character's scope pretty
-small while not obfuscating any behavior.
+
 
 
 EffectSystem Notes:
