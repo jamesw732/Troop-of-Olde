@@ -81,7 +81,7 @@ class State(dict):
         dst: Character or container object, this may expand"""
         for k, v in self.items():
             setattr(dst, k, v)
-    
+
     def apply_diff(self, dst, remove=False):
         """Apply attrs to a destination object by adding/subtracting the attrs
         

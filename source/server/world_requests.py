@@ -107,7 +107,7 @@ def request_move_item(connection, time_received, item_id: int, to_container_name
     item = world.inst_id_to_item[item_id]
     from_container = item.container
     from_slot = item.slot
-    char.container_swap_locs(to_container, to_slot, from_container, from_slot)
+    container_swap_locs(char, to_container, to_slot, from_container, from_slot)
 
     equipment = [item.inst_id if item is not None else -1 for item in char.equipment]
     inventory = [item.inst_id if item is not None else -1 for item in char.inventory]

@@ -75,17 +75,17 @@ class ItemsSystem(Entity):
                     option = item.leftclick
                     if option == "equip":
                         char = self.char
-                        other_slot = self.char.find_auto_equip_slot(item)
+                        other_slot = find_auto_equip_slot(char, item)
                         other_container = char.equipment
                     if option == "unequip":
                         char = self.char
-                        other_slot = self.char.find_auto_inventory_slot()
+                        other_slot = find_auto_inventory_slot(char)
                         other_container = char.inventory
                 # Clicked and released on another box
                 else:
                     other_slot = hovered_slot
                     other_container = drop_box.container
-                self.char.container_swap_locs(other_container, other_slot, my_container, my_slot)
+                container_swap_locs(self.char, other_container, other_slot, my_container, my_slot)
                 self.update_item_icons()
                 conn = network.server_connection
                 network.peer.request_move_item(conn, item.inst_id, other_container.name, other_slot)

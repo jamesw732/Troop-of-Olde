@@ -4,7 +4,7 @@ Implementation todo list.
 Refactor Character/Controllers to not carry pretty much all of the game logic.
 High-level todo list:
 Server:
-Make Character single-responsibility:
+eake Character single-responsibility:
 - ItemsManager
 - StatManager
 Move System/Manager-level logic away from World
@@ -42,6 +42,9 @@ Move Effect deletion into EffectSystem
     - Would prefer to send fewer individual network calls. Send all messages and cbstate updates
     as homogeneous lists... probably time to give up on separating player/npc combat states.
     Would it be good to somehow merge CombatSystem and EffectSystem network updates?
+- Might need to push stat change stuff into EffectSystem, or at least wrap those functions
+in EffectSystem so that EffectSystem can do the stat changes (this is all because of the
+upcoming StatManager class)
 
 
 CombatSystem/Manager Notes:

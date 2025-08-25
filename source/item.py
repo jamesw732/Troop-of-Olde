@@ -84,3 +84,99 @@ class Container(list):
 
     def __repr__(self):
         return str([repr(item) for item in self])
+
+
+def find_auto_equip_slot(char, item):
+    """Finds the equipment slot to auto equip item to"""
+    exclude_slots = set()
+    for slot in item.info["equip_slots"]:
+        cur_item = char.equipment[slot]
+        if cur_item is None and slot not in exclude_slots:
+            return slot
+        elif cur_item is not None:
+            exclude_slots |= set(cur_item.info["equip_exclude_slots"])
+    return item.info["equip_slots"][0]
+
+def find_auto_inventory_slot(char):
+    """Finds the inventory slot to auto place item to"""
+    try:
+        return next((s for s, item in enumerate(char.inventory) if item is None))
+    except StopIteration:
+        return -1
+
+def container_swap_locs(char, to_container, to_slot, from_container, from_slot):
+    """Swap two indices of containers (possibly same or different) if possible.
+
+    Handles specific-container logic such as equipping 2-handed weapons removing offhand.
+    """
+    item1 = from_container[from_slot]
+    if item1 is None:
+        # Should be safe to assume otherwise, but just in case
+        return
+    item2 = to_container[to_slot]
+    initial_swaps = [(item1, to_container, to_slot, from_container, from_slot),
+                     (item2, from_container, from_slot, to_container, to_slot)]
+    # Dict mapping tgt container name to src container name to (item, tgt slot, src slot)
+    # Essentially a table of tgt container by src container
+    move_dict = dict()
+    def move_dict_insert(item, tgt_container, tgt_slot, src_container, src_slot):
+        """Takes a move in flat structure and puts it in move_dict"""
+        if tgt_container.name not in move_dict:
+            move_dict[tgt_container.name] = {}
+        if src_container.name not in move_dict[tgt_container.name]:
+            move_dict[tgt_container.name][src_container.name] = []
+        move_dict[tgt_container.name][src_container.name].append((item, tgt_slot, src_slot))
+    for item, tgt_container, tgt_slot, src_container, src_slot in initial_swaps:
+        move_dict_insert(item, tgt_container, tgt_slot, src_container, src_slot)
+    # Compute all consequences of moving item to equipment, particularly for 2h
+    if "equipment" in move_dict:
+        if "inventory" in move_dict["equipment"]:
+            moves = move_dict["equipment"]["inventory"]
+            for item, tgt_slot, src_slot in list(moves):
+                if item is None:
+                    continue
+                # Unequip items equipped to slots used by this item
+                for exclude_slot in item.info["equip_exclude_slots"]:
+                    item_to_move = char.equipment[exclude_slot]
+                    if item_to_move is None:
+                        continue
+                    empty_inv_slot = find_auto_inventory_slot(char)
+                    if empty_inv_slot < 0:
+                        return
+                    move_dict_insert(item_to_move, char.inventory, empty_inv_slot,
+                                     char.equipment, exclude_slot)
+                    move_dict_insert(None, char.equipment, exclude_slot,
+                                     char.inventory, empty_inv_slot)
+                # Unequip items equipped to another slot that need tgt_slot
+                for slot, multislot_item in enumerate(char.equipment):
+                    if multislot_item is None:
+                        continue
+                    for exclude_slot in multislot_item.info["equip_exclude_slots"]:
+                        if exclude_slot == tgt_slot:
+                            move_dict_insert(multislot_item, char.inventory, src_slot,
+                                             char.equipment, slot)
+                            move_dict_insert(None, char.equipment, slot,
+                                             char.inventory, src_slot)
+    # Validate equipment moves
+    for src_container, moves in move_dict.get("equipment", {}).items():
+        for item, tgt_slot, src_slot in moves:
+            if item is None:
+                continue
+            if tgt_slot not in item.info["equip_slots"]:
+                return
+    # Perform all moves, case by case
+    for item, tgt_slot, src_slot in move_dict.get("equipment", {}).get("inventory", {}):
+        char.equipment[tgt_slot] = item
+        if item is not None:
+            item.leftclick = "unequip"
+            item.stats.apply_diff(char)
+    for item, tgt_slot, src_slot in move_dict.get("equipment", {}).get("equipment", {}):
+        char.equipment[tgt_slot] = item
+    for item, tgt_slot, src_slot in move_dict.get("inventory", {}).get("equipment", {}):
+        char.inventory[tgt_slot] = item
+        if item is not None:
+            item.leftclick = "equip" # This may need some better logic some day
+            item.stats.apply_diff(char, remove=True)
+    for item, tgt_slot, src_slot in move_dict.get("inventory", {}).get("inventory", {}):
+        char.inventory[tgt_slot] = item
+    char.update_max_ratings()
