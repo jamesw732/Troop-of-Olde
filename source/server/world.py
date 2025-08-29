@@ -8,6 +8,7 @@ from .combat_system import CombatSystem
 from .death_system import DeathSystem
 from .effect_system import EffectSystem
 from .gamestate import GameState
+from .items_manager import ItemsManager
 from .movement_system import MovementSystem
 from .power_system import PowerSystem
 from ..power import Power
@@ -23,7 +24,6 @@ class World:
 
         self.gamestate = GameState()
         self.uuid_counter = 0
-        self.item_inst_id_ct = 0
         self.uuid_to_char = self.gamestate.uuid_to_char
         self.uuid_to_ctrl = self.gamestate.uuid_to_ctrl
         self.inst_id_to_item = self.gamestate.inst_id_to_item
@@ -31,6 +31,7 @@ class World:
         self.combat_system = CombatSystem(self.gamestate)
         self.death_system = DeathSystem(self.gamestate)
         self.effect_system = EffectSystem(self.gamestate)
+        self.items_manager = ItemsManager(self.gamestate)
         self.power_system = PowerSystem(self.gamestate, self.effect_system)
         self.movement_system = MovementSystem(self.gamestate)
 
@@ -67,13 +68,13 @@ class World:
             if key in login_state.statedef:
                 init_dict[key] = login_state[key]
         # Make equipment
-        items = [self.make_item(item_mnem) if item_mnem != ""  else None
+        items = [self.items_manager.make_item(item_mnem) if item_mnem != ""  else None
                  for item_mnem in login_state["equipment"]]
         items += [None] * (len(items) - num_equipment_slots)
         equipment = Container("equipment", items)
         init_dict["equipment"] = equipment
         # Make inventory
-        items = [self.make_item(item_mnem) if item_mnem != "" else None
+        items = [self.items_manager.make_item(item_mnem) if item_mnem != "" else None
                  for item_mnem in login_state["inventory"]]
         items += [None] * (len(items) - num_inventory_slots)
         inventory = Container("inventory", items)
@@ -116,16 +117,6 @@ class World:
         new_char = ServerCharacter(**init_dict)
         self.uuid_to_char[new_char.uuid] = new_char
         return new_char
-
-    def make_item(self, item_mnem):
-        inst_id = self.item_inst_id_ct
-        self.item_inst_id_ct += 1
-        def on_destroy():
-            del self.inst_id_to_item[inst_id]
-        item = Item(item_mnem, inst_id, on_destroy=on_destroy)
-        self.inst_id_to_item[inst_id] = item
-        return item
-    
 
 
 world = World()
