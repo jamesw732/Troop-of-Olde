@@ -1,51 +1,45 @@
 Implementation todo list.
 
 ===========================ACTIVE===============================
-Refactor Character/Controllers to not carry pretty much all of the game logic.
+# High-level todo list:
+## Shared interface
+Reduce responsibilities of Character
+- ItemsManager (move item functionality from Character)
+- StatSystem
+- Consider moving things out of init_char_attrs and into small per-character classes
 
-Active: Reduce responsibilities of Character
-### Stats
-- Need to refactor some modules to make a higher-level StatManager class feasible
-Basically any low-level module can't directly touch stats
-Refactor the following to refer to stat change functions in a higher-level class:
-    - Item (new ItemsManager class)
-    - Effect (existing EffectSystem class)
-- Add StatManager and point ItemsManager/EffectSystem to it:
-    - Move apply_diff from State into StatManager
-    - Move all Character methods for stat changes into StatManager
-### GCD
-- I'd like if the gcd methods weren't in Character
-### Line of sight
-- get_tgt_los should get moved somewhere else... maybe physics? Both CombatSystem
-and PowerSystem should use it.
-
-
-
-
-High-level todo list:
-Server:
-Move System/Manager-level logic away from World
-- Character creation?
+## Server
+Move System-level logic away from World
 - CleanupManager
+- CharacterManager for character creation? Maybe merge with CleanupManager?
 Optimize systems/managers
 - EffectSystem networking and loop
 - CombatSystem networking and loop
 
-
-Client:
-Make Characters single-responsibility:
-- ItemsManager (move item functionality from Character)
-- StatSystem
-- Consider moving things out of init_char_attrs and into small per-character classes
+## Client
 Move System/Manager-level functionality away from World:
-- Character creation?
-- CleanupManager
+- CharacterManager for character creation? Maybe merge with CleanupManager?
 Optimize systems/managers
 - CombatManager probably needs to do more, currently being bypassed in some places
 - Should AnimationSystem just be a wrapper for CharacterAnimator (like it currently is)?
 Seems unnecessary, could just bake the logic into AnimationSystem. Maybe rename CharacterAnimator
 to AnimationState?
-
+----------------------------------------------------------------------------
+# CURRENT
+Reduce responsibilities of Character
+## Stats
+- Need to refactor some modules to make a higher-level StatManager class feasible
+Basically any low-level module can't directly touch stats
+Refactor the following to refer to stat change functions in a higher-level class:
+    - Item (new ItemsManager class)
+- Add StatManager and point ItemsManager/EffectSystem to it:
+    - Move apply_diff from State into StatManager
+    - Move all Character methods for stat changes into StatManager
+## GCD
+- I'd like if the gcd methods weren't in Character
+## Line of sight
+- get_tgt_los should get moved somewhere else... maybe physics? Both CombatSystem
+and PowerSystem should use it.
 
 
 

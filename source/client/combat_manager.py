@@ -21,6 +21,9 @@ class CombatManager(Entity):
         network.peer.request_toggle_combat(network.server_connection)
 
     def char_set_target(self, char, tgt):
+        # Do client-side characters need to know who they're targeted by?
+        # if char.target is not tgt:
+        #     tgt.targeted_by.append(char)
         char.target = tgt
 
     def char_set_in_combat(self, char, toggle):
