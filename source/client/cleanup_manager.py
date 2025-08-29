@@ -26,7 +26,6 @@ class CleanupManager(Entity):
         pc_ctrl = self.gamestate.pc_ctrl
         self.gamestate.pc_ctrl = None
         del self.gamestate.uuid_to_ctrl[uuid]
-        del pc_ctrl.animator
         destroy(pc_ctrl.focus)
         del pc_ctrl.focus
         destroy(pc_ctrl)
@@ -58,8 +57,6 @@ class CleanupManager(Entity):
         # Clean up Controller... maybe separate this out into a separate method
         ctrl = self.gamestate.uuid_to_ctrl[uuid]
         del self.gamestate.uuid_to_ctrl[uuid]
-        del ctrl.animator
-        destroy(ctrl)
         # Clean up NameLabel
         namelabel = self.gamestate.uuid_to_labl[uuid]
         del namelabel.char
