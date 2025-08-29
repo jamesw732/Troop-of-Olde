@@ -15,13 +15,12 @@ class UI:
 
     def make_all_ui(self, world):
         char = world.gamestate.pc
-        power_system = world.power_system
 
-        self.items_system = ItemsSystem(char)
+        self.items_system = ItemsSystem(char, world.items_manager)
         self.bars = BarWindow(char)
         self.playerwindow = PlayerWindow(char, self.items_system)
         self.gamewindow = GameWindow()
-        self.actionbar = ActionBar(char, power_system)
+        self.actionbar = ActionBar(char, world.power_system)
 
 
 ui = UI()

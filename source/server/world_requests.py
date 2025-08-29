@@ -95,7 +95,6 @@ def request_use_power(connection, time_received, inst_id: int):
     power = world.power_system.inst_id_to_power[inst_id]
     world.power_system.char_use_power(char, power)
 
-
 # ITEMS
 @rpc(network.peer)
 def request_move_item(connection, time_received, item_id: int, to_container_name: str, to_slot: int):
@@ -107,7 +106,8 @@ def request_move_item(connection, time_received, item_id: int, to_container_name
     item = world.inst_id_to_item[item_id]
     from_container = item.container
     from_slot = item.slot
-    container_swap_locs(char, to_container, to_slot, from_container, from_slot)
+    move_dict = get_move_dict(char, to_container, to_slot, from_container, from_slot)
+    world.items_manager.perform_item_moves(char, move_dict)
 
     equipment = [item.inst_id if item is not None else -1 for item in char.equipment]
     inventory = [item.inst_id if item is not None else -1 for item in char.inventory]

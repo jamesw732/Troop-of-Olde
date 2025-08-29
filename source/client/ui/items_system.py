@@ -6,9 +6,10 @@ from ... import *
 
 class ItemsSystem(Entity):
     """Owns all ItemFrames and ItemIcons, and handles visual item movement."""
-    def __init__(self, char):
+    def __init__(self, char, items_manager):
         super().__init__()
         self.char = char
+        self.items_manager = items_manager
         self.inst_id_to_item_icon = {}
         self.item_frames = {}
 
@@ -85,7 +86,8 @@ class ItemsSystem(Entity):
                 else:
                     other_slot = hovered_slot
                     other_container = drop_box.container
-                container_swap_locs(self.char, other_container, other_slot, my_container, my_slot)
+                move_dict = get_move_dict(self.char, other_container, other_slot, my_container, my_slot)
+                self.items_manager.perform_item_moves(self.char, move_dict)
                 self.update_item_icons()
                 conn = network.server_connection
                 network.peer.request_move_item(conn, item.inst_id, other_container.name, other_slot)

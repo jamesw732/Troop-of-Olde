@@ -104,15 +104,12 @@ def find_auto_inventory_slot(char):
     except StopIteration:
         return -1
 
-def container_swap_locs(char, to_container, to_slot, from_container, from_slot):
-    """Swap two indices of containers (possibly same or different) if possible.
-
-    Handles specific-container logic such as equipping 2-handed weapons removing offhand.
-    """
+def get_move_dict(char, to_container, to_slot, from_container, from_slot):
+    """Returns a dict of item moves in the format {to_container_name: {from_container_name: item}}"""
     item1 = from_container[from_slot]
     if item1 is None:
         # Should be safe to assume otherwise, but just in case
-        return
+        return {}
     item2 = to_container[to_slot]
     initial_swaps = [(item1, to_container, to_slot, from_container, from_slot),
                      (item2, from_container, from_slot, to_container, to_slot)]
@@ -142,7 +139,7 @@ def container_swap_locs(char, to_container, to_slot, from_container, from_slot):
                         continue
                     empty_inv_slot = find_auto_inventory_slot(char)
                     if empty_inv_slot < 0:
-                        return
+                        return {}
                     move_dict_insert(item_to_move, char.inventory, empty_inv_slot,
                                      char.equipment, exclude_slot)
                     move_dict_insert(None, char.equipment, exclude_slot,
@@ -163,20 +160,5 @@ def container_swap_locs(char, to_container, to_slot, from_container, from_slot):
             if item is None:
                 continue
             if tgt_slot not in item.info["equip_slots"]:
-                return
-    # Perform all moves, case by case
-    for item, tgt_slot, src_slot in move_dict.get("equipment", {}).get("inventory", {}):
-        char.equipment[tgt_slot] = item
-        if item is not None:
-            item.leftclick = "unequip"
-            item.stats.apply_diff(char)
-    for item, tgt_slot, src_slot in move_dict.get("equipment", {}).get("equipment", {}):
-        char.equipment[tgt_slot] = item
-    for item, tgt_slot, src_slot in move_dict.get("inventory", {}).get("equipment", {}):
-        char.inventory[tgt_slot] = item
-        if item is not None:
-            item.leftclick = "equip" # This may need some better logic some day
-            item.stats.apply_diff(char, remove=True)
-    for item, tgt_slot, src_slot in move_dict.get("inventory", {}).get("inventory", {}):
-        char.inventory[tgt_slot] = item
-    char.update_max_ratings()
+                return {}
+    return move_dict
