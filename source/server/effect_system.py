@@ -35,20 +35,20 @@ class EffectSystem(Entity):
                 effect_msgs = []
                 remove = False
                 if effect.timer == 0:
-                    effect_msgs += effect.apply_start_effects()
-                    effect.apply_persistent_effects()
+                    effect_msgs += self.apply_instant_effects(effect, effect_key="start")
+                    self.apply_persistent_effects(effect)
                     updated_stats = True
                 if not char.alive:
                     remove = True
                 if effect.timer >= effect.duration:
-                    effect.remove_persistent_effects()
-                    effect_msgs += effect.apply_end_effects()
+                    self.remove_persistent_effects(effect)
+                    effect_msgs += self.apply_instant_effects(effect, effect_key="end")
                     remove = True
                     updated_stats = True
                 effect.tick_timer += dt
                 if effect.tick_rate and effect.tick_timer >= effect.tick_rate:
                     effect.tick_timer -= effect.tick_rate
-                    effect_msgs += effect.apply_tick_effects()
+                    effect_msgs += self.apply_instant_effects(effect, effect_key="tick")
                     updated_stats = True
                 effect.timer += dt
                 conn = network.uuid_to_connection.get(effect.src.uuid)
@@ -59,3 +59,43 @@ class EffectSystem(Entity):
                     effect.remove()
             if updated_stats:
                 network.broadcast_cbstate_update(char)
+
+    def apply_persistent_effects(self, effect):
+        """Applies stat changes caused by a persistent effect.
+        These are lasting, they affect the character until this effect is removed."""
+        effect.persistent_state.apply_diff(effect.tgt)
+        effect.tgt.update_max_ratings()
+
+    def remove_persistent_effects(self, effect):
+        """Removes stat changes caused by a persistent effect."""
+        effect.persistent_state.apply_diff(effect.tgt, remove=True)
+        effect.tgt.update_max_ratings()
+
+    def apply_instant_effects(self, effect, effect_key="start"):
+        """Apply one of effect.start_effects, tick_effects, end_effects to effect.tgt
+
+        effect_key is one of "start", "tick", "end"
+        """
+        key_to_effects = {
+            "start": effect.start_effects,
+            "tick": effect.tick_effects,
+            "end": effect.end_effects
+        }
+        effects = key_to_effects.get(effect_key, {})
+        msgs = []
+        for name, val in effects.items():
+            # Get modified value based on src and tgt stats
+            # Consider pulling out into separate function
+            if name == "damage":
+                val -= effect.tgt.armor
+            self.apply_instant_statchange(effect.tgt, name, val)
+            msgs.append(effect.get_msg(name, val))
+        effect.tgt.update_max_ratings()
+        return msgs
+
+    def apply_instant_statchange(self, tgt, name, val):
+        """Helper function for applying a single stat change"""
+        if name == "damage":
+            tgt.reduce_health(val)
+        elif name == "heal":
+            tgt.increase_health(val)

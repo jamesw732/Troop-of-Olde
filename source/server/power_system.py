@@ -54,6 +54,7 @@ class PowerSystem(Entity):
             return
         if src.energy < power.cost:
             return
+        src.energy -= power.cost
         src.start_gcd(power.gcd_duration)
         self.gcd_chars[src.uuid] = src
         power.start_cooldown()

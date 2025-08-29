@@ -2,11 +2,28 @@ Implementation todo list.
 
 ===========================ACTIVE===============================
 Refactor Character/Controllers to not carry pretty much all of the game logic.
+
+Active: Reduce responsibilities of Character
+### Stats
+- Need to refactor some modules to make a higher-level StatManager class feasible
+Basically any low-level module can't directly touch stats
+Refactor the following to refer to stat change functions in a higher-level class:
+    - Item (new ItemsManager class)
+    - Effect (existing EffectSystem class)
+- Add StatManager and point ItemsManager/EffectSystem to it:
+    - Move apply_diff from State into StatManager
+    - Move all Character methods for stat changes into StatManager
+### GCD
+- I'd like if the gcd methods weren't in Character
+### Line of sight
+- get_tgt_los should get moved somewhere else... maybe physics? Both CombatSystem
+and PowerSystem should use it.
+
+
+
+
 High-level todo list:
 Server:
-eake Character single-responsibility:
-- ItemsManager
-- StatManager
 Move System/Manager-level logic away from World
 - Character creation?
 - CleanupManager

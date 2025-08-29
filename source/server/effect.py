@@ -49,7 +49,12 @@ class Effect:
         return True
 
     def apply(self):
-        """Adds this effect to the target, removing duplicates beforehand"""
+        """Adds this effect to the target
+
+        Currently removes duplicates. Uncertain how this should be handled long-term
+        Allow stacking of the same effects? Or maximum of one of the same effect per
+        source character? Or no stacking at all (current)? Or some can stack, some
+        can't?"""
         dupes = [eff for eff in self.tgt.effects if eff == self]
         if len(dupes) > 0:
             for dupe in dupes:
@@ -61,57 +66,6 @@ class Effect:
         self.tgt.effects.remove(self)
         del self.src
         del self.tgt
-
-    def apply_persistent_effects(self):
-        """Applies stat changes caused by a persistent effect.
-        These are lasting, they affect the character until this effect is removed."""
-        self.persistent_state.apply_diff(self.tgt)
-        self.tgt.update_max_ratings()
-
-    def remove_persistent_effects(self):
-        """Removes stat changes caused by a persistent effect."""
-        self.persistent_state.apply_diff(self.tgt, remove=True)
-        self.tgt.update_max_ratings()
-
-    def apply_start_effects(self):
-        """Applies stat changes caused by the start of the effect.
-        Returns messages resulting from  these effects."""
-        return self.apply_instant_effects(self.start_effects)
-
-    def apply_tick_effects(self):
-        """Applies stat changes caused by effects that tick over time.
-        Returns messages resulting from  these effects."""
-        return self.apply_instant_effects(self.tick_effects)
-
-    def apply_end_effects(self):
-        """Applies stat changes caused by the end of the effect.
-        Returns messages resulting from these effects."""
-        return self.apply_instant_effects(self.end_effects)
-
-    def apply_instant_effects(self, effects):
-        """Apply instant type effects.
-        effects: one of self.start_effects, self.tick_effects, self.end_effects
-        """
-        msgs = []
-        for name, val in effects.items():
-            val = self.get_modified_val(name, val)
-            self.apply_subeffect(name, val)
-            msgs.append(self.get_msg(name, val))
-        self.tgt.update_max_ratings()
-        return msgs
-
-    def get_modified_val(self, name, val):
-        """Modify value based on self.src/self.tgt"""
-        if name == "damage":
-            val -= self.tgt.armor
-        return val
-
-    def apply_subeffect(self, name, val):
-        """Helper function for applying all types of effects"""
-        if name == "damage":
-            self.tgt.reduce_health(val)
-        elif name == "heal":
-            self.tgt.increase_health(val)
 
     def get_msg(self, name, val):
         msg = ""
