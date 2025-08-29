@@ -89,7 +89,9 @@ class PowerBar(Entity):
         power = self.char.powers[slot]
         if power is None:
             return
-        self.power_system.handle_power_input(power)
+        used_power = self.power_system.handle_power_input(power)
+        if used_power:
+            self.parent.start_cd_animation()
 
 
 class Timer(Entity):
