@@ -82,18 +82,6 @@ class State(dict):
         for k, v in self.items():
             setattr(dst, k, v)
 
-    def apply_diff(self, dst, remove=False):
-        """Apply attrs to a destination object by adding/subtracting the attrs
-        
-        dst: Character"""
-        for attr, val in self.items():
-            original_val = self._get_val_from_src(attr, dst)
-            if remove:
-                setattr(dst, attr, original_val - val)
-            else:
-                setattr(dst, attr, original_val + val)
-        dst.update_max_ratings()
-
     @classmethod
     def serialize(cls, writer, state):
         for v in state.values():
@@ -229,11 +217,7 @@ class NPCCombatState(State):
 
 
 class Stats(State):
-    """Used for common stat updates from items and effects.
-
-    This State is kind of an anomaly, it's the only one that
-    uses apply_diff and isn't ever sent over the network. It
-    could just be its own object, not connected to States."""
+    """Used for common stat updates from items and effects."""
     statedef = {
         "statichealth": int,
         "staticenergy": int,
