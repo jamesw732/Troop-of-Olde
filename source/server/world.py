@@ -29,13 +29,13 @@ class World:
         self.uuid_to_ctrl = self.gamestate.uuid_to_ctrl
         self.inst_id_to_item = self.gamestate.inst_id_to_item
 
+        self.stat_manager = StatManager(self.gamestate)
         self.combat_system = CombatSystem(self.gamestate)
         self.death_system = DeathSystem(self.gamestate)
         self.effect_system = EffectSystem(self.gamestate)
-        self.items_manager = ItemsManager(self.gamestate)
+        self.items_manager = ItemsManager(self.gamestate, self.stat_manager)
         self.power_system = PowerSystem(self.gamestate, self.effect_system)
         self.movement_system = MovementSystem(self.gamestate)
-        self.stat_manager = StatManager(self.gamestate)
 
     def load_zone(self, file):
         """Load the world by parsing a json
