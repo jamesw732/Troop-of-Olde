@@ -25,21 +25,6 @@ class Character(Entity):
         for attr, val in init_char_attrs.items():
             setattr(self, attr, copy(val))
 
-    def update_max_ratings(self):
-        """Adjust max ratings, for example after receiving a stat update."""
-        self.maxhealth = self.statichealth
-        self.maxenergy = self.staticenergy
-        self.health = min(self.maxhealth, self.health)
-        self.energy = min(self.maxenergy, self.energy)
-
-    def increase_health(self, amt):
-        """Function to be used whenever increasing character's health"""
-        self.health = min(self.maxhealth, self.health + amt)
-
-    def reduce_health(self, amt):
-        """Function to be used whenever decreasing character's health"""
-        self.health -= amt
-
     def set_target(self, target):
         if self.target is not target:
             target.targeted_by.append(self)
