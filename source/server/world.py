@@ -32,7 +32,7 @@ class World:
         self.stat_manager = StatManager(self.gamestate)
         self.combat_system = CombatSystem(self.gamestate)
         self.death_system = DeathSystem(self.gamestate)
-        self.effect_system = EffectSystem(self.gamestate)
+        self.effect_system = EffectSystem(self.gamestate, self.stat_manager)
         self.items_manager = ItemsManager(self.gamestate, self.stat_manager)
         self.power_system = PowerSystem(self.gamestate, self.effect_system)
         self.movement_system = MovementSystem(self.gamestate)

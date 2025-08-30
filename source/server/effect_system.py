@@ -14,11 +14,12 @@ class EffectSystem(Entity):
     Increments timers for all effects across all characters.
     Applies start effects, tick effects, and end effects.
     """
-    def __init__(self, gamestate):
+    def __init__(self, gamestate, stat_manager):
         super().__init__()
         self.chars = gamestate.uuid_to_char.values()
         self.effect_inst_id_counter = 0
         self.inst_id_to_effect = gamestate.inst_id_to_effect
+        self.stat_manager = stat_manager
 
     def make_effect(self, effect_mnem, src, tgt):
         effect = Effect(effect_mnem, src, tgt)
@@ -63,13 +64,11 @@ class EffectSystem(Entity):
     def apply_persistent_effects(self, effect):
         """Applies stat changes caused by a persistent effect.
         These are lasting, they affect the character until this effect is removed."""
-        effect.persistent_state.apply_diff(effect.tgt)
-        effect.tgt.update_max_ratings()
+        self.stat_manager.apply_state_diff(effect.tgt, effect.persistent_state)
 
     def remove_persistent_effects(self, effect):
         """Removes stat changes caused by a persistent effect."""
-        effect.persistent_state.apply_diff(effect.tgt, remove=True)
-        effect.tgt.update_max_ratings()
+        self.stat_manager.apply_state_diff(effect.tgt, effect.persistent_state, remove=True)
 
     def apply_instant_effects(self, effect, effect_key="start"):
         """Apply one of effect.start_effects, tick_effects, end_effects to effect.tgt
@@ -90,12 +89,11 @@ class EffectSystem(Entity):
                 val -= effect.tgt.armor
             self.apply_instant_statchange(effect.tgt, name, val)
             msgs.append(effect.get_msg(name, val))
-        effect.tgt.update_max_ratings()
         return msgs
 
     def apply_instant_statchange(self, tgt, name, val):
         """Helper function for applying a single stat change"""
         if name == "damage":
-            tgt.reduce_health(val)
+            self.stat_manager.reduce_health(tgt, val)
         elif name == "heal":
-            tgt.increase_health(val)
+            self.stat_manager.increase_health(tgt, val)
