@@ -30,7 +30,7 @@ class World:
         self.inst_id_to_item = self.gamestate.inst_id_to_item
 
         self.stat_manager = StatManager(self.gamestate)
-        self.combat_system = CombatSystem(self.gamestate)
+        self.combat_system = CombatSystem(self.gamestate, self.stat_manager)
         self.death_system = DeathSystem(self.gamestate)
         self.effect_system = EffectSystem(self.gamestate, self.stat_manager)
         self.items_manager = ItemsManager(self.gamestate, self.stat_manager)

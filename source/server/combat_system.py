@@ -13,9 +13,10 @@ class CombatSystem(Entity):
     Increments combat timers for all characters that are in combat.
     If timer progresses past weapon's delay, performs an attack.
     """
-    def __init__(self, gamestate):
+    def __init__(self, gamestate, stat_manager):
         super().__init__()
         self.chars = gamestate.uuid_to_char.values()
+        self.stat_manager = stat_manager
 
     @every(dt)
     def tick_combat(self):
@@ -65,7 +66,7 @@ class CombatSystem(Entity):
             return False
         # If hit goes through, get damage and modify health
         dmg = get_damage(src, tgt, wpn, slot)
-        tgt.reduce_health(dmg)
+        self.stat_manager.reduce_health(tgt, dmg)
         msg = f"{src.cname} hits {tgt.cname} for {dmg} damage!"
         if src_conn is not None:
             network.peer.remote_print(src_conn, msg)

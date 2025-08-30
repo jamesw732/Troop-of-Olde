@@ -16,7 +16,7 @@ class StatManager:
     def reduce_health(self, char, amt):
         """Function to be used whenever decreasing character's health
 
-        Todo: If health <= 0, add to list of characters to kill"""
+        Todo: If health <= 0, kill the character"""
         char.health -= amt
 
     def apply_state_diff(self, char, state, remove=False):
