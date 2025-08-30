@@ -28,9 +28,4 @@ class ServerCharacter(Character):
         for key, val in kwargs.items():
             setattr(self, key, val)
 
-        for item in self.equipment:
-            if item is None:
-                continue
-            item.stats.apply_diff(self)
-        self.update_max_ratings()
         self.effects = []

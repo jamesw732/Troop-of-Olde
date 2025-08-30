@@ -11,6 +11,7 @@ from .gamestate import GameState
 from .items_manager import ItemsManager
 from .movement_system import MovementSystem
 from .power_system import PowerSystem
+from .stat_manager import StatManager
 from ..power import Power
 from .. import *
 
@@ -34,6 +35,7 @@ class World:
         self.items_manager = ItemsManager(self.gamestate)
         self.power_system = PowerSystem(self.gamestate, self.effect_system)
         self.movement_system = MovementSystem(self.gamestate)
+        self.stat_manager = StatManager(self.gamestate)
 
     def load_zone(self, file):
         """Load the world by parsing a json
@@ -116,6 +118,12 @@ class World:
         init_dict is obtained from World.make_char_init_dict"""
         new_char = ServerCharacter(**init_dict)
         self.uuid_to_char[new_char.uuid] = new_char
+        # Apply stats from items
+        for item in new_char.equipment:
+            if item is None:
+                continue
+            self.stat_manager.apply_state_diff(new_char, item.stats)
+        self.stat_manager.update_max_ratings(new_char)
         return new_char
 
 

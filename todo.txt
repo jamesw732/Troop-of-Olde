@@ -4,7 +4,7 @@ Implementation todo list.
 # High-level todo list:
 ## Shared interface
 Reduce responsibilities of Character
-- ItemsManager (move item functionality from Character)
+- Add ItemsManager to client/server (move item functionality from Character)
 - StatSystem
 - Consider moving things out of init_char_attrs and into small per-character classes
 
@@ -12,14 +12,14 @@ Reduce responsibilities of Character
 Move System-level logic away from World
 - CleanupManager
 - CharacterManager for character creation? Maybe merge with CleanupManager?
-Optimize systems/managers
-- EffectSystem networking and loop
-- CombatSystem networking and loop
+Clean up/optimize systems/managers
+- EffectSystem should just loop over all effects... might make messages complicated though
+- CombatSystem should loop over only the characters that are in combat
 
 ## Client
 Move System/Manager-level functionality away from World:
 - CharacterManager for character creation? Maybe merge with CleanupManager?
-Optimize systems/managers
+Clean up/optimize systems/managers
 - CombatManager probably needs to do more, currently being bypassed in some places
 - Should AnimationSystem just be a wrapper for CharacterAnimator (like it currently is)?
 Seems unnecessary, could just bake the logic into AnimationSystem. Maybe rename CharacterAnimator
@@ -73,12 +73,6 @@ Character, because that's the exact problem we're trying to solve here... make c
 single-responsibility.
 
 
-
-
-
-
-
-
 ===================================NEXT================================================
 Finish adding animations.
 Animation checklist:
@@ -114,40 +108,17 @@ animator, at least for now.
 
 Once animations are done, I want to continue to make some bigger moves.
 
-- Clean up networking code and game logic. Basically, for every functionality implemented,
-go through it from start to finish and think about what data needs to be transferred.
-The necessary questions for each input are:
-    What does my client need to do?
-    What data does my client need to send to the server?
-    What does the server need to do?
-    What does the server need to send back to my client?
-    What does the server need to send back to other clients?
-    What does my client need to do in response?
-    What do other clients have to do in response?
-Expected changes from thinking about this:
-    - No more broadcast_cbstate_update, in general much more intentional network responses
-    - Proper split between different types of Characters, especially client-side
-
+- Clean up networking code. I dislike broadcast_cbstate_update for example.
+- Fix networking neglects, including disconnects, animations, etc.
 - Flesh out the UI. Add enemy status window (health/energy/effects), add effects to own
 status window, add tooltips to items and powers.
-- Add respawns and looting.
+- Add looting (and respawns?).
 - Add NPC AI logic
-- Fix networking neglects, including disconnects, animations, etc.
+- Work out a proper client-side split between different types of Characters.
 
 
 
 =========================================BACKLOG=================================================
-Generic Code cleanup:
-- Are the client-side on_destroy callbacks necessary?
-    Pros:
-        - Allows destroys to be initiated by controllers
-        - Makes network code not depend directly on destroy logic
-        - Consistent with server, where on_destroy is more essential
-    Cons:
-        - Makes the destroy process more opaque, after all the reason the client
-        should destroy objects is because the server told it to.
-
-
 Networking:
 - Add sequence count to network calls where order of arrival matters, for example
 skill level ups and receiving containers.
@@ -156,12 +127,6 @@ different responses and hoping they arrive in order.
 - Will eventually need to encapsulate server and client creation in Server and Client classes. 
 - Consider moving network to be client/server dependent.
 - Need to fix disconnect, I think can just destroy the controller and character?
-
-
-Player Controller:
-- Jumping is incorrect, not sure exactly what's wrong with it.
-- Camera should probably be handled separately from PlayerController.
-- Consider making PlayerController a singleton not attached to world.
 
 
 Physics:
@@ -193,7 +158,6 @@ Incomplete stat implementations:
 Character:
 - Refine the split between different types of characters.
 Need to handle differences between own player character/other player character/npc
-
 
 
 Powers:
@@ -231,9 +195,6 @@ Architecture:
 happens during creation. Mapping container ids to ItemFrames is a good example of this,
 that will need to be done for all future containers, so the UI should have a function for
 doing that.
-- ItemIcon should eventually be pulled out of items_window.py once items exist outside of 
-the player items window. They should then be created by UI, which should also now store
-inst_id_to_item_icon.
 
 
 Database:
